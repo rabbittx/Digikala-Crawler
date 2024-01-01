@@ -1,0 +1,5 @@
+env
+geckodriver.exe
+*.log
+*.txt
+*.html
