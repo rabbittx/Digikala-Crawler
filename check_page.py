@@ -12,11 +12,7 @@ def has_desired_text(tags,find_text):
 
 soup = BeautifulSoup(page,'html.parser')
 
-ptags = soup.find_all('p',)
 
-text_of = has_desired_text(ptags,'نفر امتیاز داده‌اند')
-target_p = soup.find('p', text='بدون مرجوعی')
-print(target_p.find_previous_sibling('p').text)
 
 products = soup.find_all('div',{'class':'product-list_ProductList__item__LiiNI'})
 
@@ -26,12 +22,17 @@ seller_Membership_period = soup.find('div',{'class':'w-full flex flex-col mr-5'}
 seller_Satisfaction_with_the_goods = soup.find('div',{'class':'styles_SellerOption__optionItem__M141z'}).find('div').find('p',{'class':'text-h3'}).text
 Seller_performance = soup.find('div',{'class':'styles_SellerOption__optionItem__M141z'}).find('div').find('p',{'class':'text-h3'}).text
 
-seller_more_details = {'People have given points':has_desired_text(ptags,'نفر امتیاز داده‌اند').text,
-                      'timely supply':'',
-                      'Obligation to send':'',
-                      'No return':'',
-                      'Introduction of the seller':'',
+
+
+
+seller_more_details = {'People have given points':has_desired_text(soup.find_all('p',),'نفر امتیاز داده‌اند').string.replace('نفر امتیاز داده‌اند',''),
+                      'timely supply':soup.find('p', string='تامین به موقع').find_previous_sibling('p').string,
+                      'Obligation to send':soup.find('p', string='تعهد ارسال').find_previous_sibling('p').string,
+                      'No return':soup.find('p', string='بدون مرجوعی').find_previous_sibling('p').string,
+                      'Introduction of the seller':soup.find('span',string='معرفی فروشنده').find_parent('div').find_parent('div').find_next_sibling('div').text,
                       }
+
+
 
 for product in products:
     product_link = "https://www.digikala.com"+product.find('a')['href']
