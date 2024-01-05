@@ -5,19 +5,28 @@ from bs4 import BeautifulSoup
 with open('soucre.html','r',encoding='utf-8') as file :
     page= file.read()
 
+def has_desired_text(tags,find_text):
+    for element in tags:
+        if find_text in element.text :
+            return element
 
+soup = BeautifulSoup(page,'html.parser')
 
-suop = BeautifulSoup(page,'html.parser')
+ptags = soup.find_all('p',)
 
-products = suop.find_all('div',{'class':'product-list_ProductList__item__LiiNI'})
+text_of = has_desired_text(ptags,'نفر امتیاز داده‌اند')
+target_p = soup.find('p', text='بدون مرجوعی')
+print(target_p.find_previous_sibling('p').text)
 
-seller_name = suop.find('div',{'class':'w-full flex justify-between'}).find('h1',{'class':'text-h5 text-neutral-900 whitespace-nowrap'}).text
-seller_Membership_period = suop.find('div',{'class':'w-full flex flex-col mr-5'}).find('p',{'class':'text-body-2'}).text
+products = soup.find_all('div',{'class':'product-list_ProductList__item__LiiNI'})
 
-seller_Satisfaction_with_the_goods = suop.find('div',{'class':'styles_SellerOption__optionItem__M141z'}).find('div').find('p',{'class':'text-h3'}).text
-Seller_performance = suop.find('div',{'class':'styles_SellerOption__optionItem__M141z'}).find('div').find('p',{'class':'text-h3'}).text
+seller_name = soup.find('div',{'class':'w-full flex justify-between'}).find('h1',{'class':'text-h5 text-neutral-900 whitespace-nowrap'}).text
+seller_Membership_period = soup.find('div',{'class':'w-full flex flex-col mr-5'}).find('p',{'class':'text-body-2'}).text
 
-seller_more_details = {'People have given points':'',
+seller_Satisfaction_with_the_goods = soup.find('div',{'class':'styles_SellerOption__optionItem__M141z'}).find('div').find('p',{'class':'text-h3'}).text
+Seller_performance = soup.find('div',{'class':'styles_SellerOption__optionItem__M141z'}).find('div').find('p',{'class':'text-h3'}).text
+
+seller_more_details = {'People have given points':has_desired_text(ptags,'نفر امتیاز داده‌اند').text,
                       'timely supply':'',
                       'Obligation to send':'',
                       'No return':'',

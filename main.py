@@ -31,7 +31,13 @@ while True:
     if new_height == last_height:
         break
     last_height = new_height
-    page_source = driver.page_source
+
+driver.execute_script("window.scrollTo(0, 0);")
+
+details_elemnt = driver.find_element(By.XPATH,"//p[text()='جزئیات بیشتر']/..")
+time.sleep(1)
+details_elemnt.click()
+page_source = driver.page_source
 
 with open('soucre.html','w',encoding='utf-8') as file :
     file.write(str(page_source))
