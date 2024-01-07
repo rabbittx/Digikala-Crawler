@@ -12,14 +12,14 @@ def has_desired_text(tags,find_text):
 def seller_details(soup):
     return {
             'seller_name':soup.find('h1',{'class':'text-h5 text-neutral-900 whitespace-nowrap'}).text,
-            'seller_Membership_period':soup.find('div',{'class':'w-full flex flex-col mr-5'}).find('p',{'class':'text-body-2'}).text,
-            'seller_Satisfaction_with_the_goods':soup.find('p',string='رضایت از کالاها').find_parent('div').find('p').text,
-            'Seller_performance':soup.find('p',string='عملکرد فروشنده').find_parent('div').find('p').text,
-            'People_have_given_points':has_desired_text(soup.find_all('p',),'نفر امتیاز داده‌اند').string.replace('نفر امتیاز داده‌اند',''),
+            'membership_period':soup.find('div',{'class':'w-full flex flex-col mr-5'}).find('p',{'class':'text-body-2'}).text,
+            'satisfaction_with_goods':soup.find('p',string='رضایت از کالاها').find_parent('div').find('p').text,
+            'seller_performance':soup.find('p',string='عملکرد فروشنده').find_parent('div').find('p').text,
+            'people_have_given_points':has_desired_text(soup.find_all('p',),'نفر امتیاز داده‌اند').string.replace('نفر امتیاز داده‌اند',''),
             'timely_supply':soup.find('p', string='تامین به موقع').find_previous_sibling('p').string,
-            'Obligation_to_send':soup.find('p', string='تعهد ارسال').find_previous_sibling('p').string,
-            'No_return':soup.find('p', string='بدون مرجوعی').find_previous_sibling('p').string,
-            'Introduction_of_the_seller':soup.find('span',string='معرفی فروشنده').find_parent('div').find_parent('div').find_next_sibling('div').text if soup.find('span',string='معرفی فروشنده') else 'info unavailable ',
+            'obligation_to_send':soup.find('p', string='تعهد ارسال').find_previous_sibling('p').string,
+            'no_return':soup.find('p', string='بدون مرجوعی').find_previous_sibling('p').string,
+            'introduction_of_the_seller':soup.find('span',string='معرفی فروشنده').find_parent('div').find_parent('div').find_next_sibling('div').text if soup.find('span',string='معرفی فروشنده') else 'info unavailable ',
            }
 def extract_product_details(product):
     img_element = product.find('picture').find('img', {'class': 'w-full rounded-medium inline-block'})
@@ -31,9 +31,8 @@ def extract_product_details(product):
         product_special_sale = 'special sale' if 'SpecialSell.svg' in (product.find('div', {'class': 'flex items-center justify-start mb-1'}).find('img').get('src', '')) else 'unavailable special sale'
     except AttributeError:
         product_special_sale = 'unavailable special sale'
-
     return {
-        
+        'product_id':product.find('a')['href'].split('/')[2],
         'product_link': "https://www.digikala.com"+product.find('a')['href'],
         'product_image':img_element['src'] if img_element else 'image not found' ,
         'product_rate':rate_element.text if rate_element else 'rate not found',
@@ -58,11 +57,12 @@ def make_seller_details(seller_detail,product_details):
             'Introduction_of_the_seller':seller_detail['Introduction_of_the_seller'],
             'product_details':product_details,
            }
+
 def scan(page_source):
     soup = BeautifulSoup(page_source,'html.parser')
     seller_detail = seller_details(soup)
     product_details = [extract_product_details(product) for product in soup.find_all('div', {'class':'product-list_ProductList__item__LiiNI'})]
-    return make_seller_details(seller_detail,product_details)
+    
 
 
 
