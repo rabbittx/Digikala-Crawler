@@ -38,3 +38,5 @@ class dataBaseHandler():
             stock TEXT
         )
         ''')
+    def close_connction(self):
+        self.conn.close()
