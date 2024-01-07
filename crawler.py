@@ -7,9 +7,9 @@ import sqlite3
 
 class WebScraper:
     
-    def __init__(self, driver_path, base_seller):
+    def __init__(self, driver_path, category_url):
         self.driver = self.initialize_driver(driver_path)
-        self.base_seller = base_seller
+        self.category_url = category_url
         self.conn = sqlite3.connect('seller_data.db')
         self.cursor = self.conn.cursor()
         
@@ -118,13 +118,54 @@ class WebScraper:
             product['seller_name'] = data[0]['seller_name']
             self.update_or_insert_product(product)
 
+
+    def scan_product_category_page(self,url):
+        
+        self.driver.get(url)
+        time.sleep(5)
+        last_height = self.driver.execute_script("return document.body.scrollHeight")
+        for _ in range(2): # set range to 5 , 15 , 30 fast , normal , long
+            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            time.sleep(2)
+            new_height = self.driver.execute_script("return document.body.scrollHeight")
+            if new_height == last_height:
+                break
+            last_height = new_height
+        time.sleep(1)
+        return self.driver.page_source
+
+    def get_product(self,page_source):
+        soup = BeautifulSoup(page_source,'html.parser')
+        product_element_link = soup.find_all('a',{'class':'block cursor-pointer relative bg-neutral-000 overflow-hidden grow py-3 px-4 lg:px-2 h-full styles_VerticalProductCard--hover__ud7aD'})
+        product_link = []
+        for element in product_element_link:
+            link = 'https://www.digikala.com' + element['href']
+            if link not in product_link:
+                product_link.append(link)
+        return product_link
+
+    def find_seller_ids(self,product_link):
+        seller_ids = []
+        for link in product_link:
+            self.driver.get(link)
+            time.sleep(5)
+            div_element = self.driver.find_element(By.XPATH, '//div[@class="flex flex-col lg:mr-3 lg:mb-3 lg:gap-y-2 styles_InfoSection__buyBoxContainer__3nOwP"]')
+            link_element = div_element.find_element(By.XPATH, './/a[@class="styles_Link__RMyqc"]')
+            href_value = link_element.get_attribute('href').split('/')[-2]
+            if href_value not in seller_ids:
+                seller_ids.append(href_value)
+        return seller_ids
+    
     def close_resources(self):
         self.conn.commit()
         self.conn.close()
         self.driver.quit()
 
     def run(self):
-        for seller in self.base_seller:
+        page_source = self.scan_product_category_page(self.category_url)
+        product_link = self.get_product(page_source)
+        base_seller_id = self.find_seller_ids(product_link)
+        for seller in base_seller_id:
             url = f'https://www.digikala.com/seller/{seller}/'
             page_data = self.scan(self.get_seller_source_page(url))
             page_data[0]['seller_id'] = seller
@@ -132,7 +173,10 @@ class WebScraper:
         self.close_resources()
 
 if __name__== "__main__":
+    # TODO adding loggin 
+    # TODO create panle 
+    # TODO 
     geko_path = r'geckodriver.exe'
-    base_seller = ["a9h3m",'cajwj','cgxgh','cwe4n','cskc4','f7k6y','5ajh7']
-    scraper = WebScraper(geko_path, base_seller)
+    category_url = 'https://www.digikala.com/search/category-notebook-netbook-ultrabook/asus/'
+    scraper = WebScraper(geko_path,category_url)
     scraper.run()
