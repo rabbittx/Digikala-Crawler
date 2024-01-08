@@ -3,5 +3,5 @@ old_files
 geckodriver.exe
 __pycache__
 *.log
-*.txt
+*.txt !(requirements.txt)
 *.html

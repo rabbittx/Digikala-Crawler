@@ -196,7 +196,7 @@ class WebScraper:
                     self.log.info(f'[-] Repeat seller ID: {href_value}')
             except Exception as e:
                 self.log.error(f'Error while finding seller ID from {link}: {e}')
-
+        self.log.info(f'[!] seller IDs were found : {len (seller_ids)}')
         return seller_ids
     
     def close_resources(self):
