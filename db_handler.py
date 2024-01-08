@@ -9,6 +9,7 @@ class dataBaseHandler():
         # Create a table for seller information
         self.cursor.execute('''
         CREATE TABLE IF NOT EXISTS sellers (
+            crawl_date TEXT,                 
             seller_name TEXT,
             seller_id TEXT PRIMARY KEY,
             membership_period TEXT,
@@ -40,3 +41,5 @@ class dataBaseHandler():
         ''')
     def close_connction(self):
         self.conn.close()
+
+dataBaseHandler('digikala_db.db').create_tables()

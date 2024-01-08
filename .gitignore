@@ -1,5 +1,7 @@
 env
+old_files
 geckodriver.exe
+__pycache__
 *.log
 *.txt
 *.html
