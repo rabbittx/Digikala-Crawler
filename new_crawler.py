@@ -2,7 +2,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.service import Service
 from selenium import webdriver
 from bs4 import BeautifulSoup
-import sqlite3 ,time
+import sqlite3 ,time , json
 from time import gmtime, strftime
 from logger import setup_logger
 class WebScraper:
@@ -12,7 +12,7 @@ class WebScraper:
 
         self.log.info('Initializing Web Scraper...')
         self.driver = self.initialize_driver(driver_path)
-        self.conn = sqlite3.connect('digikala_db.db')
+        self.conn = sqlite3.connect('digikala_db1.db')
         self.cursor = self.conn.cursor()
 
     def initialize_driver(self, driver_path):
@@ -89,6 +89,7 @@ class WebScraper:
             product_special_sale = 'unavailable special sale'
 
         return {
+            'crawl_date' : strftime("%Y-%m-%d %H:%M:%S", gmtime())  ,
             'product_id':product.find('a')['href'].split('/')[2],
             'product_link': "https://www.digikala.com"+product.find('a')['href'],
             'product_image':img_element['src'] if img_element else 'image not found' ,
@@ -106,38 +107,65 @@ class WebScraper:
         return self.seller_details(soup),[self.extract_product_details(product) for product in soup.find_all('div', {'class':'product-list_ProductList__item__LiiNI'})]
    
     def update_or_insert_seller(self, seller_data):
-        self.cursor.execute('''
-            INSERT INTO sellers (crawl_date,seller_id, seller_name, membership_period, satisfaction_with_goods, seller_performance, people_have_given_points, timely_supply, obligation_to_send, no_return, introduction_of_the_seller)
-            VALUES (:crawl_date,:seller_id, :seller_name, :membership_period, :satisfaction_with_goods, :seller_performance, :people_have_given_points, :timely_supply, :obligation_to_send, :no_return, :introduction_of_the_seller)
-            ON CONFLICT(seller_id) DO UPDATE SET
-            seller_name = excluded.seller_name,
-            membership_period = excluded.membership_period,
-            satisfaction_with_goods = excluded.satisfaction_with_goods,
-            seller_performance = excluded.seller_performance,
-            people_have_given_points = excluded.people_have_given_points,
-            timely_supply = excluded.timely_supply,
-            obligation_to_send = excluded.obligation_to_send,
-            no_return = excluded.no_return,
-            introduction_of_the_seller = excluded.introduction_of_the_seller
-            ''', seller_data)
+        self.cursor.execute('SELECT * FROM sellers WHERE seller_id = ?', (seller_data['seller_id'],))
+        existing_row = self.cursor.fetchone()
+
+        if existing_row:
+            existing_data = self.parse_existing_data(existing_row)
+
+            # اضافه کردن داده‌های جدید به لیست‌های موجود
+            for key, value in seller_data.items():
+                if key in existing_data and isinstance(existing_data[key], list):
+                    if value not in existing_data[key]:
+                        existing_data[key].append(value)
+                    seller_data[key] = json.dumps(existing_data[key])
+
+            # به‌روزرسانی دیتابیس
+            self.update_data('sellers', seller_data, 'seller_id')
+        else:
+            self.insert_data('sellers', seller_data)
 
     def update_or_insert_product(self, product_data):
-        self.cursor.execute('''
-            INSERT INTO products (crawl_date ,seller_name, product_id, product_link, product_image, product_rate, product_name, product_price, product_price_discount_percent, product_price_discount, product_special_sale, stock)
-            VALUES (:crawl_date,:seller_name, :product_id, :product_link, :product_image, :product_rate, :product_name, :product_price, :product_price_discount_percent, :product_price_discount, :product_special_sale, :stock)
-            ON CONFLICT(product_id) DO UPDATE SET
-            seller_name = excluded.seller_name,
-            product_link = excluded.product_link,
-            product_image = excluded.product_image,
-            product_rate = excluded.product_rate,
-            product_name = excluded.product_name,
-            product_price = excluded.product_price,
-            product_price_discount_percent = excluded.product_price_discount_percent,
-            product_price_discount = excluded.product_price_discount,
-            product_special_sale = excluded.product_special_sale,
-            stock = excluded.stock
-            ''', product_data)
+        self.cursor.execute('SELECT * FROM products WHERE product_id = ?', (product_data['product_id'],))
+        existing_row = self.cursor.fetchone()
 
+        if existing_row:
+            existing_data = self.parse_existing_data(existing_row)
+
+            # اضافه کردن داده‌های جدید به لیست‌های موجود
+            for key, value in product_data.items():
+                if key in existing_data and isinstance(existing_data[key], list):
+                    if value not in existing_data[key]:
+                        existing_data[key].append(value)
+                    product_data[key] = json.dumps(existing_data[key])
+
+            # به‌روزرسانی دیتابیس
+            self.update_data('products', product_data, 'product_id')
+        else:
+            self.insert_data('products', product_data)
+
+    def parse_existing_data(self, existing_row):
+        existing_data = {}
+        for col, val in zip(self.cursor.description, existing_row):
+            key = col[0]
+            if val:
+                try:
+                    existing_data[key] = json.loads(val)
+                except json.JSONDecodeError:
+                    existing_data[key] = val
+            else:
+                existing_data[key] = val
+        return existing_data
+
+    def update_data(self, table_name, data, key_field):
+        set_clause = ', '.join([f"{k} = :{k}" for k in data])
+        self.cursor.execute(f'UPDATE {table_name} SET {set_clause} WHERE {key_field} = :{key_field}', data)
+
+    def insert_data(self, table_name, data):
+        columns = ', '.join(data.keys())
+        placeholders = ', '.join([f":{k}" for k in data])
+        self.cursor.execute(f'INSERT INTO {table_name} ({columns}) VALUES ({placeholders})', data)
+    
     def save_to_database(self,  data):
         self.update_or_insert_seller(data[0])
         for product in data[1]:
@@ -221,16 +249,17 @@ class WebScraper:
             self.log.error(f'Error during scraper run: {e}')
             raise
 if __name__== "__main__":
-    # TODO replace time.sleep with WebDriverWait
-    # TODO error handling 
-    # TODO historical data
-    # TODO extract the full data of product
-    # TODO add testing unit
-    # TODO add flask GUI 
-    # TODO add API endpoint 
-    # TODO add data analysis  
+    # TODO replace time.sleep with WebDriverWait -> (TODO)
+    # TODO error handling -> (testing)
+    # TODO historical data -> (testing) 
+    # TODO extract the full data of product -> (TODO)
+    # TODO add testing unit -> (TODO)
+    # TODO add flask GUI -> (TODO) 
+    # TODO add API endpoint -> (TODO) 
+    # TODO add data analysis -> (TODO)
+    #   
     
     geko_path = r'geckodriver.exe'
-    # category_url = 'https://www.digikala.com/search/category-notebook-netbook-ultrabook/asus/'
-    scraper = WebScraper(geko_path)
-    scraper.run()
+    category_url = 'https://www.digikala.com/search/category-notebook-netbook-ultrabook/asus/'
+    scraper = WebScraper(geko_path,)
+    scraper.run(category_url,0)

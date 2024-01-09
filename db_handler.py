@@ -26,6 +26,7 @@ class dataBaseHandler():
         # Create a table for product details
         self.cursor.execute('''
         CREATE TABLE IF NOT EXISTS products (
+            crawl_date TEXT,
             seller_name TEXT,
             product_id TEXT PRIMARY KEY,
             product_link TEXT,
@@ -42,4 +43,4 @@ class dataBaseHandler():
     def close_connction(self):
         self.conn.close()
 
-dataBaseHandler('digikala_db.db').create_tables()
+dataBaseHandler('digikala_db1.db').create_tables()
