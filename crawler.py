@@ -223,7 +223,13 @@ class WebScraper:
 if __name__== "__main__":
     # TODO replace time.sleep with WebDriverWait
     # TODO error handling 
-
+    # TODO historical data
+    # TODO extract the full data of product
+    # TODO add testing unit
+    # TODO add flask GUI 
+    # TODO add API endpoint 
+    # TODO add data analysis  
+    
     geko_path = r'geckodriver.exe'
     # category_url = 'https://www.digikala.com/search/category-notebook-netbook-ultrabook/asus/'
     scraper = WebScraper(geko_path)
