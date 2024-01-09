@@ -43,4 +43,4 @@ class dataBaseHandler():
     def close_connction(self):
         self.conn.close()
 
-dataBaseHandler('digikala_db1.db').create_tables()
+dataBaseHandler('digikala_db2.db').create_tables()

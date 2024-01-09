@@ -12,7 +12,7 @@ class WebScraper:
 
         self.log.info('Initializing Web Scraper...')
         self.driver = self.initialize_driver(driver_path)
-        self.conn = sqlite3.connect('digikala_db1.db')
+        self.conn = sqlite3.connect('digikala_db2.db')
         self.cursor = self.conn.cursor()
 
     def initialize_driver(self, driver_path):
@@ -87,7 +87,12 @@ class WebScraper:
             product_special_sale = 'special sale' if 'SpecialSell.svg' in (product.find('div', {'class': 'flex items-center justify-start mb-1'}).find('img').get('src', '')) else 'unavailable special sale'
         except AttributeError:
             product_special_sale = 'unavailable special sale'
-
+        
+        try :
+            t = product.find('a')['href'].split('/')[2]
+        except :
+            print(product.find('a'))
+        
         return {
             'crawl_date' : strftime("%Y-%m-%d %H:%M:%S", gmtime())  ,
             'product_id':product.find('a')['href'].split('/')[2],
@@ -105,24 +110,30 @@ class WebScraper:
     def scan(self,page_source):
         soup = BeautifulSoup(page_source,'html.parser')
         return self.seller_details(soup),[self.extract_product_details(product) for product in soup.find_all('div', {'class':'product-list_ProductList__item__LiiNI'})]
-   
+        
     def update_or_insert_seller(self, seller_data):
         self.cursor.execute('SELECT * FROM sellers WHERE seller_id = ?', (seller_data['seller_id'],))
         existing_row = self.cursor.fetchone()
 
         if existing_row:
-            existing_data = self.parse_existing_data(existing_row)
+            existing_data = {col[0]: val for col, val in zip(self.cursor.description, existing_row)}
 
-            # اضافه کردن داده‌های جدید به لیست‌های موجود
             for key, value in seller_data.items():
-                if key in existing_data and isinstance(existing_data[key], list):
-                    if value not in existing_data[key]:
-                        existing_data[key].append(value)
-                    seller_data[key] = json.dumps(existing_data[key])
+                if key in existing_data and existing_data[key] is not None:
+                    try:
+                        current_list = json.loads(existing_data[key])
+                        if isinstance(current_list, list) and value not in current_list:
+                            current_list.append(value)
+                            existing_data[key] = json.dumps(current_list)
+                    except json.JSONDecodeError:
+                        existing_data[key] = json.dumps([existing_data[key], value])
+                else:
+                    existing_data[key] = json.dumps([value])
 
-            # به‌روزرسانی دیتابیس
-            self.update_data('sellers', seller_data, 'seller_id')
+            self.update_data('sellers', existing_data, 'seller_id')
         else:
+            for key in seller_data:
+                seller_data[key] = json.dumps([seller_data[key]])
             self.insert_data('sellers', seller_data)
 
     def update_or_insert_product(self, product_data):
@@ -130,32 +141,28 @@ class WebScraper:
         existing_row = self.cursor.fetchone()
 
         if existing_row:
-            existing_data = self.parse_existing_data(existing_row)
+            existing_data = {col[0]: val for col, val in zip(self.cursor.description, existing_row)}
 
-            # اضافه کردن داده‌های جدید به لیست‌های موجود
             for key, value in product_data.items():
-                if key in existing_data and isinstance(existing_data[key], list):
-                    if value not in existing_data[key]:
-                        existing_data[key].append(value)
-                    product_data[key] = json.dumps(existing_data[key])
+                if existing_data.get(key):
+                    try:
+                        # تلاش برای تجزیه JSON
+                        current_data = json.loads(existing_data[key])
+                    except json.JSONDecodeError:
+                        # اگر JSON نامعتبر است، یک لیست جدید ایجاد کنید
+                        current_data = [existing_data[key]] if existing_data[key] else []
 
-            # به‌روزرسانی دیتابیس
-            self.update_data('products', product_data, 'product_id')
+                    if value not in current_data:
+                        current_data.append(value)
+                    existing_data[key] = json.dumps(current_data)
+                else:
+                    existing_data[key] = json.dumps([value])
+
+            self.update_data('products', existing_data, 'product_id')
         else:
+            for key in product_data:
+                product_data[key] = json.dumps([product_data[key]])
             self.insert_data('products', product_data)
-
-    def parse_existing_data(self, existing_row):
-        existing_data = {}
-        for col, val in zip(self.cursor.description, existing_row):
-            key = col[0]
-            if val:
-                try:
-                    existing_data[key] = json.loads(val)
-                except json.JSONDecodeError:
-                    existing_data[key] = val
-            else:
-                existing_data[key] = val
-        return existing_data
 
     def update_data(self, table_name, data, key_field):
         set_clause = ', '.join([f"{k} = :{k}" for k in data])
@@ -164,13 +171,12 @@ class WebScraper:
     def insert_data(self, table_name, data):
         columns = ', '.join(data.keys())
         placeholders = ', '.join([f":{k}" for k in data])
-        self.cursor.execute(f'INSERT INTO {table_name} ({columns}) VALUES ({placeholders})', data)
-    
+        self.cursor.execute(f'INSERT OR REPLACE  INTO {table_name} ({columns}) VALUES ({placeholders})', data)
     def save_to_database(self,  data):
-        self.update_or_insert_seller(data[0])
-        for product in data[1]:
-            product['seller_name'] = data[0]['seller_name']
-            self.update_or_insert_product(product)
+                self.update_or_insert_seller(data[0])
+                for product in data[1]:
+                    product['seller_name'] = data[0]['seller_name']
+                    self.update_or_insert_product(product)
 
     def scan_product_category_page(self,url,scroll_count ):
         try:
@@ -197,7 +203,7 @@ class WebScraper:
             soup = BeautifulSoup(page_source,'html.parser')
             product_element_link = soup.find_all('a',{'class':'block cursor-pointer relative bg-neutral-000 overflow-hidden grow py-3 px-4 lg:px-2 h-full styles_VerticalProductCard--hover__ud7aD'})
             product_link = []
-            for element in product_element_link:
+            for element in product_element_link[:5]:
                 link = 'https://www.digikala.com' + element['href']
                 if link not in product_link:
                     product_link.append(link)
@@ -238,11 +244,12 @@ class WebScraper:
             page_source = self.scan_product_category_page(category_url,scroll_count)
             product_link = self.get_product(page_source)
             base_seller_id = self.find_seller_ids(product_link)
-            for seller in base_seller_id:
-                url = f'https://www.digikala.com/seller/{seller}/'
+            for seller in base_seller_id[:5]:
+                url = f'https://www.digikala.com/seller/{seller}/' 
                 page_data = self.scan(self.get_seller_source_page(url))
                 page_data[0]['seller_id'] = seller
                 self.save_to_database(page_data)
+                self.conn.commit()
             self.close_resources()
             self.log.info('Scraper run completed successfully')
         except Exception as e:
