@@ -12,7 +12,7 @@ class WebScraper:
 
         self.log.info('Initializing Web Scraper...')
         self.driver = self.initialize_driver(driver_path)
-        self.conn = sqlite3.connect('digikala_db2.db')
+        self.conn = sqlite3.connect('digikala_db.db')
         self.cursor = self.conn.cursor()
 
     def initialize_driver(self, driver_path):
@@ -110,68 +110,73 @@ class WebScraper:
     def scan(self,page_source):
         soup = BeautifulSoup(page_source,'html.parser')
         return self.seller_details(soup),[self.extract_product_details(product) for product in soup.find_all('div', {'class':'product-list_ProductList__item__LiiNI'})]
-        
+    def split_id(self,intput_id):
+  
+        return intput_id if ';' not in intput_id else intput_id.split(';')[-1]
+            
     def update_or_insert_seller(self, seller_data):
-        self.cursor.execute('SELECT * FROM sellers WHERE seller_id = ?', (seller_data['seller_id'],))
+     
+        row_id = self.split_id(seller_data['seller_id'])
+        self.cursor.execute('SELECT * FROM sellers WHERE seller_id = ?', (row_id,))
         existing_row = self.cursor.fetchone()
 
         if existing_row:
+            # Create a dictionary from the existing row
             existing_data = {col[0]: val for col, val in zip(self.cursor.description, existing_row)}
+            updated_data = {}
 
             for key, value in seller_data.items():
                 if key in existing_data and existing_data[key] is not None:
-                    try:
-                        current_list = json.loads(existing_data[key])
-                        if isinstance(current_list, list) and value not in current_list:
-                            current_list.append(value)
-                            existing_data[key] = json.dumps(current_list)
-                    except json.JSONDecodeError:
-                        existing_data[key] = json.dumps([existing_data[key], value])
+                    # Append new value to existing values separated by semicolon
+                    updated_data[key] = existing_data[key] + ";" + value
                 else:
-                    existing_data[key] = json.dumps([value])
+                    updated_data[key] = value
 
-            self.update_data('sellers', existing_data, 'seller_id')
+            self.update_data('sellers', updated_data, 'seller_id', row_id)
         else:
-            for key in seller_data:
-                seller_data[key] = json.dumps([seller_data[key]])
             self.insert_data('sellers', seller_data)
 
     def update_or_insert_product(self, product_data):
-        self.cursor.execute('SELECT * FROM products WHERE product_id = ?', (product_data['product_id'],))
+        row_id = self.split_id(product_data['product_id'])
+        self.cursor.execute('SELECT * FROM products WHERE product_id = ?', (row_id,))
         existing_row = self.cursor.fetchone()
 
         if existing_row:
             existing_data = {col[0]: val for col, val in zip(self.cursor.description, existing_row)}
+            updated_data = {}
 
             for key, value in product_data.items():
-                if existing_data.get(key):
-                    try:
-                        # تلاش برای تجزیه JSON
-                        current_data = json.loads(existing_data[key])
-                    except json.JSONDecodeError:
-                        # اگر JSON نامعتبر است، یک لیست جدید ایجاد کنید
-                        current_data = [existing_data[key]] if existing_data[key] else []
-
-                    if value not in current_data:
-                        current_data.append(value)
-                    existing_data[key] = json.dumps(current_data)
+                if key in existing_data and existing_data[key] is not None:
+                    updated_data[key] = existing_data[key] + ";" + value
                 else:
-                    existing_data[key] = json.dumps([value])
+                    updated_data[key] = value
 
-            self.update_data('products', existing_data, 'product_id')
+            self.update_data('products', updated_data, 'product_id', row_id)
         else:
-            for key in product_data:
-                product_data[key] = json.dumps([product_data[key]])
             self.insert_data('products', product_data)
 
-    def update_data(self, table_name, data, key_field):
+    def update_data(self, table_name, data, key_field, key_value_field):
         set_clause = ', '.join([f"{k} = :{k}" for k in data])
-        self.cursor.execute(f'UPDATE {table_name} SET {set_clause} WHERE {key_field} = :{key_field}', data)
+        data[key_field] = key_value_field  # Add the key field value to the data dictionary for binding
+        try:
+            self.cursor.execute(f'UPDATE {table_name} SET {set_clause} WHERE {key_field} = :{key_field}', data)
+            self.conn.commit()  # Commit the changes
+        except Exception as e:
+            self.log.error(f'Error during updating data in {table_name}: {e}')
+            raise
 
     def insert_data(self, table_name, data):
         columns = ', '.join(data.keys())
         placeholders = ', '.join([f":{k}" for k in data])
-        self.cursor.execute(f'INSERT OR REPLACE  INTO {table_name} ({columns}) VALUES ({placeholders})', data)
+        try:
+            self.cursor.execute(f'INSERT INTO {table_name} ({columns}) VALUES ({placeholders})', data)
+            self.conn.commit()  # Commit the changes
+        except Exception as e:
+            self.log.error(f'Error during inserting data into {table_name}: {e}')
+            raise
+
+
+
     def save_to_database(self,  data):
                 self.update_or_insert_seller(data[0])
                 for product in data[1]:
@@ -187,7 +192,7 @@ class WebScraper:
             last_height = self.driver.execute_script("return document.body.scrollHeight")
             for _ in range(scroll_count ): # set range to 5 , 15 , 30 fast , normal , long
                 self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                time.sleep(2)
+                time.sleep(5)
                 new_height = self.driver.execute_script("return document.body.scrollHeight")
                 if new_height == last_height:
                     break
