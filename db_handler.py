@@ -43,4 +43,6 @@ class dataBaseHandler():
     def close_connction(self):
         self.conn.close()
 
-dataBaseHandler('digikala.db').create_tables()
+if __name__ == '__main__':
+    db_path = 'digikala.db'
+    dataBaseHandler(db_path).create_tables()

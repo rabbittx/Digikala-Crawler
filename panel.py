@@ -26,17 +26,21 @@ class WebScraperPanel:
     def export_table_to_csv(self,db_path, table_name, csv_file_path):
         if os.path.exists(csv_file_path):
             os.remove(csv_file_path)
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()   
-        cursor.execute(f"SELECT * FROM {table_name}")
-        columns = [description[0] for description in cursor.description]
-        with open(csv_file_path, 'w', newline='', encoding='utf-8') as csv_file:
-            csv_writer = csv.writer(csv_file)
-            csv_writer.writerow(columns)
-            for row in cursor.fetchall():
-                processed_row = [self.scraper.split_value(val) if isinstance(val, str) else val for val in row]
-                csv_writer.writerow(processed_row)
-
+        if os.path.exists(db_path):
+                
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()   
+            cursor.execute(f"SELECT * FROM {table_name}")
+            columns = [description[0] for description in cursor.description]
+            with open(csv_file_path, 'w', newline='', encoding='utf-8') as csv_file:
+                csv_writer = csv.writer(csv_file)
+                csv_writer.writerow(columns)
+                for row in cursor.fetchall():
+                    processed_row = [self.scraper.split_value(val) if isinstance(val, str) else val for val in row]
+                    csv_writer.writerow(processed_row)
+        else : 
+            print(f'Database "{db_path}" does not exist! - crawl some pages first ')
+            
     def start(self):
         while True:
             choice = self.display_menu()
