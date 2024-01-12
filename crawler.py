@@ -2,17 +2,17 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.service import Service
 from selenium import webdriver
 from bs4 import BeautifulSoup
-import sqlite3 ,time
+import sqlite3 ,time 
 from time import gmtime, strftime
 from logger import setup_logger
 class WebScraper:
     
     def __init__(self, driver_path ):
         self.log = setup_logger()
-
+        self.db_path = 'digikala.db'
         self.log.info('Initializing Web Scraper...')
         self.driver = self.initialize_driver(driver_path)
-        self.conn = sqlite3.connect('digikala_db.db')
+        self.conn = sqlite3.connect(self.db_path)
         self.cursor = self.conn.cursor()
 
     def initialize_driver(self, driver_path):
@@ -55,11 +55,11 @@ class WebScraper:
                 'membership_period':soup.find('div',{'class':'w-full flex flex-col mr-5'}).find('p',{'class':'text-body-2'}).text,
                 'satisfaction_with_goods':soup.find('p',string='رضایت از کالاها').find_parent('div').find('p').text,
                 'seller_performance':soup.find('p',string='عملکرد فروشنده').find_parent('div').find('p').text,
-                'people_have_given_points':self.has_desired_text(soup.find_all('p',),'نفر امتیاز داده‌اند').string.replace('نفر امتیاز داده‌اند','') if self.has_desired_text(soup.find_all('p',),'نفر امتیاز داده‌اند') else 'Uncertain number of votes',
+                'people_have_given_points':self.has_desired_text(soup.find_all('p',),'نفر امتیاز داده‌اند').string.replace('نفر امتیاز داده‌اند','') if self.has_desired_text(soup.find_all('p',),'نفر امتیاز داده‌اند') else ' Uncertain number of votes',
                 'timely_supply':soup.find('p', string='تامین به موقع').find_previous_sibling('p').string,
                 'obligation_to_send':soup.find('p', string='تعهد ارسال').find_previous_sibling('p').string,
                 'no_return':soup.find('p', string='بدون مرجوعی').find_previous_sibling('p').string,
-                'introduction_of_the_seller':soup.find('span',string='معرفی فروشنده').find_parent('div').find_parent('div').find_next_sibling('div').text if soup.find('span',string='معرفی فروشنده') else 'info unavailable ',
+                'introduction_of_the_seller':soup.find('span',string='معرفی فروشنده').find_parent('div').find_parent('div').find_next_sibling('div').text if soup.find('span',string='معرفی فروشنده') else ' info unavailable ',
             }
     
     def extract_product_details(self,product):
@@ -87,8 +87,9 @@ class WebScraper:
             product_special_sale = 'special sale' if 'SpecialSell.svg' in (product.find('div', {'class': 'flex items-center justify-start mb-1'}).find('img').get('src', '')) else 'unavailable special sale'
         except AttributeError:
             product_special_sale = 'unavailable special sale'
-
+    
         return {
+            'crawl_date' : strftime("%Y-%m-%d %H:%M:%S", gmtime())  ,
             'product_id':product.find('a')['href'].split('/')[2],
             'product_link': "https://www.digikala.com"+product.find('a')['href'],
             'product_image':img_element['src'] if img_element else 'image not found' ,
@@ -105,55 +106,88 @@ class WebScraper:
         soup = BeautifulSoup(page_source,'html.parser')
         return self.seller_details(soup),[self.extract_product_details(product) for product in soup.find_all('div', {'class':'product-list_ProductList__item__LiiNI'})]
    
-    def update_or_insert_seller(self, seller_data):
-        self.cursor.execute('''
-            INSERT INTO sellers (crawl_date,seller_id, seller_name, membership_period, satisfaction_with_goods, seller_performance, people_have_given_points, timely_supply, obligation_to_send, no_return, introduction_of_the_seller)
-            VALUES (:crawl_date,:seller_id, :seller_name, :membership_period, :satisfaction_with_goods, :seller_performance, :people_have_given_points, :timely_supply, :obligation_to_send, :no_return, :introduction_of_the_seller)
-            ON CONFLICT(seller_id) DO UPDATE SET
-            seller_name = excluded.seller_name,
-            membership_period = excluded.membership_period,
-            satisfaction_with_goods = excluded.satisfaction_with_goods,
-            seller_performance = excluded.seller_performance,
-            people_have_given_points = excluded.people_have_given_points,
-            timely_supply = excluded.timely_supply,
-            obligation_to_send = excluded.obligation_to_send,
-            no_return = excluded.no_return,
-            introduction_of_the_seller = excluded.introduction_of_the_seller
-            ''', seller_data)
+    def split_value(self,intput):
+        return intput if ';' not in intput else intput.split(';')[-1]
 
+    def check_field_value(self,row_data, crawl_data):
+        for key in row_data:
+            if key != 'crawl_date' and key != 'product_image'  :
+                row_value = row_data[key].split(';')[-1] if ';' in row_data[key] else row_data[key]
+                if row_value != crawl_data[key]:
+                    return True
+        return False
+
+    def update_or_insert_seller(self, seller_data):
+        row_id = self.split_value(seller_data['seller_id'])
+        self.cursor.execute('SELECT * FROM sellers WHERE seller_id = ?', (row_id,))
+        existing_row = self.cursor.fetchone()
+        if existing_row:
+            # Create a dictionary from the existing row
+            existing_data = {col[0]: val for col, val in zip(self.cursor.description, existing_row)}
+            # Check if the data needs to be updated
+            if self.check_field_value(existing_data, seller_data):
+                updated_data = {}
+                for key, value in seller_data.items():
+                    if key in existing_data and existing_data[key] is not None:
+                        updated_data[key] = existing_data[key] + ";" + value
+                    else:
+                        updated_data[key] = value
+                self.update_data('sellers', updated_data, 'seller_id', row_id)
+        else:
+            self.insert_data('sellers', seller_data)
+    
     def update_or_insert_product(self, product_data):
-        self.cursor.execute('''
-            INSERT INTO products (crawl_date ,seller_name, product_id, product_link, product_image, product_rate, product_name, product_price, product_price_discount_percent, product_price_discount, product_special_sale, stock)
-            VALUES (:crawl_date,:seller_name, :product_id, :product_link, :product_image, :product_rate, :product_name, :product_price, :product_price_discount_percent, :product_price_discount, :product_special_sale, :stock)
-            ON CONFLICT(product_id) DO UPDATE SET
-            seller_name = excluded.seller_name,
-            product_link = excluded.product_link,
-            product_image = excluded.product_image,
-            product_rate = excluded.product_rate,
-            product_name = excluded.product_name,
-            product_price = excluded.product_price,
-            product_price_discount_percent = excluded.product_price_discount_percent,
-            product_price_discount = excluded.product_price_discount,
-            product_special_sale = excluded.product_special_sale,
-            stock = excluded.stock
-            ''', product_data)
+        row_id = self.split_value(product_data['product_id'])
+        self.cursor.execute('SELECT * FROM products WHERE product_id = ?', (row_id,))
+        existing_row = self.cursor.fetchone()
+        if existing_row:
+            existing_data = {col[0]: val for col, val in zip(self.cursor.description, existing_row)} 
+            if self.check_field_value(existing_data, product_data):
+                    updated_data = {}
+                    for key, value in product_data.items():
+                        if key in existing_data and existing_data[key] is not None:
+                            updated_data[key] = existing_data[key] + ";" + value
+                        else:
+                            updated_data[key] = value
+                    self.update_data('products', updated_data, 'product_id', row_id)
+        else:
+            self.insert_data('products', product_data)
+
+    def update_data(self, table_name, data, key_field, key_value_field):
+        set_clause = ', '.join([f"{k} = :{k}" for k in data])
+        data[key_field] = key_value_field  
+        try:
+            self.cursor.execute(f'UPDATE {table_name} SET {set_clause} WHERE {key_field} = :{key_field}', data)
+            self.conn.commit()  
+        except Exception as e:
+            self.log.error(f'Error during updating data in {table_name}: {e}')
+            raise
+
+    def insert_data(self, table_name, data):
+        columns = ', '.join(data.keys())
+        placeholders = ', '.join([f":{k}" for k in data])
+        try:
+            self.cursor.execute(f'INSERT INTO {table_name} ({columns}) VALUES ({placeholders})', data)
+            self.conn.commit()  
+        except Exception as e:
+            self.log.error(f'Error during inserting data into {table_name}: {e}')
+            raise
 
     def save_to_database(self,  data):
-        self.update_or_insert_seller(data[0])
-        for product in data[1]:
-            product['seller_name'] = data[0]['seller_name']
-            self.update_or_insert_product(product)
+                self.update_or_insert_seller(data[0])
+                for product in data[1]:
+                    product['seller_name'] = data[0]['seller_name']
+                    self.update_or_insert_product(product)
 
     def scan_product_category_page(self,url,scroll_count ):
         try:
             self.log.info(f'Accessing category page: {url}')
             self.driver.get(url)
-
             time.sleep(5)
             last_height = self.driver.execute_script("return document.body.scrollHeight")
-            for _ in range(scroll_count ): # set range to 5 , 15 , 30 fast , normal , long
+            for _ in range(scroll_count ): 
                 self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                time.sleep(2)
+                time.sleep(5)
                 new_height = self.driver.execute_script("return document.body.scrollHeight")
                 if new_height == last_height:
                     break
@@ -164,6 +198,7 @@ class WebScraper:
         except Exception as e:
             self.log.error(f'Error while accessing/scanning category page: {e}')
             raise     
+
     def get_product(self,page_source):
         try:
             soup = BeautifulSoup(page_source,'html.parser')
@@ -181,7 +216,6 @@ class WebScraper:
     
     def find_seller_ids(self,product_link):
         seller_ids = []
-        
         for link in product_link:
             try:
                 self.driver.get(link)
@@ -211,26 +245,28 @@ class WebScraper:
             product_link = self.get_product(page_source)
             base_seller_id = self.find_seller_ids(product_link)
             for seller in base_seller_id:
-                url = f'https://www.digikala.com/seller/{seller}/'
+                url = f'https://www.digikala.com/seller/{seller}/' 
                 page_data = self.scan(self.get_seller_source_page(url))
                 page_data[0]['seller_id'] = seller
                 self.save_to_database(page_data)
-            self.close_resources()
+                self.conn.commit()
             self.log.info('Scraper run completed successfully')
         except Exception as e:
             self.log.error(f'Error during scraper run: {e}')
             raise
+
 if __name__== "__main__":
-    # TODO replace time.sleep with WebDriverWait
-    # TODO error handling 
-    # TODO historical data
-    # TODO extract the full data of product
-    # TODO add testing unit
-    # TODO add flask GUI 
-    # TODO add API endpoint 
-    # TODO add data analysis  
+    # TODO replace time.sleep with WebDriverWait -> (TODO)
+    # TODO error handling -> (testing)
+    # TODO historical data -> (DONE) 
+    # TODO extract the full data of product -> (TODO)
+    # TODO add testing unit -> (TODO)
+    # TODO add flask GUI -> (TODO) 
+    # TODO add API endpoint -> (TODO) 
+    # TODO add data analysis -> (TODO)
+    
     
     geko_path = r'geckodriver.exe'
-    # category_url = 'https://www.digikala.com/search/category-notebook-netbook-ultrabook/asus/'
-    scraper = WebScraper(geko_path)
-    scraper.run()
+    category_url = 'https://www.digikala.com/search/category-notebook-netbook-ultrabook/asus/'
+    scraper = WebScraper(geko_path,)
+    scraper.run(category_url,0)
