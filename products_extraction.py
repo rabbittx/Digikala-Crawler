@@ -92,6 +92,56 @@ class product_extrection():
         questions_element.click() 
         return self.driver.page_source
     
+    def make_soup(self,page_source):
+        return BeautifulSoup(page_source,"html.parser")
+    def safe_find(self,soup,finds, tag, attrs):
+        try:
+            if finds == 'find':
+                return soup.find(tag, attrs)
+            elif finds == 'find_all':
+                return soup.find_all(tag, attrs)
+        except AttributeError:
+            return 'element not found'
+    
+    def product_elements_extrection(self,soup):
+         return { 
+                  
+                  'main_product_details' : self.safe_find(soup,'find','div',{'class':'styles_InfoSection__leftSection__0vNpX'}).parent if self.safe_find(soup,'find','div',{'class':'styles_InfoSection__leftSection__0vNpX'}) else 'element not found'  ,
+                  
+                  'buy_box'  : self.safe_find(soup,'find','div',{'data-testid':'buy-box'}),
+
+                  'image_box' : self.safe_find(soup,'find','div',{'class':'flex flex-col items-center lg:max-w-92 xl:max-w-145 lg:block mb-2'}).find_all('picture') if self.safe_find(soup,'find','div',{'class':'flex flex-col items-center lg:max-w-92 xl:max-w-145 lg:block mb-2'}) else 'images element not found',
+
+                  'other_seller_box':self.safe_find(soup,'find','div',{'id':'sellerSection'}).find_all('div',{'class':'rounded-medium styles_SellerListItemDesktop__sellerListItem__u9p3q p-4'}) if self.safe_find(soup,'find','div',{'id':'sellerSection'}) else "no found other seller for this product",
+
+                  'Similar_products' : self.safe_find(soup,'find_all','a',{'data-cro-id':'related-products'}) ,
+
+                  'related_videos' : self.safe_find(soup,'find_all','div',{"data-cro-id":"magnet_click_on_video"}), 
+                  
+                  'Introduction_box': self.safe_find(soup,'find','div',{'id':'PdpShortReview'}).parent.find('div',{'class':'text-body-1 text-neutral-800'}).text if self.safe_find(soup,'find','div',{'id':'PdpShortReview'}) else 'Introduction element not found',
+
+                  'expert_check_box': self.safe_find(soup,'find','div',{'id':'expertReview'}).parent if self.safe_find(soup,'find','div',{'id':'expertReview'}) else 'expert check box element not found',
+
+                  'Specifications_box': self.safe_find(soup,'find_all','div',{'class':'w-full flex last styles_SpecificationAttribute__valuesBox__gvZeQ'}),
+
+                  'reviews_box': self.safe_find(soup,'find_all','article',{'class':'py-3 lg:mt-0 flex items-start br-list-vertical-no-padding-200'}),
+
+                  'question_box': self.safe_find(soup,'find_all','article',{'class':'br-list-vertical-no-padding-200 py-3'}),
+
+                  'Bought_next_to_it': self.safe_find(soup,'find_all','a',{'data-cro-id':"also_bought_products"}),                            
+                  'seller_offer': self.safe_find(soup,'find','div',{'class':"flex flex-col relative overflow-hidden w-full pt-2 lg:border-complete-200 lg:rounded-medium lg:mt-4 pb-3 styles_PdpProductContent__sectionBorder__39zAX"}).find('div',{"class":"swiper-wrapper"})           
+        }
+
+
+    def test_run(self,):
+        with open('page_source.html','r',encoding='utf-8') as file :
+            page_source=file.read()
+        soup = self.make_soup(page_source)
+        elements = self.product_elements_extrection(soup)
+        for review in elements['seller_offer']:
+            print(review)
+            print('\n')
+        print(len(elements['seller_offer']))
     def run(self,url):  
         # load the page -> DONE
         # scroll to fotter back to top -> DONE
@@ -112,4 +162,4 @@ if __name__=="__main__":
     geko_path = r'geckodriver.exe'
     product_url = 'https://www.digikala.com/product/dkp-6903697/%D8%AA%D8%A8%D9%84%D8%AA-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ipad-9th-generation-102-inch-wi-fi-2021-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-64-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA/'
     scraper = product_extrection(geko_path,)
-    scraper.run(product_url)
+    scraper.test_run()
