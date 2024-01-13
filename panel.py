@@ -6,13 +6,14 @@ class WebScraperPanel:
 
     def display_menu(self):
         print("welcome to digikala web crawler")
-        print("1. start to crawl")
-        print("2. export all data in csv file ")
-        print("3. quit")
+        print("1. start to crawl for category")
+        print("2. start to crawl for single seller")
+        print("3. export all data in csv file ")
+        print("4. quit")
         choice = input("enter your choice : ")
         return choice
 
-    def run_scraper(self):
+    def run_scraper_category(self):
         category_url = input("enter catagory url to crawl: ")
         scroll_count = input("Please enter the number of page scroll rates (Example 5 ) : ")
         try:
@@ -20,7 +21,12 @@ class WebScraperPanel:
         except ValueError:
             print("The number of scrolling times must be a number. By default, it is set to 3.")
             scroll_count = 3
-        self.scraper.run(category_url,scroll_count)
+        self.scraper.run_category(category_url,scroll_count)
+        print("Data extraction was done successfully.")
+
+    def run_scraper_single(self):
+        seller_page_url = input("enter seller page url to crawl: ")
+        self.scraper.run_single(seller_page_url)
         print("Data extraction was done successfully.")
 
     def export_table_to_csv(self,db_path, table_name, csv_file_path):
@@ -40,17 +46,19 @@ class WebScraperPanel:
                     csv_writer.writerow(processed_row)
         else : 
             print(f'Database "{db_path}" does not exist! - crawl some pages first ')
-            
+
     def start(self):
         while True:
             choice = self.display_menu()
             if choice == "1":
-                self.run_scraper()
-            elif choice == "2":
+                self.run_scraper_category()
+            elif choice == "2" :
+                self.run_scraper_single()
+            elif choice == "3":
                 self.export_table_to_csv(self.scraper.db_path, 'sellers', 'sellers.csv')
                 self.export_table_to_csv(self.scraper.db_path, 'products', 'product.csv')
                 print(' [!] CSV file create successfully')
-            elif choice == "3":
+            elif choice == "4":
                 self.scraper.close_resources()
                 print("Exit the program.")
                 break

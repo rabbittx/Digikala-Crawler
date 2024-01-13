@@ -238,9 +238,9 @@ class WebScraper:
         self.conn.close()
         self.driver.quit()
 
-    def run(self,category_url,scroll_count):
+    def run_category(self,category_url,scroll_count):
         try :
-            self.log.info('Starting scraper run...')
+            self.log.info('Starting scraper run for category ...')
             page_source = self.scan_product_category_page(category_url,scroll_count)
             product_link = self.get_product(page_source)
             base_seller_id = self.find_seller_ids(product_link)
@@ -250,6 +250,18 @@ class WebScraper:
                 page_data[0]['seller_id'] = seller
                 self.save_to_database(page_data)
                 self.conn.commit()
+            self.log.info('Scraper run completed successfully')
+        except Exception as e:
+            self.log.error(f'Error during scraper run: {e}')
+            raise
+    
+    def run_single(self,seller_url):
+        try :
+            self.log.info('Starting scraper run for single seller ...')
+            page_data = self.scan(self.get_seller_source_page(seller_url))
+            page_data[0]['seller_id'] = seller_url.split('/')[-2]
+            self.save_to_database(page_data)
+            self.conn.commit()
             self.log.info('Scraper run completed successfully')
         except Exception as e:
             self.log.error(f'Error during scraper run: {e}')

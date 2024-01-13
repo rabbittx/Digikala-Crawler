@@ -1,119 +1,108 @@
 [Read this in Persian](README.fa.md)
+Sure, here's the translation of your README.md file into English:
+Introducing Digikala
 
-معرفی دیجیکالا 
 =======================
-دیجی‌کالا یک فروشگاه آنلاین برجسته در ایران است که با تنوع گسترده‌ای از محصولات و خدمات شناخته می‌شود. این فروشگاه در ابتدا بر روی فروش لوازم الکترونیکی و دیجیتال تمرکز داشت، اما طی 15 سال گذشته به یک پلتفرم جامع تجارت الکترونیک با ارائه‌ی دسته‌بندی‌های متنوع محصولات تبدیل شده است. این گسترش، دیجی‌کالا را به یکی از پلتفرم‌های پیشرو تجارت الکترونیک در خاورمیانه تبدیل کرده است.
+Digikala is a prominent online store in Iran, known for its extensive range of products and services. Initially focused on selling electronic and digital devices, over the past 15 years, it has evolved into a comprehensive e-commerce platform with a diverse range of product categories. This expansion has made Digikala one of the leading e-commerce platforms in the Middle East.
 
-دیجی‌کالا به یک اکوسیستم کامل از کسب‌وکارهای آنلاین تبدیل شده است که فقط به تجارت الکترونیک محدود نمی‌شود. تمرکز این گروه بر روی تکمیل زنجیره‌ی ارزش اقتصاد دیجیتال ایران بوده است و زیرساخت‌های لازم برای انواع مختلف کسب‌وکارها را فراهم کرده است. فعالیت‌های آن‌ها شامل حوزه‌هایی مانند تولید محتوا، لجستیک، فناوری مالی، فناوری بازاریابی و فناوری ابری است. با دسترسی گسترده و خدمات جامع خود، دیجی‌کالا به جمعیت و نیازهای متنوع مشتریان خود پاسخ می‌دهد.
+Digikala has transformed into a complete ecosystem of online businesses, not just limited to e-commerce. This group has focused on completing the value chain of Iran's digital economy and has provided the necessary infrastructures for various types of businesses. Their activities include content production, logistics, financial technology, marketing technology, and cloud technology. With its wide access and comprehensive services, Digikala meets the diverse needs of its customers.
+Key Statistics and Achievements of Digikala include:
 
-## آمار و دستاوردهای کلیدی دیجی‌کالا شامل موارد زیر است:
+    Over 41.5 million active monthly users.
+    More than 9.7 million SKUs (Stock Keeping Units).
+    Collaboration with over 308,000 sellers.
+    Significant presence in logistics and distribution with more than 530 infrastructure centers.
+    Strong fulfillment capacity, capable of handling over 904,000 orders daily.
+    Expanding product variety, with a 29% growth last year.
+    Diverse subsidiaries and services, including Fidibo (an e-book store), Digistyle (an online fashion and clothing store), Digipay (focusing on mobile and web payments), and Pindo (a consumer-to-consumer advertising platform).
 
-    بیش از 41.5 میلیون کاربر فعال ماهانه.
-    دارای بیش از 9.7 میلیون SKU (واحد نگهداری موجودی).
-    همکاری با بیش از 308,000 فروشنده.
-    حضور قابل توجه در لجستیک و توزیع با بیش از 530 مرکز زیرساخت.
-    ظرفیت برآورده‌سازی قوی، با توانایی رسیدگی به بیش از 904,000 سفارش روزانه.
-    تنوع محصولات در حال گسترش که سال گذشته 29٪ رشد داشته است.
-    زیرمجموعه‌ها و خدمات متنوع، از جمله فیدیبو (فروشگاه کتاب الکترونیکی)، دیجی‌استایل (فروشگاه آنلاین مد و پوشاک)، دیجی‌پی (متمرکز بر پرداخت‌های موبایلی و وب)، و پیندو (سکوی تبلیغات مصرف‌کننده به مصرف‌کننده).
+The success of Digikala is largely due to its commitment to ensuring a positive online buying and selling experience. The company regularly monitors product quality and pricing and actively responds to user feedback and reports to maintain high standards.
+Project Introduction
 
-موفقیت دیجی‌کالا تا حد زیادی به دلیل تعهد آن به تضمین تجربه خرید و فروش آنلاین مثبت است. این شرکت به طور منظم کیفیت محصولات و قیمت‌گذاری را نظارت می‌کند و به بازخوردها و گزارش‌های کاربران به صورت فعال پاسخ می‌دهد تا استانداردهای بالایی را حفظ کند.
-
-
-معرفی پروژه
 =======================
-عنوان پروژه: خزنده وب دیجی‌کالا
+Project Title: Digikala Web Crawler
+Project Introduction:
 
-معرفی پروژه:
-پروژه خزنده وب دیجی‌کالا، یک سیستم جامع و انعطاف‌پذیر برای جمع‌آوری و تحلیل داده‌های فروشگاه آنلاین دیجی‌کالا است. این سیستم، که به زبان پایتون توسعه یافته، قادر است اطلاعات مربوط به فروشندگان و محصولات را از صفحات وب دیجی‌کالا استخراج کند. هدف اصلی این پروژه، فراهم کردن یک ابزار قدرتمند برای تحلیل رقابتی و تصمیم‌گیری‌های دقیق تجاری است.
+The Digikala Web Crawler project is a comprehensive and flexible system for collecting and analyzing data from the Digikala online store. Developed in Python, this system is capable of extracting information related to sellers and products from Digikala's web pages. The primary goal of this project is to provide a powerful tool for competitive analysis and precise business decision-making.
+Key Features:
 
-ویژگی‌های اصلی:
-
-db_handler.py: 
-
-مدیریت پایگاه داده SQLite برای ذخیره‌سازی و دستکاری داده‌های جمع‌آوری شده.
+db_handler.py:
+Manages the SQLite database for storing and manipulating collected data.
 
 crawler.py:
-
- اسکریپت اصلی خزنده که با استفاده از Selenium و BeautifulSoup داده‌های مورد نیاز را استخراج می‌کند.
+The main crawler script that uses Selenium and BeautifulSoup to extract the required data.
 
 panel.py:
+A text-based user interface (CLI) that allows users to control the crawler process and export data to CSV format.
 
- یک رابط کاربری متنی (CLI) که به کاربر امکان می‌دهد فرآیند خزنده را کنترل کند و داده‌ها را به فرمت CSV صادر کند.
+logger.py:
+A logging system for tracking crawler operations and debugging.
+Uses and Benefits:
 
+This project is a powerful tool for traders and market analysts looking to better understand the market and competitors' behavior. Using this crawler, users can analyze prices, review product inventory, and gain a better understanding of seller performance. The system can also identify new market opportunities and improve sales strategies.
+Project Setup
 
-logger.py: 
-
-سیستم ثبت وقایع برای ردیابی عملیات خزنده و اشکال‌زدایی.
-
-
-
-کاربردها و مزایا:
-
-این پروژه ابزاری قدرتمند برای تجار و تحلیلگران بازار است که به دنبال درک بهتری از بازار و رفتار رقبا هستند. با استفاده از این خزنده، کاربران می‌توانند به تحلیل قیمت‌ها، بررسی موجودی محصولات، و درک بهتر عملکرد فروشندگان دست پیدا کنند. این سیستم همچنین می‌تواند در شناسایی فرصت‌های جدید بازار و بهبود استراتژی‌های فروش موثر باشد.
-
-روش راه اندازی پروژه
 =======================
-گام 1: نصب Python
+Step 1: Install Python
 
-اطمینان حاصل کنید که Python نسخه 3.x در سیستم شما نصب شده است. می‌توانید از دستور زیر برای بررسی نسخه Python استفاده کنید:
+Ensure that Python version 3.x is installed on your system. Use the following command to check the Python version:
 
 ```bash
+
 python --version
 ```
-گام 2: کلون کردن مخزن پروژه
+Step 2: Clone the Project Repository
 
-پروژه را از مخزن مربوطه کلون کنید (فرض بر این است که پروژه در یک مخزن گیت قرار دارد):
-```bash 
+Clone the project from the relevant repository (assuming the project is in a Git repository):
+
+```bash
+
 git clone 
 cd DIGIKALA
 ```
-گام 3: ایجاد محیط مجازی
+Step 3: Create a Virtual Environment
 
-برای جلوگیری از تداخل بین کتابخانه‌ها، یک محیط مجازی ایجاد کنید:
+To prevent conflicts between libraries, create a virtual environment:
 
 ```bash
+
 python -m venv env
-
 ```
-گام 4: فعال‌سازی محیط مجازی
+Step 4: Activate the Virtual Environment
 
-محیط مجازی را فعال کنید:
+Activate the virtual environment:
 
+On Windows:
 
-در ویندوز : 
-```bash 
+```bash
+
 venv\Scripts\activate
-
 ```
-در macOS و Linux:
+On macOS and Linux:
+
 ```bash
+
 source venv/bin/activate
-
 ```
-گام 5: نصب وابستگی‌ها
+Step 5: Install Dependencies
 
-وابستگی‌های پروژه را با استفاده از فایل requirements.txt نصب کنید:
+Install the project dependencies using the requirements.txt file:
 
 ```bash
+
 pip install -r requirements.txt
-
 ```
+Step 6: Set Up the Environment File (env)
 
-گام 6: تنظیم فایل محیطی (env)
+Download the geckodriver.exe file required for the Firefox browser and place it alongside the project.
+Step 7: Run the Project
 
-فایل مربوط به geckodriver.exe مورد نیاز مرورگر firefox را دانلود و در کنار پروژه قرار دهید 
+Execute the panel script to start the project:
 
-
-گام 7: اجرای پروژه
-
-اسکریپت پنل را برای شروع پروژه اجرا کنید 
 ```bash
 python panel.py
 ```
-گام 8 : استفاده از پروژه 
 
-در پنل نمایش داده شده ابتدا مرود ۱ را انتخاب کرده سپس ادرس دسته بندی مورد نیاز استخراج اطلاعات را وارد کنید و بعد مقدار اسکرول کردن صفحه رو وارد کنید 
-بعد از پایان کار میتوانید با استفاده از گذینه ۲ خروجی به شکل  فایل csv دریافت کنید و باگذینه ۳ پروژه را متوقف کنید 
+Step 8: Using the Project
 
-
-
+In the displayed panel, first select option 1, then enter the URL of the category you want to extract data from, followed by the amount of page scroll. After completion, you can receive a CSV file output using option 2 and stop the project with option 3.
