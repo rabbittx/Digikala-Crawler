@@ -31,12 +31,27 @@ class product_extrection():
             self.driver = self.initialize_driver(driver_path)
             self.conn = sqlite3.connect(self.db_path)
             self.cursor = self.conn.cursor()
-    def clean_text(self,text):
-        if isinstance(text,str):
-            return re.sub(r'[^\x00-\x7F]+', '', text)
-        elif isinstance(text,list):
+
+
+    def clean_text(self, text):
+    # تعریف یک regex برای شناسایی کاراکترهای ناخواسته
+        pattern = '[^ا-یآ-ی۰-۹a-zA-Z0-9\s:/\.\-،%(),]'
+        # تابع برای بررسی اینکه آیا یک رشته شبیه به URL است یا نه
+        def is_url(s):
+            return re.match(r'https?://\S+\.\S+', s)
+
+        if isinstance(text, str):
+            # اگر رشته شبیه به URL باشد، بدون تغییر باقی می‌ماند
+            if is_url(text):
+                return text
+            # در غیر این صورت، حذف کاراکترهای ناخواسته
+            return re.sub(pattern, '', text)
+        elif isinstance(text, list):
+            # اعمال تابع بر روی هر عنصر از لیست
             return [self.clean_text(i) for i in text]
-        
+        elif isinstance(text, dict):
+            # اعمال تابع بر روی هر مقدار از دیکشنری
+            return {k: self.clean_text(v) for k, v in text.items()}
     def initialize_driver(self, driver_path):
         try:
             service = Service(driver_path)
@@ -113,7 +128,7 @@ class product_extrection():
         try:
             return extraction_function(element)
         except Exception as e:
-            self.log.error(f'ERROR - {element_name} - {e}')
+            self.log.error(f'NOT FOUND - {element_name} - {e}')
             return f'{element_name} not found'
 
 
@@ -140,21 +155,21 @@ class product_extrection():
 
                   'other_seller_box':self.safe_find(soup,'find','div',{'id':'sellerSection'}).find_all('div',{'class':'rounded-medium styles_SellerListItemDesktop__sellerListItem__u9p3q p-4'}) if self.safe_find(soup,'find','div',{'id':'sellerSection'}) else "no found other seller for this product",
 
-                  'Similar_products' : self.safe_find(soup,'find_all','a',{'data-cro-id':'related-products'}) ,
+                  'similar_products' : self.safe_find(soup,'find_all','a',{'data-cro-id':'related-products'}) ,
 
                   'related_videos' : self.safe_find(soup,'find_all','div',{"data-cro-id":"magnet_click_on_video"}), 
                   
-                  'Introduction_box': self.safe_find(soup,'find','div',{'id':'PdpShortReview'}).parent.find('div',{'class':'text-body-1 text-neutral-800'}).text if self.safe_find(soup,'find','div',{'id':'PdpShortReview'}) else 'Introduction element not found',
+                  'introduction_box': self.safe_find(soup,'find','div',{'id':'PdpShortReview'}).parent.find('div',{'class':'text-body-1 text-neutral-800'}).text if self.safe_find(soup,'find','div',{'id':'PdpShortReview'}) else 'Introduction element not found',
 
                   'expert_check_box': self.safe_find(soup,'find','div',{'id':'expertReview'}).parent if self.safe_find(soup,'find','div',{'id':'expertReview'}) else 'expert check box element not found',
 
-                  'Specifications_box': self.safe_find(soup,'find_all','div',{'class':'w-full flex last styles_SpecificationAttribute__valuesBox__gvZeQ'}),
+                  'specifications_box': self.safe_find(soup,'find_all','div',{'class':'w-full flex last styles_SpecificationAttribute__valuesBox__gvZeQ'}),
 
                   'reviews_box': self.safe_find(soup,'find_all','article',{'class':'py-3 lg:mt-0 flex items-start br-list-vertical-no-padding-200'}),
 
                   'question_box': self.safe_find(soup,'find_all','article',{'class':'br-list-vertical-no-padding-200 py-3'}),
 
-                  'Bought_next_to_it': self.safe_find(soup,'find_all','a',{'data-cro-id':"also_bought_products"}),                            
+                  'bought_next_to_it': self.safe_find(soup,'find_all','a',{'data-cro-id':"also_bought_products"}),                            
                   'seller_offer': seller_offer      
         }
 
@@ -167,7 +182,7 @@ class product_extrection():
         details['insurer'] = self.safe_extraction('Insurer',element, lambda e: e.find('div',{'class':'bg-neutral-000 flex border-complete-200 rounded-medium'}).find('p',{'class':'text-body2-strong text-neutral-700'}).text)
         details['discount_percent'] = self.safe_extraction('discount percent',element, lambda e: e.find('div',{'class':'bg-neutral-000 flex border-complete-200 rounded-medium'}).find('span',{'data-testid':'price-discount-percent'}).text)
         details['price_before_discount'] = self.safe_extraction('Price before discount',element, lambda e: e.find('div',{'class':'bg-neutral-000 flex border-complete-200 rounded-medium'}).find('div',{'class':'text-body-2 text-neutral-300 line-through'}).text)
-        details['price_after_discount'] = self.safe_extraction('Price after discount',element, lambda e: e.find('div',{'class':'bg-neutral-000 flex border-complete-200 rounded-medium'}).find('span',{'data-testid':'price-final'}).text)
+        details['final_price'] = self.safe_extraction('final price',element, lambda e: e.find('div',{'class':'bg-neutral-000 flex border-complete-200 rounded-medium'}).find('span',{'data-testid':'price-final'}).text)
         self.log.info('[+] main details extrection succsusfully')
         return details
     
@@ -178,28 +193,83 @@ class product_extrection():
         details['warranty']= self.safe_extraction('warranty',element, lambda e: e.find('div',{'data-cro-id':'pdp-shipment-info'}).find_previous('p',{'class':'text-button-2 text-neutral-700'}).text)
         details['digiclub_points']= self.safe_extraction('digiclub points',element, lambda e: e.find('div',{'data-cro-id':'pdp-shipment-info'}).find_next('p',{'class':'text-button-2 text-neutral-700'}).text)
         details['discount_percent'] = self.safe_extraction('discount percent',element, lambda e: e.find('span',{'data-testid':'price-discount-percent'}).text)
-        details['Price_before_discount'] = self.safe_extraction('Price before discount',element, lambda e: e.find('span',{'data-testid':'price-no-discount'}).text)
-        details['Price_after_discount'] = self.safe_extraction('Price after discount',element, lambda e: e.find('span',{'data-testid':'price-discount-percent'}).text)
+        details['price_before_discount'] = self.safe_extraction('Price before discount',element, lambda e: e.find('span',{'data-testid':'price-no-discount'}).text)
+        details['final_price'] = self.safe_extraction('final price',element, lambda e: e.find('span',{'data-testid':'price-discount-percent'}).text)
         self.log.info('[+] buy box extrection succsusfully')
-
+        return details
     def product_image_extrection(self,element):
-        return self.safe_extraction('images',element, lambda e: [image.find('img')['src'] for image in e])
+        return {'product_images' :self.safe_extraction('images',element, lambda e: [image.find('img')['src'] for image in e])}
 
     def other_seller_box_extrection(self,element):
-        for ele in element:
-            print(ele)
-            print('\n')
-
+        other_sellers = []
+        for seller in element:
+            seller_info = {}
+            seller_info['seller_name'] = self.safe_extraction('seller name', seller, lambda e: e.find('p',{'class':'text-neutral-700 ml-2 text-subtitle'}).text)
+            seller_info['seller_page_link'] = self.safe_extraction('seller page link', seller, lambda e: e.find('a',{'class':'styles_Link__RMyqc'})['href'])
+            seller_info['warranty'] = self.safe_extraction('seller warranty', seller, lambda e: e.find('p',{'class':'text-subtitle text-neutral-700'}).text)
+            seller_info['discount_percent'] = self.safe_extraction('discount percent', seller, lambda e: e.find('span',{"data-testid":"price-discount-percent"}).text)
+            seller_info['price_before_discount'] = self.safe_extraction('Price before discount', seller, lambda e: e.find('span',{'class':'line-through text-body-2 ml-1 text-neutral-300'}).text)
+            seller_info['final_price'] = self.safe_extraction('final price', seller, lambda e: e.find('span',{'class':'text-neutral-800 ml-1 text-h4'}).text)
+            other_sellers.append(seller_info)
+        self.log.info('[+] other seller extrection succsusfully')
+        return other_sellers
+    
+    def similar_products_extrection(self,element):
+        similar_products = []
+        for product in element:
+            similar_products_info={}
+            similar_products_info['product_link'] = 'https://www.digikala.com' + self.safe_extraction('product link', product, lambda e: e['href'])
+            similar_products_info['product_name'] = self.safe_extraction('product name', product, lambda e: e.find('h3').text)
+            similar_products_info['product_stock'] = self.safe_extraction('product stock', product, lambda e: e.find('div',{'data-ab-id',''}).find('p').text)
+            similar_products_info['final_price'] = self.safe_extraction('final price', product, lambda e: e.find('span',{"data-testid":"price-final"}).text)
+            similar_products_info['discount_percent'] = self.safe_extraction('discount percent', product, lambda e: e.find('span',{'data-testid':"price-discount-percent"}).text)
+            similar_products_info['price_before_discount'] = self.safe_extraction('price before discount', product, lambda e: e.find('span',{'data-testid':"price-no-discount"}).text)
+            similar_products.append(similar_products_info)
+        self.log.info('[+] similar products extrection succsusfully')
+        return similar_products
+    
+    def related_videos_extrection(self,element):
+        related_videos = []
+        for video in element:
+            related_videos_info = {}
+            related_videos_info['video_title'] = self.safe_extraction('video title', video.parent, lambda e: e.find('div',{'class','mt-2 text-body-1 inline-block ellipsis overflow-hidden whitespace-nowrap styles_MagnetPostCard__title__8g7dy'}).text)
+            related_videos_info['producer'] = self.safe_extraction('producer', video.parent, lambda e: e.find('span',{'class','mr-2 text-neutral-400 text-body-2'}).text)
+            related_videos_info['producer_link'] = 'https://www.digikala.com' +  self.safe_extraction('producer link', video.parent, lambda e: e.find('a',{'class','styles_Link__RMyqc'})['href']) 
+            related_videos_info['thumbnail'] = self.safe_extraction('thumbnail', video, lambda e: e.find('img',{'class','w-full inline-block'})['src'])
+            related_videos.append(related_videos_info)
+        self.log.info('[+] related videos extrection succsusfully')
+        return related_videos
+    
+    def expert_check_box_extrection(self,element):
+        expert_check = []
+        for expert in element.find_all('section'):
+            expert_check_info = {}
+            expert_check_info['titles'] = self.safe_extraction('product link', expert, lambda e: e.find('p',{'class':'grow text-h5 text-neutral-900'}).text)
+            expert_check_info['expert_text'] = self.safe_extraction('product link', expert, lambda e: e.find('p',{'class':'text-body-1 text-neutral-800'}).text)
+            expert_check.append(expert_check_info)
+        self.log.info('[+] expert check extrection succsusfully')
+        return expert_check
+    
     def test_run(self,):
         with open('page_source.html','r',encoding='utf-8') as file :
             page_source=file.read()
         soup = self.make_soup(page_source)
         elements = self.product_elements_extrection(soup)
-        main_product_details = self.main_product_details_extrection(elements['main_product_details'])
-        buy_box = self.product_buy_box_extrection(elements['buy_box'])
-        product_images = self.product_image_extrection(elements['image_box'])
-        self.other_seller_box_extrection(elements['other_seller_box'])
-        
+        main_product_details = self.clean_text(self.main_product_details_extrection(elements['main_product_details']))
+        buy_box = self.clean_text(self.product_buy_box_extrection(elements['buy_box']))
+        product_images = self.clean_text(self.product_image_extrection(elements['image_box']))
+        other_seller = self.clean_text(self.other_seller_box_extrection(elements['other_seller_box']))
+        similar_products = self.clean_text(self.similar_products_extrection(elements['similar_products']))
+        related_videos = self.clean_text(self.related_videos_extrection(elements['related_videos']))
+        introduction_box = self.clean_text(elements['introduction_box'])
+        expert_check = self.clean_text(self.expert_check_box_extrection(elements['expert_check_box']))
+     
+        # specifications_box
+        # reviews_box
+        # question_box
+        # bought_next_to_it
+        # seller_offer
+
     def run(self,url):  
         # load the page -> DONE
         # scroll to fotter back to top -> DONE
