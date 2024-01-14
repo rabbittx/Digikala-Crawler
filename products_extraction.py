@@ -34,8 +34,8 @@ class product_extrection():
 
 
     def clean_text(self, text):
-    # تعریف یک regex برای شناسایی کاراکترهای ناخواسته
-        pattern = '[^ا-یآ-ی۰-۹a-zA-Z0-9\s:/\.\-،%(),]'
+        # تعریف پترن با اضافه کردن \n و \n\n به پترن اصلی
+        pattern = '[^ا-یآ-ی۰-۹a-zA-Z0-9\s:/\.\-،%(),\n]'
         # تابع برای بررسی اینکه آیا یک رشته شبیه به URL است یا نه
         def is_url(s):
             return re.match(r'https?://\S+\.\S+', s)
@@ -52,6 +52,7 @@ class product_extrection():
         elif isinstance(text, dict):
             # اعمال تابع بر روی هر مقدار از دیکشنری
             return {k: self.clean_text(v) for k, v in text.items()}
+    
     def initialize_driver(self, driver_path):
         try:
             service = Service(driver_path)
@@ -163,7 +164,7 @@ class product_extrection():
 
                   'expert_check_box': self.safe_find(soup,'find','div',{'id':'expertReview'}).parent if self.safe_find(soup,'find','div',{'id':'expertReview'}) else 'expert check box element not found',
 
-                  'specifications_box': self.safe_find(soup,'find_all','div',{'class':'w-full flex last styles_SpecificationAttribute__valuesBox__gvZeQ'}),
+                  'specifications_box': self.safe_find(soup,'find_all','div',{'class':'flex flex-col lg:flex-row pb-6 lg:py-4 styles_SpecificationBox__main__JKiKI'}),
 
                   'reviews_box': self.safe_find(soup,'find_all','article',{'class':'py-3 lg:mt-0 flex items-start br-list-vertical-no-padding-200'}),
 
@@ -172,7 +173,8 @@ class product_extrection():
                   'bought_next_to_it': self.safe_find(soup,'find_all','a',{'data-cro-id':"also_bought_products"}),                            
                   'seller_offer': seller_offer      
         }
-
+    
+   
     def main_product_details_extrection(self,element):
         details={}
         details['product_title'] = self.safe_extraction('product title',element, lambda e: e.find('h1',{'data-testid':'pdp-title'}).text)
@@ -249,7 +251,25 @@ class product_extrection():
             expert_check.append(expert_check_info)
         self.log.info('[+] expert check extrection succsusfully')
         return expert_check
-    
+    def specifications_box_extrection(self,element):
+        specifications= {}
+        for ele in element:
+            spec_list = []
+
+            main_title = ele.find('p',{'class':'w-full lg:ml-12 text-h5 text-neutral-700 shrink-0 mb-3 lg:mb-0 styles_SpecificationBox__title__ql60s'}).text
+            box = ele.find_all('div',{'class':'w-full flex last styles_SpecificationAttribute__valuesBox__gvZeQ'})
+            
+            
+            for i in box : 
+                title = i.find('p',{'class':'ml-4 text-body-1 text-neutral-500 py-2 lg:py-3 lg:p-2 shrink-0 styles_SpecificationAttribute__value__CQ4Rz'}).text
+                speci = i.text.replace(title,'')
+                spec_list.append({self.clean_text(title).replace('\n\n',''):self.clean_text(speci).replace('\n\n','')})
+            specifications[main_title] = spec_list
+            
+
+        return specifications
+
+
     def test_run(self,):
         with open('page_source.html','r',encoding='utf-8') as file :
             page_source=file.read()
@@ -263,8 +283,10 @@ class product_extrection():
         related_videos = self.clean_text(self.related_videos_extrection(elements['related_videos']))
         introduction_box = self.clean_text(elements['introduction_box'])
         expert_check = self.clean_text(self.expert_check_box_extrection(elements['expert_check_box']))
-     
-        # specifications_box
+        specifications_box = self.clean_text(self.specifications_box_extrection(elements['specifications_box']))
+
+        print(specifications_box)
+       
         # reviews_box
         # question_box
         # bought_next_to_it
@@ -291,3 +313,6 @@ if __name__=="__main__":
     product_url = 'https://www.digikala.com/product/dkp-6903697/%D8%AA%D8%A8%D9%84%D8%AA-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ipad-9th-generation-102-inch-wi-fi-2021-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-64-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA/'
     scraper = product_extrection(geko_path,)
     scraper.test_run()
+
+
+
