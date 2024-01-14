@@ -22,7 +22,7 @@ from time import gmtime, strftime
 from logger import setup_logger
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
+import re
 class product_extrection():
     def __init__(self, driver_path ):
             self.log = setup_logger()
@@ -31,7 +31,12 @@ class product_extrection():
             self.driver = self.initialize_driver(driver_path)
             self.conn = sqlite3.connect(self.db_path)
             self.cursor = self.conn.cursor()
-
+    def clean_text(self,text):
+        if isinstance(text,str):
+            return re.sub(r'[^\x00-\x7F]+', '', text)
+        elif isinstance(text,list):
+            return [self.clean_text(i) for i in text]
+        
     def initialize_driver(self, driver_path):
         try:
             service = Service(driver_path)
@@ -94,6 +99,7 @@ class product_extrection():
     
     def make_soup(self,page_source):
         return BeautifulSoup(page_source,"html.parser")
+    
     def safe_find(self,soup,finds, tag, attrs):
         try:
             if finds == 'find':
@@ -103,6 +109,15 @@ class product_extrection():
         except AttributeError:
             return 'element not found'
     
+    def safe_extraction(self,element_name ,element, extraction_function):
+        try:
+            return extraction_function(element)
+        except Exception as e:
+            self.log.error(f'ERROR - {element_name} - {e}')
+            return f'{element_name} not found'
+
+
+
     def product_elements_extrection(self,soup):
       
 
@@ -143,16 +158,48 @@ class product_extrection():
                   'seller_offer': seller_offer      
         }
 
+    def main_product_details_extrection(self,element):
+        details={}
+        details['product_title'] = self.safe_extraction('product title',element, lambda e: e.find('h1',{'data-testid':'pdp-title'}).text)
+        details['product_main_title'] = self.safe_extraction('product main title',element, lambda e: e.find('span',{'class':'text-neutral-300 ml-2 text-body-2'}).text)
+        details['user_review'] = self.safe_extraction('user review',element, lambda e: e.find('p',{'class':'ml-2 text-neutral-600 text-body-2'}).text)
+        details['colors'] = self.safe_extraction('colors',element, lambda e: [element_color.text for element_color in e.find('div',{"class":"border-complete-t lg:border-none mt-3 lg:mt-0"}).find_all('div',{'data-popper-placement':"bottom"})])
+        details['insurer'] = self.safe_extraction('Insurer',element, lambda e: e.find('div',{'class':'bg-neutral-000 flex border-complete-200 rounded-medium'}).find('p',{'class':'text-body2-strong text-neutral-700'}).text)
+        details['discount_percent'] = self.safe_extraction('discount percent',element, lambda e: e.find('div',{'class':'bg-neutral-000 flex border-complete-200 rounded-medium'}).find('span',{'data-testid':'price-discount-percent'}).text)
+        details['price_before_discount'] = self.safe_extraction('Price before discount',element, lambda e: e.find('div',{'class':'bg-neutral-000 flex border-complete-200 rounded-medium'}).find('div',{'class':'text-body-2 text-neutral-300 line-through'}).text)
+        details['price_after_discount'] = self.safe_extraction('Price after discount',element, lambda e: e.find('div',{'class':'bg-neutral-000 flex border-complete-200 rounded-medium'}).find('span',{'data-testid':'price-final'}).text)
+        self.log.info('[+] main details extrection succsusfully')
+        return details
+    
+    def product_buy_box_extrection(self,element):
+        details={}
+        details['other_sellers']= self.safe_extraction('other sellers',element, lambda e: e.find('span',{'data-cro-id':'pdp-other-seller'}).text)
+        details['satisfaction_with_the_product']= self.safe_extraction('satisfaction with the product',element, lambda e: e.find('div',{"data-cro-id":"pdp-seller-info-cta"}).find('p',{'class':'ml-1 text-body2-strong'}).text)
+        details['warranty']= self.safe_extraction('warranty',element, lambda e: e.find('div',{'data-cro-id':'pdp-shipment-info'}).find_previous('p',{'class':'text-button-2 text-neutral-700'}).text)
+        details['digiclub_points']= self.safe_extraction('digiclub points',element, lambda e: e.find('div',{'data-cro-id':'pdp-shipment-info'}).find_next('p',{'class':'text-button-2 text-neutral-700'}).text)
+        details['discount_percent'] = self.safe_extraction('discount percent',element, lambda e: e.find('span',{'data-testid':'price-discount-percent'}).text)
+        details['Price_before_discount'] = self.safe_extraction('Price before discount',element, lambda e: e.find('span',{'data-testid':'price-no-discount'}).text)
+        details['Price_after_discount'] = self.safe_extraction('Price after discount',element, lambda e: e.find('span',{'data-testid':'price-discount-percent'}).text)
+        self.log.info('[+] buy box extrection succsusfully')
+
+    def product_image_extrection(self,element):
+        return self.safe_extraction('images',element, lambda e: [image.find('img')['src'] for image in e])
+
+    def other_seller_box_extrection(self,element):
+        for ele in element:
+            print(ele)
+            print('\n')
 
     def test_run(self,):
         with open('page_source.html','r',encoding='utf-8') as file :
             page_source=file.read()
         soup = self.make_soup(page_source)
         elements = self.product_elements_extrection(soup)
-        for review in elements['seller_offer']:
-            print(review)
-            print('\n')
-        print(len(elements['seller_offer']))
+        main_product_details = self.main_product_details_extrection(elements['main_product_details'])
+        buy_box = self.product_buy_box_extrection(elements['buy_box'])
+        product_images = self.product_image_extrection(elements['image_box'])
+        self.other_seller_box_extrection(elements['other_seller_box'])
+        
     def run(self,url):  
         # load the page -> DONE
         # scroll to fotter back to top -> DONE
