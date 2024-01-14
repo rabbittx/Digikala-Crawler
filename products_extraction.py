@@ -255,21 +255,32 @@ class product_extrection():
         specifications= {}
         for ele in element:
             spec_list = []
-
             main_title = ele.find('p',{'class':'w-full lg:ml-12 text-h5 text-neutral-700 shrink-0 mb-3 lg:mb-0 styles_SpecificationBox__title__ql60s'}).text
             box = ele.find_all('div',{'class':'w-full flex last styles_SpecificationAttribute__valuesBox__gvZeQ'})
-            
-            
             for i in box : 
                 title = i.find('p',{'class':'ml-4 text-body-1 text-neutral-500 py-2 lg:py-3 lg:p-2 shrink-0 styles_SpecificationAttribute__value__CQ4Rz'}).text
                 speci = i.text.replace(title,'')
                 spec_list.append({self.clean_text(title).replace('\n\n',''):self.clean_text(speci).replace('\n\n','')})
             specifications[main_title] = spec_list
-            
-
+        self.log.info('[+] specifications extrection succsusfully')
         return specifications
 
-
+    def reviews_box_extrection(self,element):
+        review_data = []
+        for reivew in element:
+            review_info = {}
+            review_info['user_rating'] = ''
+            review_info['review_date'] = ''
+            review_info['user_role']  = ''
+            review_info['review_title'] = ''
+            review_info['review_offer'] = ''
+            review_info['review_comment'] = ''
+            review_info['review_seller'] = ''
+            review_info['review_color'] = ''
+            review_info['review_like'] = ''
+            review_info['review_dislike'] = ''
+            review_data.append(review_info)
+        return review_data
     def test_run(self,):
         with open('page_source.html','r',encoding='utf-8') as file :
             page_source=file.read()
@@ -284,8 +295,7 @@ class product_extrection():
         introduction_box = self.clean_text(elements['introduction_box'])
         expert_check = self.clean_text(self.expert_check_box_extrection(elements['expert_check_box']))
         specifications_box = self.clean_text(self.specifications_box_extrection(elements['specifications_box']))
-
-        print(specifications_box)
+        
        
         # reviews_box
         # question_box
