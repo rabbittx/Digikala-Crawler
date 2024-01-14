@@ -104,7 +104,18 @@ class product_extrection():
             return 'element not found'
     
     def product_elements_extrection(self,soup):
-         return { 
+      
+
+
+        specific_text = 'پیشنهاد فروشندگان'
+        element = soup.select_one("span:-soup-contains('{}')".format(specific_text)).find_parent('div',{'class':'flex flex-col relative overflow-hidden w-full pt-2 lg:border-complete-200 lg:rounded-medium lg:mt-4 pb-3 styles_PdpProductContent__sectionBorder__39zAX'})
+        if element:
+            seller_offer = element.find_all("a",{'class':'block cursor-pointer relative bg-neutral-000 overflow-hidden grow py-3 px-4 lg:px-2 h-full border-complete-l'})
+        else:
+            seller_offer = 'offer not found'   
+
+
+        return { 
                   
                   'main_product_details' : self.safe_find(soup,'find','div',{'class':'styles_InfoSection__leftSection__0vNpX'}).parent if self.safe_find(soup,'find','div',{'class':'styles_InfoSection__leftSection__0vNpX'}) else 'element not found'  ,
                   
@@ -129,7 +140,7 @@ class product_extrection():
                   'question_box': self.safe_find(soup,'find_all','article',{'class':'br-list-vertical-no-padding-200 py-3'}),
 
                   'Bought_next_to_it': self.safe_find(soup,'find_all','a',{'data-cro-id':"also_bought_products"}),                            
-                  'seller_offer': self.safe_find(soup,'find','div',{'class':"flex flex-col relative overflow-hidden w-full pt-2 lg:border-complete-200 lg:rounded-medium lg:mt-4 pb-3 styles_PdpProductContent__sectionBorder__39zAX"}).find('div',{"class":"swiper-wrapper"})           
+                  'seller_offer': seller_offer      
         }
 
 
