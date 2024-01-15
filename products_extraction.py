@@ -28,14 +28,14 @@ class product_extrection():
             self.log = setup_logger()
             self.db_path = 'digikala.db'
             self.log.info('Initializing Web Scraper...')
-            self.driver = self.initialize_driver(driver_path)
-            self.conn = sqlite3.connect(self.db_path)
-            self.cursor = self.conn.cursor()
+            # self.driver = self.initialize_driver(driver_path)
+            # self.conn = sqlite3.connect(self.db_path)
+            # self.cursor = self.conn.cursor()
 
 
     def clean_text(self, text):
         # تعریف پترن با اضافه کردن \n و \n\n به پترن اصلی
-        pattern = '[^ا-یآ-ی۰-۹a-zA-Z0-9\s:/\.\-،%(),\n]'
+        pattern = '[^ا-یآ-ی۰-۹a-zA-Z0-9\s:/\.\-،%(),\n _]'
         # تابع برای بررسی اینکه آیا یک رشته شبیه به URL است یا نه
         def is_url(s):
             return re.match(r'https?://\S+\.\S+', s)
@@ -45,7 +45,7 @@ class product_extrection():
             if is_url(text):
                 return text
             # در غیر این صورت، حذف کاراکترهای ناخواسته
-            return re.sub(pattern, '', text)
+            return re.sub(pattern, '', text.replace('\n','').replace('\n\n',''))
         elif isinstance(text, list):
             # اعمال تابع بر روی هر عنصر از لیست
             return [self.clean_text(i) for i in text]
@@ -170,7 +170,7 @@ class product_extrection():
 
                   'question_box': self.safe_find(soup,'find_all','article',{'class':'br-list-vertical-no-padding-200 py-3'}),
 
-                  'bought_next_to_it': self.safe_find(soup,'find_all','a',{'data-cro-id':"also_bought_products"}),                            
+                  'also_bought_items': self.safe_find(soup,'find_all','a',{'data-cro-id':"also_bought_products"}),                            
                   'seller_offer': seller_offer      
         }
     
@@ -269,18 +269,52 @@ class product_extrection():
         review_data = []
         for reivew in element:
             review_info = {}
-            review_info['user_rating'] = ''
-            review_info['review_date'] = ''
-            review_info['user_role']  = ''
-            review_info['review_title'] = ''
-            review_info['review_offer'] = ''
-            review_info['review_comment'] = ''
-            review_info['review_seller'] = ''
-            review_info['review_color'] = ''
-            review_info['review_like'] = ''
-            review_info['review_dislike'] = ''
+            review_info['user_rating'] = self.safe_extraction('user rating', reivew, lambda e: e.find('div',{'class':'p-1 rounded-small text-caption-strong text-neutral-000 flex justify-center items-center px-2 bg-rating-4-5 styles_commentRate__main__YKGC5'}).text)            
+            review_info['review_date'] = self.safe_extraction('review date', reivew, lambda e: e.find('p',{'class':'text-caption text-neutral-400 inline'}).text)   
+            review_info['user_role']  = self.safe_extraction('review date', reivew, lambda e: e.find('div',{'class':'inline-flex items-center mr-2 Badge_Badge__QIekq Badge_Badge--small__ElV6O px-2 text-caption-strong'}).text) 
+            review_info['review_title'] = self.safe_extraction('review title', reivew, lambda e: e.find('p',{'class':'inline-block  text-caption-strong'}).text)
+            review_info['review_offer'] = self.safe_extraction('review offer', reivew, lambda e: e.find('p',{'class':'text-body-2'}).text)            
+            review_info['review_comment'] = self.safe_extraction('review comment', reivew, lambda e: e.find('p',{'class':'text-body-1 text-neutral-900 mb-1 pt-3 break-words'}).text)  
+            review_info['review_seller'] = self.safe_extraction('review seller', reivew, lambda e: e.find('p',{'class':'text-caption text-neutral-700 inline'}).text)
+            review_info['review_color'] = self.safe_extraction('review color', reivew, lambda e: e.find('div',{'class':'ml-2 inline-block rounded-circle styles_PdpCommentContentFooter__purchasedItem--color__GOLKc'}).parent.text.replace(review_info['review_seller'],''))
+            review_info['review_like'] = self.safe_extraction('review like', reivew, lambda e: e.find('button',{"data-cro-id":"pdp-comment-like"}).text)
+            review_info['review_dislike'] = self.safe_extraction('review dislike', reivew, lambda e: e.find('button',{"data-cro-id":"pdp-comment-dislike"}).text)
+            review_feedback = self.safe_extraction('review feedback', reivew, lambda e: e.find_all('div',{"class":"flex items-center pt-2px"}))
+            review_info['review_feedback'] = [
+            f"{'+' if 'var(--color-icon-rating-4-5)' in feedback.find('svg')['style'] else '-'} {feedback.text.replace('n','')}".replace('\n','')
+            for feedback in review_feedback]
             review_data.append(review_info)
+        self.log.info('[+] review info extrection succsusfully')
         return review_data
+    
+    def  question_box_extrection(self,element):
+        questions = []
+        for quest in element:
+            question_info = {}
+            question_info['question_title'] = self.safe_extraction('question title', quest, lambda e: e.find('p',{'class':'text-subtitle w-full'}).text)     
+            question_info['question_answer'] = self.safe_extraction('question answer', quest, lambda e: e.find('p',{'class':'text-body-1'}).text)
+            question_info['answer_user_name'] = self.safe_extraction('answer user name', quest, lambda e: e.find('p',{'class':'text-caption text-neutral-400'}).text)
+            question_info['answer_user_role'] = self.safe_extraction('answer user role', quest, lambda e: e.find('p',{'class':'inline-block  text-caption-strong'}).text)
+            question_info['question_like'] = self.safe_extraction('question like', quest, lambda e: e.find('button',{"data-cro-id":"dp-question-like"}).text)
+            question_info['question_dislike'] = self.safe_extraction('question dislike', quest, lambda e: e.find('button',{"data-cro-id":"dp-question-dislike"}).text)
+            questions.append(question_info)
+        self.log.info('[+] question info extrection succsusfully')
+        return questions
+
+    def also_bought_items_extrection(self,element):
+        also_bought_items = []
+        for item in element :
+            also_bought_item_info = {}
+            also_bought_item_title = ''
+            also_bought_item_image = ''
+            also_bought_item_link = ''
+            also_bought_item_final_price = ''
+            also_bought_item_discount_percent = ''
+            also_bought_item_price_before_discount = ''
+            also_bought_items.append(also_bought_item_info)
+        return also_bought_items
+        
+
     def test_run(self,):
         with open('page_source.html','r',encoding='utf-8') as file :
             page_source=file.read()
@@ -295,11 +329,10 @@ class product_extrection():
         introduction_box = self.clean_text(elements['introduction_box'])
         expert_check = self.clean_text(self.expert_check_box_extrection(elements['expert_check_box']))
         specifications_box = self.clean_text(self.specifications_box_extrection(elements['specifications_box']))
-        
-       
-        # reviews_box
-        # question_box
-        # bought_next_to_it
+        reviews = self.clean_text(self.reviews_box_extrection(elements['reviews_box']))
+        question_box = self.clean_text(self.question_box_extrection(elements['question_box']))
+
+        # also_bought_items
         # seller_offer
 
     def run(self,url):  
