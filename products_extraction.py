@@ -305,19 +305,43 @@ class product_extrection():
         also_bought_items = []
         for item in element :
             also_bought_item_info = {}
-            also_bought_item_title = ''
-            also_bought_item_image = ''
-            also_bought_item_link = ''
-            also_bought_item_final_price = ''
-            also_bought_item_discount_percent = ''
-            also_bought_item_price_before_discount = ''
+            also_bought_item_info['also_bought_item_title'] = self.safe_extraction('also bought item title', item, lambda e: e.find('h3').text)
+            
+            also_bought_item_info['also_bought_item_image'] = self.safe_extraction('also bought item link', item, lambda e: e.find('img')['src'])
+            also_bought_item_info['also_bought_item_link'] = 'https://www.digikala.com'+ self.safe_extraction('also bought item image', item, lambda e: e['href'])
+
+            also_bought_item_info['also_bought_item_final_price'] = self.safe_extraction('also bought item final price', item, lambda e: e.find('span',{"data-testid":"price-final"}).text)
+            
+            also_bought_item_info['also_bought_item_discount_percent'] = self.safe_extraction('also bought item discount percent', item, lambda e: e.find('span',{"data-testid":"price-no-discount"}).text)
+            
+            also_bought_item_info['also_bought_item_price_before_discount'] = self.safe_extraction('also bought item price before discount', item, lambda e: e.find('span',{"data-testid":"price-no-discount"}).text)
             also_bought_items.append(also_bought_item_info)
+            
+
+        self.log.info('[+] also bought items extrection succsusfully')
         return also_bought_items
         
+    def seller_offer_extrection(self,element):
+        seller_offers_items = []
+        for offer in element:
+            seller_offers_info = {}
+            seller_offers_info['seller_offers_title'] = self.safe_extraction('seller offers title', offer, lambda e: e.find('h3').text)
+            
+            seller_offers_info['seller_offers_image'] = self.safe_extraction('seller offers link', offer, lambda e: e.find('img',{'class':'w-full rounded-medium inline-block'})['src'])
+            seller_offers_info['seller_offers_link'] = 'https://www.digikala.com'+ self.safe_extraction('seller offers image', offer, lambda e: e['href'])
 
-    def test_run(self,):
-        with open('page_source.html','r',encoding='utf-8') as file :
-            page_source=file.read()
+            seller_offers_info['seller_offers_final_price'] = self.safe_extraction('seller offers final price', offer, lambda e: e.find('span',{"data-testid":"price-final"}).text)
+            
+            seller_offers_info['seller_offers_discount_percent'] = self.safe_extraction('seller offers discount percent', offer, lambda e: e.find('span',{"data-testid":"price-discount-percent"}).text)
+            
+            seller_offers_info['seller_offers_price_before_discount'] = self.safe_extraction('seller offers price before discount', offer, lambda e: e.find('span',{"data-testid":"price-no-discount"}).text)
+            seller_offers_items.append(seller_offers_info)
+
+
+        return seller_offers_items
+
+    def page_extrection(self,page_source,prdouct_id):
+       
         soup = self.make_soup(page_source)
         elements = self.product_elements_extrection(soup)
         main_product_details = self.clean_text(self.main_product_details_extrection(elements['main_product_details']))
@@ -331,9 +355,24 @@ class product_extrection():
         specifications_box = self.clean_text(self.specifications_box_extrection(elements['specifications_box']))
         reviews = self.clean_text(self.reviews_box_extrection(elements['reviews_box']))
         question_box = self.clean_text(self.question_box_extrection(elements['question_box']))
-
-        # also_bought_items
-        # seller_offer
+        also_bought_items = self.clean_text(self.also_bought_items_extrection(elements['also_bought_items']))
+        seller_offer = self.clean_text(self.seller_offer_extrection(elements['seller_offer']))
+        prodcut_info= {}
+        prodcut_info['main_product_details'] = main_product_details
+        prodcut_info['buy_box'] = buy_box
+        prodcut_info['product_images'] = product_images
+        prodcut_info['other_seller'] = other_seller
+        prodcut_info['similar_products'] = similar_products
+        prodcut_info['related_videos'] = related_videos
+        prodcut_info['introduction_box'] = introduction_box
+        prodcut_info['expert_check'] = expert_check
+        prodcut_info['specifications_box'] = specifications_box
+        prodcut_info['reviews'] = reviews
+        prodcut_info['question_box'] = question_box
+        prodcut_info['also_bought_items'] = also_bought_items
+        prodcut_info['seller_offer'] = seller_offer
+        with open(f'{prdouct_id}.text','w',encoding='utf-8') as info:
+            info.write(str(prodcut_info))
 
     def run(self,url):  
         # load the page -> DONE
@@ -347,15 +386,23 @@ class product_extrection():
         # start next page 
          
         page_source = self.load_page(url)
-        print(page_source)
-        with open('page_source.html','w',encoding='utf-8') as file :
-            file.write(page_source)
+        ids = url.split('/')[4]
+        self.page_extrection(page_source,ids)
+       
 
 if __name__=="__main__":
     geko_path = r'geckodriver.exe'
-    product_url = 'https://www.digikala.com/product/dkp-6903697/%D8%AA%D8%A8%D9%84%D8%AA-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ipad-9th-generation-102-inch-wi-fi-2021-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-64-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA/'
+    product_url = ['https://www.digikala.com/product/dkp-6903697/%D8%AA%D8%A8%D9%84%D8%AA-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ipad-9th-generation-102-inch-wi-fi-2021-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-64-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA/',
+                   'https://www.digikala.com/product/dkp-7857839/%D8%AA%D8%A8%D9%84%D8%AA-%D9%85%D8%A7%DB%8C%DA%A9%D8%B1%D9%88%D8%B3%D8%A7%D9%81%D8%AA-%D9%85%D8%AF%D9%84-surface-pro-8-b-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-128-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA/',
+                   'https://www.digikala.com/product/dkp-4170482/%D8%AA%D8%A8%D9%84%D8%AA-%D9%86%D8%A7%D8%B1%D8%AA%D8%A8-%D9%85%D8%AF%D9%84-n28-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-32-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA/',
+                   'https://www.digikala.com/product/dkp-10805903/%D8%AA%D8%A8%D9%84%D8%AA-%D9%85%D8%A7%DB%8C%DA%A9%D8%B1%D9%88%D8%B3%D8%A7%D9%81%D8%AA-%D9%85%D8%AF%D9%84-surface-pro-8-i5-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-256-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA-%D9%88-8-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA-%D8%B1%D9%85-%D8%A8%D9%87-%D9%87%D9%85%D8%B1%D8%A7%D9%87-%DA%A9%DB%8C%D8%A8%D9%88%D8%B1%D8%AF-black-type-signature-%D9%88-%D9%82%D9%84%D9%85-surface-slim-pen-2/',
+                   'https://www.digikala.com/product/dkp-7290673/%D8%AA%D8%A8%D9%84%D8%AA-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ipad-9th-generation-102-inch-wi-fi-2021-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-256-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA/',
+                   'https://www.digikala.com/product/dkp-2887055/%D8%AA%D8%A8%D9%84%D8%AA-%D9%84%D9%86%D9%88%D9%88-%D9%85%D8%AF%D9%84-tab-m7-7305x-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-32-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA/',
+                   ]
     scraper = product_extrection(geko_path,)
-    scraper.test_run()
+    for link in product_url:
+        time.sleep(2)
+        scraper.run(link)
 
 
 
