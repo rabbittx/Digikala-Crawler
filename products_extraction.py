@@ -91,6 +91,20 @@ class product_extrection():
         self.driver.execute_script("window.scrollBy(0, arguments[0]);", scroll_y_by)
         return element
 
+
+    def check_with_multi_class_name(self,element,field_name,attrs_list):
+
+        for class_combo in attrs_list:
+            price_span = element.find('span', {'class': class_combo})
+            if price_span:
+                field = price_span.get_text(strip=True)
+                break
+            else:
+                field = f"{field_name} Not available"
+
+        return field
+
+
     def load_page(self,url):
         self.driver.get(url)
         self.wait = WebDriverWait(self.driver, 20)
@@ -251,13 +265,8 @@ class product_extrection():
                 seller_info["discount_percent"] = self.safe_extraction('discount percent', seller, lambda e: e.find('span',{"data-testid":"price-discount-percent"}).text)
                 seller_info["price_before_discount"] = self.safe_extraction('Price before discount', seller, lambda e: e.find('span',{'class':'line-through text-body-2 ml-1 text-neutral-300'}).text)
                 # seller_info["final_price"] = self.safe_extraction('final price', seller, lambda e: e.find('span',{'class':'text-h4 ml-1 text-neutral-800'}).text)
-                for class_combo in class_combinations:
-                    price_span = seller.find('span', {'class': class_combo})
-                    if price_span:
-                        seller_info["final_price"] = price_span.get_text(strip=True)
-                        break
-                else:
-                    seller_info["final_price"] = "final price Not available"
+                seller_info["final_price"] = self.check_with_multi_class_name(self,element,'final price',class_combinations)
+               
                 
                 other_sellers.append(seller_info)
             self.log.info('[+] other seller extrection succsusfully')
@@ -332,7 +341,26 @@ class product_extrection():
             return specifications
         else : return {}
 
+
+    
+
     def reviews_box_extrection(self,element):
+        class_combinations_review_title = [
+                                            'inline-block  text-caption-strong',  # کلاس‌ها به صورت معمول
+                                            'text-neutral-900 text-h5 pb-3',
+                                            # کلاس‌ها به صورت معکوس یا با تغییرات دیگر
+                                            # هر ترکیب دیگری که ممکن است وجود داشته باشد
+                                          ]
+        class_combinations_review_dislike = [
+                                            'dp-question-dislike',
+                                            'pdp-comment-dislike',
+                                          ]
+        class_combinations_review_like = [
+                                            'dp-question-like',
+                                            'pdp-comment-like',
+                                          ]
+
+
         if isinstance(element ,(Tag, ResultSet)):
 
             review_data = []
@@ -341,7 +369,6 @@ class product_extrection():
                 review_info["user_rating"] = self.safe_extraction('user rating', reivew, lambda e: e.find('div',{'class':'p-1 rounded-small text-caption-strong text-neutral-000 flex justify-center items-center px-2 bg-rating-4-5 styles_commentRate__main__YKGC5'}).text)            
                 review_info["review_date"] = self.safe_extraction('review date', reivew, lambda e: e.find('p',{'class':'text-caption text-neutral-400 inline'}).text)   
                 review_info["user_role"]  = self.safe_extraction('review date', reivew, lambda e: e.find('div',{'class':'inline-flex items-center mr-2 Badge_Badge__QIekq Badge_Badge--small__ElV6O px-2 text-caption-strong'}).text) 
-                review_info["review_title"] = self.safe_extraction('review title', reivew, lambda e: e.find('p',{'class':'inline-block  text-caption-strong'}).text)
                 review_info["review_offer"] = self.safe_extraction('review offer', reivew, lambda e: e.find('p',{'class':'text-body-2'}).text)            
                 review_info["review_comment"] = self.safe_extraction('review comment', reivew, lambda e: e.find('p',{'class':'text-body-1 text-neutral-900 mb-1 pt-3 break-words'}).text)  
                 review_info["review_seller"] = self.safe_extraction('review seller', reivew, lambda e: e.find('p',{'class':'text-caption text-neutral-700 inline'}).text)
@@ -352,6 +379,11 @@ class product_extrection():
                 review_info["review_feedback"] = [
                 f"{'+' if 'var(--color-icon-rating-4-5)' in feedback.find('svg')['style'] else '-'} {feedback.text.replace('n','')}".replace('\n','')
                 for feedback in review_feedback]
+                review_info['review_title'] = self.check_with_multi_class_name(reivew,'review title',class_combinations_review_title)
+                review_info['review_like'] = self.check_with_multi_class_name(reivew,'review like',class_combinations_review_like)
+                review_info['review_dislike'] = self.check_with_multi_class_name(reivew,'review dislike',class_combinations_review_dislike)
+                
+
                 review_data.append(review_info)
             self.log.info('[+] review info extrection succsusfully')
             return review_data
