@@ -92,10 +92,10 @@ class product_extrection():
         return element
 
 
-    def check_with_multi_class_name(self,element,field_name,attrs_list):
+    def check_with_multi_class_name(self,element,field_name,tag_name,attrs_name,attrs_list):
 
         for class_combo in attrs_list:
-            price_span = element.find('span', {'class': class_combo})
+            price_span = element.find(tag_name, {attrs_name: class_combo})
             if price_span:
                 field = price_span.get_text(strip=True)
                 break
@@ -265,8 +265,8 @@ class product_extrection():
                 seller_info["discount_percent"] = self.safe_extraction('discount percent', seller, lambda e: e.find('span',{"data-testid":"price-discount-percent"}).text)
                 seller_info["price_before_discount"] = self.safe_extraction('Price before discount', seller, lambda e: e.find('span',{'class':'line-through text-body-2 ml-1 text-neutral-300'}).text)
                 # seller_info["final_price"] = self.safe_extraction('final price', seller, lambda e: e.find('span',{'class':'text-h4 ml-1 text-neutral-800'}).text)
-                seller_info["final_price"] = self.check_with_multi_class_name(self,element,'final price',class_combinations)
-               
+                seller_info["final_price"] = self.check_with_multi_class_name(seller,'final price','span','class',class_combinations)
+                
                 
                 other_sellers.append(seller_info)
             self.log.info('[+] other seller extrection succsusfully')
@@ -373,15 +373,16 @@ class product_extrection():
                 review_info["review_comment"] = self.safe_extraction('review comment', reivew, lambda e: e.find('p',{'class':'text-body-1 text-neutral-900 mb-1 pt-3 break-words'}).text)  
                 review_info["review_seller"] = self.safe_extraction('review seller', reivew, lambda e: e.find('p',{'class':'text-caption text-neutral-700 inline'}).text)
                 review_info["review_color"] = self.safe_extraction('review color', reivew, lambda e: e.find('div',{'class':'ml-2 inline-block rounded-circle styles_PdpCommentContentFooter__purchasedItem--color__GOLKc'}).parent.text.replace(review_info["review_seller"],''))
-                review_info["review_like"] = self.safe_extraction('review like', reivew, lambda e: e.find('button',{"data-cro-id":"pdp-comment-like"}).text)
-                review_info["review_dislike"] = self.safe_extraction('review dislike', reivew, lambda e: e.find('button',{"data-cro-id":"pdp-comment-dislike"}).text)
+                # review_info["review_like"] = self.safe_extraction('review like', reivew, lambda e: e.find('button',{"data-cro-id":"pdp-comment-like"}).text)
+                # review_info["review_dislike"] = self.safe_extraction('review dislike', reivew, lambda e: e.find('button',{"data-cro-id":"pdp-comment-dislike"}).text)
                 review_feedback = self.safe_extraction('review feedback', reivew, lambda e: e.find_all('div',{"class":"flex items-center pt-2px"}))
                 review_info["review_feedback"] = [
                 f"{'+' if 'var(--color-icon-rating-4-5)' in feedback.find('svg')['style'] else '-'} {feedback.text.replace('n','')}".replace('\n','')
                 for feedback in review_feedback]
-                review_info['review_title'] = self.check_with_multi_class_name(reivew,'review title',class_combinations_review_title)
-                review_info['review_like'] = self.check_with_multi_class_name(reivew,'review like',class_combinations_review_like)
-                review_info['review_dislike'] = self.check_with_multi_class_name(reivew,'review dislike',class_combinations_review_dislike)
+                review_info['review_title'] = self.check_with_multi_class_name(reivew,'review title','p','class',class_combinations_review_title)
+                review_info['review_like'] = self.check_with_multi_class_name(reivew,'review like','button','data-cro-id',class_combinations_review_like)
+                review_info['review_dislike'] = self.check_with_multi_class_name(reivew,'review dislike','button','data-cro-id',class_combinations_review_dislike)
+                
                 
 
                 review_data.append(review_info)
@@ -390,6 +391,15 @@ class product_extrection():
         else : return []
 
     def  question_box_extrection(self,element):
+        class_combinations_question_dislike = [
+                                            'dp-question-dislike',
+                                            'pdp-comment-dislike',
+                                          ]
+        class_combinations_question_like = [
+                                            'dp-question-like',
+                                            
+                                            'pdp-comment-like',
+                                          ]
         if isinstance(element ,(Tag, ResultSet)):
 
             questions = []
@@ -399,8 +409,19 @@ class product_extrection():
                 question_info["question_answer"] = self.safe_extraction('question answer', quest, lambda e: e.find('p',{'class':'text-body-1'}).text)
                 question_info["answer_user_name"] = self.safe_extraction('answer user name', quest, lambda e: e.find('p',{'class':'text-caption text-neutral-400'}).text)
                 question_info["answer_user_role"] = self.safe_extraction('answer user role', quest, lambda e: e.find('p',{'class':'inline-block  text-caption-strong'}).text)
-                question_info["question_like"] = self.safe_extraction('question like', quest, lambda e: e.find('button',{"data-cro-id":"dp-question-like"}).text)
-                question_info["question_dislike"] = self.safe_extraction('question dislike', quest, lambda e: e.find('button',{"data-cro-id":"dp-question-dislike"}).text)
+                # question_info["question_like"] = self.safe_extraction('question like', quest, lambda e: e.find('button',{"data-cro-id":"dp-question-like"}).text)
+                # question_info["question_dislike"] = self.safe_extraction('question dislike', quest, lambda e: e.find('button',{"data-cro-id":"dp-question-dislike"}).text)
+                
+                
+                
+                
+                
+                        
+                question_info["question_like"] = self.check_with_multi_class_name(quest,'question like','button','data-cro-id',class_combinations_question_like)
+                question_info["question_dislike"] = self.check_with_multi_class_name(quest,'question dislike','button','data-cro-id',class_combinations_question_dislike)
+ 
+                
+                
                 questions.append(question_info)
             self.log.info('[+] question info extrection succsusfully')
             return questions
@@ -480,7 +501,7 @@ class product_extrection():
         prodcut_info["other_seller"] = other_seller
         prodcut_info["similar_products"] = similar_products
         prodcut_info["related_videos"] = related_videos
-        prodcut_info["introduction_box"] = introduction_box
+        prodcut_info["introduction_box"] = [introduction_box]
         prodcut_info["expert_check"] = expert_check
         prodcut_info["specifications_box"] = specifications_box
         prodcut_info["reviews"] = reviews
@@ -535,6 +556,5 @@ if __name__=="__main__":
     scraper = product_extrection(geko_path,)
     for link in product_url:
         scraper.run(link)
-
 
 
