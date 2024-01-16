@@ -24,6 +24,8 @@ from logger import setup_logger
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import re
+from time import gmtime, strftime
+
 class product_extrection():
     def __init__(self, driver_path ):
             self.log = setup_logger()
@@ -472,9 +474,59 @@ class product_extrection():
             return seller_offers_items
         else : return []
 
-    def page_extrection(self,page_source,prdouct_id):
-        # with open('page_source.html','r',encoding='utf-8') as file :
-        #     page_source = file.read()
+    def split_value(self,intput):
+        return intput if ';' not in intput else intput.split(';')[-1]
+
+    def check_field_value(self,row_data, crawl_data):
+        for key in row_data:
+            if key != 'crawl_date' and key != 'product_image'  :
+                row_value = row_data[key].split(';')[-1] if ';' in row_data[key] else row_data[key]
+                if row_value != crawl_data[key]:
+                    return True
+        return False
+    
+    def update_or_insert_extraction(self, extraction_data):
+        row_id = self.split_value(extraction_data['product_id'])
+        self.cursor.execute('SELECT * FROM products_extraction WHERE product_id = ?', (row_id,))
+        existing_row = self.cursor.fetchone()
+        if existing_row:
+            existing_data = {col[0]: val for col, val in zip(self.cursor.description, existing_row)}
+            if self.check_field_value(existing_data, extraction_data):
+                updated_data = {}
+                for key, value in extraction_data.items():
+                    if key in existing_data and existing_data[key] is not None:
+                        updated_data[key] = existing_data[key] + ";" + value
+                    else:
+                        updated_data[key] = value
+                self.update_or_insert_data('products_extraction', updated_data, 'product_id', row_id)
+        else:
+            self.insert_data('products_extraction', extraction_data)
+
+    def update_or_insert_data(self, table_name, data, key_field, key_value_field):
+        set_clause = ', '.join([f"{k} = :{k}" for k in data])
+        data[key_field] = key_value_field  
+        try:
+            self.cursor.execute(f'UPDATE {table_name} SET {set_clause} WHERE {key_field} = :{key_field}', data)
+            self.conn.commit()  
+        except Exception as e:
+            self.log.error(f'Error during updating data in {table_name}: {e}')
+            raise
+
+    def insert_data(self, table_name, data):
+        columns = ', '.join(data.keys())
+        placeholders = ', '.join([f":{k}" for k in data])
+        try:
+            self.cursor.execute(f'INSERT INTO {table_name} ({columns}) VALUES ({placeholders})', data)
+            self.conn.commit()  
+        except Exception as e:
+            self.log.error(f'Error during inserting data into {table_name}: {e}')
+            raise
+
+    def save_to_database(self, product_info):
+        self.update_or_insert_extraction(product_info)
+
+
+    def page_extrection(self,page_source,prdouct_id,prdouct_url):
 
         soup = self.make_soup(page_source)
         elements = self.product_elements_extrection(soup)
@@ -491,25 +543,28 @@ class product_extrection():
         question_box = self.clean_text(self.question_box_extrection(elements["question_box"]))
         also_bought_items = self.clean_text(self.also_bought_items_extrection(elements["also_bought_items"]))
         seller_offer = self.clean_text(self.seller_offer_extrection(elements["seller_offer"]))
-        prodcut_info= {}
+        prodcut_info= {
+                    'crawl_date' : strftime("%Y-%m-%d %H:%M:%S", gmtime()),     
+                    'product_id' : str(prdouct_id),
+                    'product_link' : str(prdouct_url),
+                    "main_product_details" :str( main_product_details),
+                    "buy_box" : str(buy_box),
+                    "product_images" : str(product_images),
+                    "other_seller" : str(other_seller),
+                    "similar_products" : str(similar_products),
+                    "related_videos" : str(related_videos),
+                    "introduction_box" : str([introduction_box]),
+                    "expert_check" : str(expert_check),
+                    "specifications_box" : str(specifications_box),
+                    "reviews" : str(reviews),
+                    "question_box" : str(question_box),
+                    "also_bought_items" : str(also_bought_items),
+                    "seller_offer" : str(seller_offer),
+            }
         
-        
-
-        prodcut_info["main_product_details"] = main_product_details
-        prodcut_info["buy_box"] = buy_box
-        prodcut_info["product_images"] = product_images
-        prodcut_info["other_seller"] = other_seller
-        prodcut_info["similar_products"] = similar_products
-        prodcut_info["related_videos"] = related_videos
-        prodcut_info["introduction_box"] = [introduction_box]
-        prodcut_info["expert_check"] = expert_check
-        prodcut_info["specifications_box"] = specifications_box
-        prodcut_info["reviews"] = reviews
-        prodcut_info["question_box"] = question_box
-        prodcut_info["also_bought_items"] = also_bought_items
-        prodcut_info["seller_offer"] = seller_offer
         with open(f'{prdouct_id}.json','w',encoding='utf-8') as info:
             info.write(str(prodcut_info))
+        self.save_to_database(prodcut_info)
 
     def run(self,url):  
         # load the page -> DONE
@@ -517,20 +572,32 @@ class product_extrection():
         # scroll to the links -> click on them -> DONE
         # get the page suorce code -> DONE
 
-        # start to extract info -> DOING
-        # return data -> DOING 
+        # start to extract info -> DONE
+        # return data -> DONE 
 
-        # store data to the database -> NEXT STEP
+        # store data to the database -> OPTIMIZEING 
 
-        # start next page -> DOING 
+        # start next page -> DONE 
          
         page_source = self.load_page(url)
         ids = url.split('/')[4]
-        self.page_extrection(page_source,ids)
-       
+        self.page_extrection(page_source,ids,url)
+    
+    def close_resources(self):
+        self.conn.commit()
+        self.conn.close()
+        self.driver.quit()
 
 if __name__=="__main__":
-    # TODO introduction_box not in the dict need to fix return list or dict 
+    # Currently, 20 items are received in reviews and questions. To get more items, if available, 
+            # get first page items click on the next page button get source and add it to temp in loop  
+
+    # TODO usage -> single scan -> Select single product -> scan page 
+    # TODO usage -> seller scan -> select seller -> get all seller product -> scan pages 
+    # TODO usage -> category scan -> select category -> get all product links -> scan pages 
+    # TODO usage -> products table scan -> get all prdouct links from table -> scan all prdoucts page
+    
+ 
     geko_path = r'geckodriver.exe'
     product_url = ['https://www.digikala.com/product/dkp-6903697/%D8%AA%D8%A8%D9%84%D8%AA-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ipad-9th-generation-102-inch-wi-fi-2021-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-64-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA/',
                    'https://www.digikala.com/product/dkp-7857839/%D8%AA%D8%A8%D9%84%D8%AA-%D9%85%D8%A7%DB%8C%DA%A9%D8%B1%D9%88%D8%B3%D8%A7%D9%81%D8%AA-%D9%85%D8%AF%D9%84-surface-pro-8-b-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-128-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA/',
@@ -552,9 +619,19 @@ if __name__=="__main__":
                    'https://www.digikala.com/product/dkp-12438500/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-145-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-zenbook-pro-duo-14-ux8402ze-m3026w-clone-1-of-9943357/',
                    'https://www.digikala.com/product/dkp-12956692/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-156-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-x515ep-ej743-i7-16gb-1ssd-mx330/',
                    'https://www.digikala.com/product/dkp-9210719/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-134-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-rog-flow-z13-gz301ze-a/',
+                   'https://www.digikala.com/product/dkp-12837600/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ultra-2-titanium-case-ocean-band-49mm/',
+                   'https://www.digikala.com/product/dkp-9422706/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-series-8-aluminum-45mm/',
+                   'https://www.digikala.com/product/dkp-12839926/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ultra-2-titanium-case-trail-loop-49mm/',
+                   'https://www.digikala.com/product/dkp-12836450/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-series-9-aluminum-45mm-ml/',
+                   'https://www.digikala.com/product/dkp-9422843/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-se-2022-aluminum-case-44mm/',
+                   'https://www.digikala.com/product/dkp-9767721/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%88%D8%A7%DA%86-%D9%85%D8%AF%D9%84-ultra-49-mm-ocean-band/',
+                   'https://www.digikala.com/product/dkp-9423172/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-se-2022-aluminum-case-40mm/',
+                   'https://www.digikala.com/product/dkp-12840129/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ultra-2-titanium-case-alpine-loop-49mm/',
+                   'https://www.digikala.com/product/dkp-9422726/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-series-8-aluminum-41mm/',
+                   'https://www.digikala.com/product/dkp-6845577/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%88%D8%A7%DA%86-%D8%B3%D8%B1%DB%8C-se-2021-%D9%85%D8%AF%D9%84-40mm-aluminum-case-with-sport-silicone-band/',
                    ]
     scraper = product_extrection(geko_path,)
     for link in product_url:
         scraper.run(link)
-
+    scraper.close_resources()
 
