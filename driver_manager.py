@@ -3,12 +3,18 @@ from selenium import webdriver
 
 class DriverManager:
     def __init__(self, driver_path):
-        self.driver_path = driver_path
-        self.driver = None
+        self.log.info('Initializing Web Scraper...')
+        self.driver = self.initialize_driver(driver_path)
 
-    def start_driver(self):
-        # ... تنظیمات مربوط به راه‌اندازی درایور (مثل headless و ...) ...
-        pass
+    def initialize_driver(self, driver_path):
+        try:
+            service = Service(driver_path)
+            driver = webdriver.Firefox(service=service)
+            self.log.info('Web driver initialized successfully')
+            return driver
+        except Exception as e:
+            self.log.error(f'Error initializing web driver: {e}')
+            raise
 
     def close_driver(self):
         if self.driver:
