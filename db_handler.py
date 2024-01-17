@@ -1,10 +1,10 @@
 import sqlite3
-
+import json
 class DataBaseHandler():
-    def __init__(self, db_path):
+    def __init__(self, log,db_path):
         self.conn = sqlite3.connect(db_path)
         self.cursor = self.conn.cursor()
-
+        self.log = log
     def create_tables(self):
         # Create a table for seller information
         self.cursor.execute('''
@@ -49,7 +49,7 @@ class DataBaseHandler():
             product_link TEXT ,
             main_product_details TEXT ,
             buy_box TEXT ,
-            product_images TEXT ,
+            product_image TEXT ,
             other_seller TEXT ,
             similar_products TEXT ,
             related_videos TEXT ,
@@ -76,9 +76,9 @@ class DataBaseHandler():
                     return True
         return False
 
-    def update_or_insert_data(self, data , data_key,table_name ):
-        row_id = self.split_value(data[data_key])
-        self.cursor.execute(f'SELECT * FROM {table_name} WHERE {data_key} = ?', (row_id,))
+    def update_or_insert_data(self, data , table_id,table_name  ):
+        row_id = self.split_value(data[table_id])
+        self.cursor.execute(f'SELECT * FROM {table_name} WHERE {table_id} = ?', (row_id,))
         existing_row = self.cursor.fetchone()
         if existing_row:
             # Create a dictionary from the existing row
@@ -91,38 +91,51 @@ class DataBaseHandler():
                         updated_data[key] = existing_data[key] + ";" + value
                     else:
                         updated_data[key] = value
-                self.update_data(table_name, updated_data, data_key, row_id)
+                query_name = 'updating'
+                self.update_data(table_name=table_name, data=updated_data, table_id=table_id,query_name=query_name)
         else:
-            self.update_data(table_name, data)
+            query_name = 'inserting'
+            self.update_data(table_name=table_name, data=data,table_id=table_id,query_name=query_name)
 
-    def update_data(self, table_name, data, key_field, key_value_field , query_name):
-
+    def update_data(self, table_name, data, table_id, query_name):
         try:
-            if query_name == 'updating' :
+            # تبدیل هر فیلد به JSON
+            for key in data:
+                if isinstance(data[key], dict) or isinstance(data[key], list):
+                    data[key] = json.dumps(data[key])
+
+            if query_name == 'updating':
                 set_clause = ', '.join([f"{k} = :{k}" for k in data])
-                data[key_field] = key_value_field  
-                query = f'UPDATE {table_name} SET {set_clause} WHERE {key_field} = :{key_field}'
+                data['table_id'] = table_id  # اضافه کردن شناسه جدول به داده‌ها
+                query = f'UPDATE {table_name} SET {set_clause} WHERE product_id = :table_id'
             elif query_name == 'inserting':
                 columns = ', '.join(data.keys())
                 placeholders = ', '.join([f":{k}" for k in data])
                 query = f'INSERT INTO {table_name} ({columns}) VALUES ({placeholders})'
-            else :
-                self.log.error('query name ERROR check the function input') 
+            else:
+                self.log.error('query name ERROR check the function input')
                 raise Exception
+
             self.cursor.execute(query, data)
-            self.conn.commit()  
+            self.conn.commit()
+            self.log.info(f'{table_name} updated successfully')
         except Exception as e:
             self.log.error(f'Error during {query_name} data in {table_name}: {e}')
             raise
-
-    def save_to_database(self,  data, data_key_name,table_name):
-        if table_name == 'sellers' or table_name == 'prdoucts' :
-            self.update_or_insert_seller(data[0])
+        
+    def save_to_database(self,  data, table_id,table_name):
+        if table_name == 'sellers' :
+            self.update_or_insert_data(data[0],table_id,table_name)
             for product in data[1]:
-                product[data_key_name] = data[0][data_key_name]
-                self.update_or_insert_product(product)
+                product[table_id] = data[0][table_id]
+                self.update_or_insert_data(product,table_id,table_name)
+        elif table_name == 'prdoucts':
+            self.update_or_insert_data(data[0],table_id,table_name)
+            for product in data[1]:
+                product[table_id] = data[0][table_id]
+                self.update_or_insert_data(product,table_id,table_name)
         elif table_name == 'products_extraction' :
-            self.update_or_insert_extraction(data)
+            self.update_or_insert_data(data,table_id,table_name)
 
 
     def close_connection(self):
@@ -130,8 +143,8 @@ class DataBaseHandler():
         self.conn.close()
 
 if __name__ == '__main__':
-    # TODO optimize all function about store data in tables here and use them from here !
-    
+    # TODO add new historical tables to store historical data in new record for each crawl 
+        
     db_path = 'digikala.db'
     DataBaseHandler(db_path).create_tables()
     

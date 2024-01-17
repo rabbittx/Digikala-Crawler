@@ -1,24 +1,19 @@
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.common.by import By
-from selenium.webdriver.firefox.service import Service
-from selenium import webdriver
+
 from bs4 import BeautifulSoup, Tag, ResultSet
-import sqlite3 ,time 
 from time import gmtime, strftime
 from logger import setup_logger
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 import re
 from time import gmtime, strftime
+from driver_manager import DriverManager
+from db_handler import DataBaseHandler
+import json
 
-class product_extrection():
-    def __init__(self, driver_path ):
+
+class product_extraction:
+    def __init__(self, driver_path ,db_path):
             self.log = setup_logger()
-            self.db_path = 'digikala.db'
-            self.log.info('Initializing Web Scraper...')
-            self.driver = self.initialize_driver(driver_path)
-            self.conn = sqlite3.connect(self.db_path)
-            self.cursor = self.conn.cursor()
+            self.driver = DriverManager(self.log,driver_path)
+            self.db_handler = DataBaseHandler(self.log,db_path)
 
     def clean_text(self, text):
         ## TODO test with unicodedata
@@ -34,41 +29,6 @@ class product_extrection():
         elif isinstance(text, dict):
             return {k: self.clean_text(v) for k, v in text.items()}
     
-    def initialize_driver(self, driver_path):
-        try:
-            service = Service(driver_path)
-            driver = webdriver.Firefox(service=service)
-            self.log.info('Web driver initialized successfully')
-            return driver
-        except Exception as e:
-            self.log.error(f'Error initializing web driver: {e}')
-            raise
-
-    def get_prdouct_source_page( self,):
-        current_url_id = self.driver.current_url.split('/')[4]
-        print(f'start to scroll prdouct [{current_url_id}] page ')
-        time.sleep(5)
-        last_height = self.driver.execute_script("return document.body.scrollHeight")
-        while True:
-            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            time.sleep(5)
-            new_height = self.driver.execute_script("return document.body.scrollHeight")
-            if new_height == last_height:
-                break
-            last_height = new_height
-        self.driver.execute_script("window.scrollTo(0, 0);")
-        time.sleep(1)
-    
-    def scroll_to_element(self,element_xpath,wait_time):
-        self.wait = WebDriverWait(self.driver, wait_time) # TODO duplicate [01]
-        element = self.wait.until(EC.presence_of_element_located((By.XPATH, element_xpath)))
-        desired_y = (element.size["height"] / 2) + element.location["y"]
-        current_y = (self.driver.execute_script('return window.innerHeight') / 2) + self.driver.execute_script('return window.pageYOffset')
-        scroll_y_by = desired_y - current_y
-        self.driver.execute_script("window.scrollBy(0, arguments[0]);", scroll_y_by)
-        return element
-
-
     def check_with_multi_class_name(self,element,field_name,tag_name,attrs_name,attrs_list):
         for class_combo in attrs_list:
             price_span = element.find(tag_name, {attrs_name: class_combo})
@@ -80,56 +40,6 @@ class product_extrection():
 
         return field
 
-
-    def load_page(self,url):
-        self.driver.get(url)
-        self.wait = WebDriverWait(self.driver, 20) # TODO duplicate [01]
-        time.sleep(2)
-        self.get_prdouct_source_page( )
-        try:
-            # Introduction
-            time.sleep(1)
-            if self.wait.until(EC.presence_of_element_located((By.XPATH, "//span[@data-cro-id='pdp-more-detail']"))) :
-                Introduction_element = self.scroll_to_element("//span[@data-cro-id='pdp-more-detail']",20)
-                time.sleep(1)
-                Introduction_element.click()
-        except :
-            self.log.info('more Introduction element not found')  
-        try:
-        # expert check
-            if self.wait.until(EC.presence_of_element_located((By.XPATH, "//span[@data-cro-id='pdp-expert-see-more']"))) :
-                expert_check_element = self.scroll_to_element("//span[@data-cro-id='pdp-expert-see-more']",20)
-                time.sleep(1)
-                expert_check_element.click()
-        except :
-            self.log.info('more expert check element not found')
-        try:
-        # Specifications
-            if self.wait.until(EC.presence_of_element_located((By.XPATH, "//span[@class='inline-flex items-center cursor-pointer styles_Anchor--secondary__3KsgY text-button-2']/span[text()='مشاهده بیشتر']"))) :
-                Specifications_element = self.scroll_to_element("//span[@class='inline-flex items-center cursor-pointer styles_Anchor--secondary__3KsgY text-button-2']/span[text()='مشاهده بیشتر']",20)
-                time.sleep(1)
-                Specifications_element.click()
-        except :
-            self.log.info('more Specifications element not found')
-        try:
-        # opinions of users
-            if self.wait.until(EC.presence_of_element_located((By.XPATH, "//button[@class='relative flex items-center user-select-none styles_btn__Q4MvL text-button-2 styles_btn--medium__4GoNC styles_btn--text__W2jhM styles_btn--primary__y0GEv rounded-medium text-secondary-500']"))) :
-                opinions_of_users_element = self.scroll_to_element("//button[@class='relative flex items-center user-select-none styles_btn__Q4MvL text-button-2 styles_btn--medium__4GoNC styles_btn--text__W2jhM styles_btn--primary__y0GEv rounded-medium text-secondary-500']",20)
-                time.sleep(1)
-                opinions_of_users_element.click()
-        except :
-            self.log.info('more opinions of users element not found')
-        try:
-        # questions
-            if self.wait.until(EC.presence_of_element_located((By.XPATH, "//span[@data-cro-id='pdp-question-all']"))) :
-                questions_element = self.scroll_to_element("//span[@data-cro-id='pdp-question-all']",20)
-                time.sleep(1)
-                questions_element.click() 
-        except :
-            self.log.info('more question element not found')
-
-        return self.driver.page_source
-    
     def make_soup(self,page_source):
         return BeautifulSoup(page_source,"html.parser")
     
@@ -149,7 +59,7 @@ class product_extrection():
             self.log.error(f'NOT FOUND - {element_name} - {e}')
             return f'{element_name} not found'
         
-    def product_elements_extrection(self,soup):
+    def product_elements_extraction(self,soup):
         specific_text = 'پیشنهاد فروشندگان'
         element = soup.select_one("span:-soup-contains('{}')".format(specific_text)).find_parent('div',{'class':'flex flex-col relative overflow-hidden w-full pt-2 lg:border-complete-200 lg:rounded-medium lg:mt-4 pb-3 styles_PdpProductContent__sectionBorder__39zAX'}) if  soup.select_one("span:-soup-contains('{}')".format(specific_text)) else 'element not found'
         
@@ -173,7 +83,7 @@ class product_extrection():
         product_elements["seller_offer"] = seller_offer      
         return product_elements
     
-    def main_product_details_extrection(self,element):
+    def main_product_details_extraction(self,element):
         if isinstance(element ,(Tag, ResultSet)):
             details={}
             details["product_title"] = self.safe_extraction('product title',element, lambda e: e.find('h1',{'data-testid':'pdp-title'}).text)
@@ -184,12 +94,12 @@ class product_extrection():
             details["discount_percent"] = self.safe_extraction('discount percent',element, lambda e: e.find('div',{'class':'bg-neutral-000 flex border-complete-200 rounded-medium'}).find('span',{'data-testid':'price-discount-percent'}).text)
             details["price_before_discount"] = self.safe_extraction('Price before discount',element, lambda e: e.find('div',{'class':'bg-neutral-000 flex border-complete-200 rounded-medium'}).find('div',{'class':'text-body-2 text-neutral-300 line-through'}).text)
             details["final_price"] = self.safe_extraction('final price',element, lambda e: e.find('div',{'class':'bg-neutral-000 flex border-complete-200 rounded-medium'}).find('span',{'data-testid':'price-final'}).text)
-            self.log.info('[+] main details extrection succsusfully')
+            self.log.info('[+] main details extraction succsusfully')
             return details
         else :
             return {}
         
-    def product_buy_box_extrection(self,element):
+    def product_buy_box_extraction(self,element):
         if isinstance(element ,(Tag, ResultSet)):
             details={}
             details["other_sellers"]= self.safe_extraction('other sellers',element, lambda e: e.find('span',{'data-cro-id':'pdp-other-seller'}).text)
@@ -200,18 +110,18 @@ class product_extrection():
             details["price_before_discount"] = self.safe_extraction('Price before discount',element, lambda e: e.find('span',{'data-testid':'price-no-discount'}).text)
             details["final_price"] = self.safe_extraction('final price',element, lambda e: e.find('span',{'data-testid':'price-discount-percent'}).text)
             details["prdouct_stock"] = self.safe_extraction('prdouct stock', element, lambda e: e.find('p',{"class":"text-primary-500 text-body2-strong mb-3"}).text)
-            self.log.info('[+] buy box extrection succsusfully')
+            self.log.info('[+] buy box extraction succsusfully')
             return details
         else :
             return {}
         
-    def product_image_extrection(self,element):
+    def product_image_extraction(self,element):
         if isinstance(element ,(Tag, ResultSet)):
             return {'product_images' :self.safe_extraction('images',element, lambda e: [image.find('img')["src"] for image in e])}
         else :
             return {}
         
-    def other_seller_box_extrection(self,element):
+    def other_seller_box_extraction(self,element):
         class_combinations = [
                                 'text-h4 ml-1 text-neutral-800', 
                                 'text-neutral-800 ml-1 text-h4',  
@@ -228,11 +138,11 @@ class product_extrection():
                 seller_info["price_before_discount"] = self.safe_extraction('Price before discount', seller, lambda e: e.find('span',{'class':'line-through text-body-2 ml-1 text-neutral-300'}).text)
                 seller_info["final_price"] = self.check_with_multi_class_name(seller,'final price','span','class',class_combinations)
                 other_sellers.append(seller_info)
-            self.log.info('[+] other seller extrection succsusfully')
+            self.log.info('[+] other seller extraction succsusfully')
             return other_sellers
         else : return []
 
-    def similar_products_extrection(self,element):
+    def similar_products_extraction(self,element):
         if isinstance(element ,(Tag, ResultSet)):
             similar_products = []
             for product in element:
@@ -244,12 +154,12 @@ class product_extrection():
                 similar_products_info["discount_percent"] = self.safe_extraction('discount percent', product, lambda e: e.find('span',{'data-testid':"price-discount-percent"}).text)
                 similar_products_info["price_before_discount"] = self.safe_extraction('price before discount', product, lambda e: e.find('span',{'data-testid':"price-no-discount"}).text)
                 similar_products.append(similar_products_info)
-            self.log.info('[+] similar products extrection succsusfully')
+            self.log.info('[+] similar products extraction succsusfully')
             return similar_products
         else :
             return []  
           
-    def related_videos_extrection(self,element):
+    def related_videos_extraction(self,element):
         if isinstance(element ,(Tag, ResultSet)):
             related_videos = []
             for video in element:
@@ -259,11 +169,11 @@ class product_extrection():
                 related_videos_info["producer_link"] = 'https://www.digikala.com' +  self.safe_extraction('producer link', video.parent, lambda e: e.find('a',{'class','styles_Link__RMyqc'})["href"]) 
                 related_videos_info["thumbnail"] = self.safe_extraction('thumbnail', video, lambda e: e.find('img',{'class','w-full inline-block'})["src"])
                 related_videos.append(related_videos_info)
-            self.log.info('[+] related videos extrection succsusfully')
+            self.log.info('[+] related videos extraction succsusfully')
             return related_videos
         else : return []
 
-    def expert_check_box_extrection(self,element):
+    def expert_check_box_extraction(self,element):
         if isinstance(element ,(Tag, ResultSet)):
             expert_check = []
             for expert in element.find_all('section'):
@@ -273,12 +183,12 @@ class product_extrection():
                 if expert_check_info["expert_text"] == '' :
                     expert_check_info["expert_text"] = self.safe_extraction('expert text', expert, lambda e: e.find('img',{'class':'w-full lg:block sm:block xs:block inline-block'})['src'])
                 expert_check.append(expert_check_info)
-            self.log.info('[+] expert check extrection succsusfully')
+            self.log.info('[+] expert check extraction succsusfully')
             return expert_check
         else :
             return []
         
-    def specifications_box_extrection(self,element):
+    def specifications_box_extraction(self,element):
         if isinstance(element ,(Tag, ResultSet)):
             specifications= {}
             for ele in element:
@@ -296,7 +206,7 @@ class product_extrection():
             return specifications
         else : return {}
 
-    def reviews_box_extrection(self,element):
+    def reviews_box_extraction(self,element):
         class_combinations_review_title = [
                                             'inline-block  text-caption-strong', 
                                             'text-neutral-900 text-h5 pb-3',
@@ -329,11 +239,11 @@ class product_extrection():
                 review_info['review_dislike'] = self.check_with_multi_class_name(reivew,'review dislike','button','data-cro-id',class_combinations_review_dislike)
 
                 review_data.append(review_info)
-            self.log.info('[+] review info extrection succsusfully')
+            self.log.info('[+] review info extraction succsusfully')
             return review_data
         else : return []
 
-    def  question_box_extrection(self,element):
+    def  question_box_extraction(self,element):
         class_combinations_question_dislike = [
                                             'dp-question-dislike',
                                             'pdp-comment-dislike',
@@ -355,11 +265,11 @@ class product_extrection():
                 question_info["question_like"] = self.check_with_multi_class_name(quest,'question like','button','data-cro-id',class_combinations_question_like)
                 question_info["question_dislike"] = self.check_with_multi_class_name(quest,'question dislike','button','data-cro-id',class_combinations_question_dislike)
                 questions.append(question_info)
-            self.log.info('[+] question info extrection succsusfully')
+            self.log.info('[+] question info extraction succsusfully')
             return questions
         else : return []
 
-    def also_bought_items_extrection(self,element):
+    def also_bought_items_extraction(self,element):
         if isinstance(element ,(Tag, ResultSet)):
             also_bought_items = []
             for item in element :
@@ -371,11 +281,11 @@ class product_extrection():
                 also_bought_item_info["also_bought_item_discount_percent"] = self.safe_extraction('also bought item discount percent', item, lambda e: e.find('span',{"data-testid":"price-no-discount"}).text)    
                 also_bought_item_info["also_bought_item_price_before_discount"] = self.safe_extraction('also bought item price before discount', item, lambda e: e.find('span',{"data-testid":"price-no-discount"}).text)
                 also_bought_items.append(also_bought_item_info)
-            self.log.info('[+] also bought items extrection succsusfully')
+            self.log.info('[+] also bought items extraction succsusfully')
             return also_bought_items
         else : return []
 
-    def seller_offer_extrection(self,element):
+    def seller_offer_extraction(self,element):
         if isinstance(element ,(Tag, ResultSet)):
             seller_offers_items = []
             for offer in element:
@@ -390,97 +300,48 @@ class product_extrection():
             return seller_offers_items
         else : return []
 
-    def split_value(self,intput):
-        return intput if ';' not in intput else intput.split(';')[-1]
-
-    def check_field_value(self,row_data, crawl_data):
-        for key in row_data:
-            if key != 'crawl_date' and key != 'product_image'  :
-                row_value = row_data[key].split(';')[-1] if ';' in row_data[key] else row_data[key]
-                if row_value != crawl_data[key]:
-                    return True
-        return False
-    
-    def update_or_insert_extraction(self, extraction_data):
-        row_id = self.split_value(extraction_data['product_id'])
-        self.cursor.execute('SELECT * FROM products_extraction WHERE product_id = ?', (row_id,))
-        existing_row = self.cursor.fetchone()
-        if existing_row:
-            existing_data = {col[0]: val for col, val in zip(self.cursor.description, existing_row)}
-            if self.check_field_value(existing_data, extraction_data):
-                updated_data = {}
-                for key, value in extraction_data.items():
-                    if key in existing_data and existing_data[key] is not None:
-                        updated_data[key] = existing_data[key] + ";" + value
-                    else:
-                        updated_data[key] = value
-                self.update_or_insert_data('products_extraction', updated_data, 'product_id', row_id)
-        else:
-            self.insert_data('products_extraction', extraction_data)
-
-    def update_or_insert_data(self, table_name, data, key_field, key_value_field):
-        set_clause = ', '.join([f"{k} = :{k}" for k in data])
-        data[key_field] = key_value_field  
-        try:
-            self.cursor.execute(f'UPDATE {table_name} SET {set_clause} WHERE {key_field} = :{key_field}', data)
-            self.conn.commit()  
-        except Exception as e:
-            self.log.error(f'Error during updating data in {table_name}: {e}')
-            raise
-
-    def insert_data(self, table_name, data):
-        columns = ', '.join(data.keys())
-        placeholders = ', '.join([f":{k}" for k in data])
-        try:
-            self.cursor.execute(f'INSERT INTO {table_name} ({columns}) VALUES ({placeholders})', data)
-            self.conn.commit()  
-        except Exception as e:
-            self.log.error(f'Error during inserting data into {table_name}: {e}')
-            raise
-
-    def save_to_database(self, product_info):
-        self.update_or_insert_extraction(product_info)
-
-
-    def page_extrection(self,page_source,prdouct_id,prdouct_url):
+    def page_extraction(self,page_source,prdouct_id,prdouct_url):
 
         soup = self.make_soup(page_source)
-        elements = self.product_elements_extrection(soup)
-        main_product_details = self.clean_text(self.main_product_details_extrection(elements["main_product_details"]))
-        buy_box = self.clean_text(self.product_buy_box_extrection(elements["buy_box"]))
-        product_images = self.clean_text(self.product_image_extrection(elements["image_box"]))
-        other_seller = self.clean_text(self.other_seller_box_extrection(elements["other_seller_box"]))
-        similar_products = self.clean_text(self.similar_products_extrection(elements["similar_products"]))
-        related_videos = self.clean_text(self.related_videos_extrection(elements["related_videos"]))
+        elements = self.product_elements_extraction(soup)
+        main_product_details = self.clean_text(self.main_product_details_extraction(elements["main_product_details"]))
+        buy_box = self.clean_text(self.product_buy_box_extraction(elements["buy_box"]))
+        product_images = self.clean_text(self.product_image_extraction(elements["image_box"]))
+        other_seller = self.clean_text(self.other_seller_box_extraction(elements["other_seller_box"]))
+        similar_products = self.clean_text(self.similar_products_extraction(elements["similar_products"]))
+        related_videos = self.clean_text(self.related_videos_extraction(elements["related_videos"]))
         introduction_box = self.clean_text(elements["introduction_box"])
-        expert_check = self.clean_text(self.expert_check_box_extrection(elements["expert_check_box"]))
-        specifications_box = self.clean_text(self.specifications_box_extrection(elements["specifications_box"]))
-        reviews = self.clean_text(self.reviews_box_extrection(elements["reviews_box"]))
-        question_box = self.clean_text(self.question_box_extrection(elements["question_box"]))
-        also_bought_items = self.clean_text(self.also_bought_items_extrection(elements["also_bought_items"]))
-        seller_offer = self.clean_text(self.seller_offer_extrection(elements["seller_offer"]))
+        expert_check = self.clean_text(self.expert_check_box_extraction(elements["expert_check_box"]))
+        specifications_box = self.clean_text(self.specifications_box_extraction(elements["specifications_box"]))
+        reviews = self.clean_text(self.reviews_box_extraction(elements["reviews_box"]))
+        question_box = self.clean_text(self.question_box_extraction(elements["question_box"]))
+        also_bought_items = self.clean_text(self.also_bought_items_extraction(elements["also_bought_items"]))
+        seller_offer = self.clean_text(self.seller_offer_extraction(elements["seller_offer"]))
         prodcut_info= {
                     'crawl_date' : strftime("%Y-%m-%d %H:%M:%S", gmtime()),     
-                    'product_id' : str(prdouct_id),
-                    'product_link' : str(prdouct_url),
-                    "main_product_details" :str( main_product_details),
-                    "buy_box" : str(buy_box),
-                    "product_images" : str(product_images),
-                    "other_seller" : str(other_seller),
-                    "similar_products" : str(similar_products),
-                    "related_videos" : str(related_videos),
-                    "introduction_box" : str([introduction_box]),
-                    "expert_check" : str(expert_check),
-                    "specifications_box" : str(specifications_box),
-                    "reviews" : str(reviews),
-                    "question_box" : str(question_box),
-                    "also_bought_items" : str(also_bought_items),
-                    "seller_offer" : str(seller_offer),
+                    'product_id' : prdouct_id,
+                    'product_link' : prdouct_url,
+                    "main_product_details" : main_product_details,
+                    "buy_box" : buy_box,
+                    "product_image" : product_images,
+                    "other_seller" : other_seller,
+                    "similar_products" : similar_products,
+                    "related_videos" : related_videos,
+                    "introduction_box" : [introduction_box],
+                    "expert_check" : expert_check,
+                    "specifications_box" : specifications_box,
+                    "reviews" : reviews,
+                    "question_box" : question_box,
+                    "also_bought_items" : also_bought_items,
+                    "seller_offer" : seller_offer,
             }
-        
+        data_json = json.dumps(prodcut_info)
         with open(f'{prdouct_id}.json','w',encoding='utf-8') as info:
-            info.write(str(prodcut_info))
-        self.save_to_database(prodcut_info)
+            info.write(data_json)
+            
+        self.db_handler.save_to_database(data=prodcut_info,table_id='product_id',table_name='products_extraction')
+
+
 
     def run(self,url):  
         # load the page -> DONE
@@ -495,14 +356,11 @@ class product_extrection():
 
         # start next page -> DONE 
          
-        page_source = self.load_page(url)
+        page_source = self.driver.load_page(url)
         ids = url.split('/')[4]
-        self.page_extrection(page_source,ids,url)
+        self.page_extraction(page_source,ids,url)
     
-    def close_resources(self):
-        self.conn.commit()
-        self.conn.close()
-        self.driver.quit()
+    
 
 if __name__=="__main__":
     # Currently, 20 items are received in reviews and questions. To get more items, if available, 
@@ -511,7 +369,7 @@ if __name__=="__main__":
                   # get_next_review/question_button ->
                     # click on button -> 
                       # source_code += driver.source_code ->
-                        # send for extrection
+                        # send for extraction
 
     # TODO usage -> single scan -> Select single product -> scan page 
     # TODO usage -> seller scan -> select seller -> get all seller product -> scan pages 
@@ -520,39 +378,40 @@ if __name__=="__main__":
     
  
     geko_path = r'geckodriver.exe'
+    db_path = r'digikala.db'
     product_url = ['https://www.digikala.com/product/dkp-6903697/%D8%AA%D8%A8%D9%84%D8%AA-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ipad-9th-generation-102-inch-wi-fi-2021-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-64-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA/',
                    'https://www.digikala.com/product/dkp-7857839/%D8%AA%D8%A8%D9%84%D8%AA-%D9%85%D8%A7%DB%8C%DA%A9%D8%B1%D9%88%D8%B3%D8%A7%D9%81%D8%AA-%D9%85%D8%AF%D9%84-surface-pro-8-b-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-128-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA/',
                    'https://www.digikala.com/product/dkp-4170482/%D8%AA%D8%A8%D9%84%D8%AA-%D9%86%D8%A7%D8%B1%D8%AA%D8%A8-%D9%85%D8%AF%D9%84-n28-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-32-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA/',
-                   'https://www.digikala.com/product/dkp-10805903/%D8%AA%D8%A8%D9%84%D8%AA-%D9%85%D8%A7%DB%8C%DA%A9%D8%B1%D9%88%D8%B3%D8%A7%D9%81%D8%AA-%D9%85%D8%AF%D9%84-surface-pro-8-i5-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-256-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA-%D9%88-8-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA-%D8%B1%D9%85-%D8%A8%D9%87-%D9%87%D9%85%D8%B1%D8%A7%D9%87-%DA%A9%DB%8C%D8%A8%D9%88%D8%B1%D8%AF-black-type-signature-%D9%88-%D9%82%D9%84%D9%85-surface-slim-pen-2/',
-                   'https://www.digikala.com/product/dkp-7290673/%D8%AA%D8%A8%D9%84%D8%AA-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ipad-9th-generation-102-inch-wi-fi-2021-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-256-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA/',
-                   'https://www.digikala.com/product/dkp-2887055/%D8%AA%D8%A8%D9%84%D8%AA-%D9%84%D9%86%D9%88%D9%88-%D9%85%D8%AF%D9%84-tab-m7-7305x-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-32-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA/',
-                   'https://www.digikala.com/product/dkp-12995544/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-156-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-vivobook-15-oled-k513eq-l1789-i7-16gb-512ssd-mx350/',
-                   'https://www.digikala.com/product/dkp-12216094/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-18-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-rog-strix-scar-18-g834jy-n5049-i9-64gb-1ssd-rtx4090-%DA%A9%D8%A7%D8%B3%D8%AA%D9%88%D9%85-%D8%B4%D8%AF%D9%87-clone-1-of-12216081/',
-                   'https://www.digikala.com/product/dkp-11476991/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-156-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-tuf-gaming-f15-fx506hf-hn014-i5-16gb-512ssd-rtx-2050-%DA%A9%D8%A7%D8%B3%D8%AA%D9%88%D9%85-%D8%B4%D8%AF%D9%87/',
-                   'https://www.digikala.com/product/dkp-7474479/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-14-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-m433ua-eb406/',
-                   'https://www.digikala.com/product/dkp-11675167/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-156-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-creator-q-q540vj-i93050-i9-13900h-16gb-1ssd-rtx3050/',
-                   'https://www.digikala.com/product/dkp-11274885/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-16-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-rog-strix-g16-g614jv-as73/',
-                   'https://www.digikala.com/product/dkp-10004069/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-156-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-vivobook-r1502za-bq558/',\
-                   'https://www.digikala.com/product/dkp-10659378/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-156-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-tuf-gaming-f15-fx506hc-i5-16gb-512gb-3050-w11-%DA%A9%D8%A7%D8%B3%D8%AA%D9%88%D9%85-%D8%B4%D8%AF%D9%87/',
-                   'https://www.digikala.com/product/dkp-12019914/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-156-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-q530vj/',
-                   'https://www.digikala.com/product/dkp-12405561/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-133-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-zenbook-s-13-oled-ux5304va-nq003/',
-                   'https://www.digikala.com/product/dkp-12656284/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-145-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-zenbook-14x-oled-q410va-i5-8gb-512ssd/',
-                   'https://www.digikala.com/product/dkp-12438500/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-145-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-zenbook-pro-duo-14-ux8402ze-m3026w-clone-1-of-9943357/',
-                   'https://www.digikala.com/product/dkp-12956692/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-156-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-x515ep-ej743-i7-16gb-1ssd-mx330/',
-                   'https://www.digikala.com/product/dkp-9210719/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-134-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-rog-flow-z13-gz301ze-a/',
-                   'https://www.digikala.com/product/dkp-12837600/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ultra-2-titanium-case-ocean-band-49mm/',
-                   'https://www.digikala.com/product/dkp-9422706/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-series-8-aluminum-45mm/',
-                   'https://www.digikala.com/product/dkp-12839926/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ultra-2-titanium-case-trail-loop-49mm/',
-                   'https://www.digikala.com/product/dkp-12836450/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-series-9-aluminum-45mm-ml/',
-                   'https://www.digikala.com/product/dkp-9422843/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-se-2022-aluminum-case-44mm/',
-                   'https://www.digikala.com/product/dkp-9767721/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%88%D8%A7%DA%86-%D9%85%D8%AF%D9%84-ultra-49-mm-ocean-band/',
-                   'https://www.digikala.com/product/dkp-9423172/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-se-2022-aluminum-case-40mm/',
-                   'https://www.digikala.com/product/dkp-12840129/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ultra-2-titanium-case-alpine-loop-49mm/',
-                   'https://www.digikala.com/product/dkp-9422726/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-series-8-aluminum-41mm/',
-                   'https://www.digikala.com/product/dkp-6845577/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%88%D8%A7%DA%86-%D8%B3%D8%B1%DB%8C-se-2021-%D9%85%D8%AF%D9%84-40mm-aluminum-case-with-sport-silicone-band/',
+                #    'https://www.digikala.com/product/dkp-10805903/%D8%AA%D8%A8%D9%84%D8%AA-%D9%85%D8%A7%DB%8C%DA%A9%D8%B1%D9%88%D8%B3%D8%A7%D9%81%D8%AA-%D9%85%D8%AF%D9%84-surface-pro-8-i5-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-256-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA-%D9%88-8-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA-%D8%B1%D9%85-%D8%A8%D9%87-%D9%87%D9%85%D8%B1%D8%A7%D9%87-%DA%A9%DB%8C%D8%A8%D9%88%D8%B1%D8%AF-black-type-signature-%D9%88-%D9%82%D9%84%D9%85-surface-slim-pen-2/',
+                #    'https://www.digikala.com/product/dkp-7290673/%D8%AA%D8%A8%D9%84%D8%AA-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ipad-9th-generation-102-inch-wi-fi-2021-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-256-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA/',
+                #    'https://www.digikala.com/product/dkp-2887055/%D8%AA%D8%A8%D9%84%D8%AA-%D9%84%D9%86%D9%88%D9%88-%D9%85%D8%AF%D9%84-tab-m7-7305x-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-32-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA/',
+                #    'https://www.digikala.com/product/dkp-12995544/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-156-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-vivobook-15-oled-k513eq-l1789-i7-16gb-512ssd-mx350/',
+                #    'https://www.digikala.com/product/dkp-12216094/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-18-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-rog-strix-scar-18-g834jy-n5049-i9-64gb-1ssd-rtx4090-%DA%A9%D8%A7%D8%B3%D8%AA%D9%88%D9%85-%D8%B4%D8%AF%D9%87-clone-1-of-12216081/',
+                #    'https://www.digikala.com/product/dkp-11476991/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-156-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-tuf-gaming-f15-fx506hf-hn014-i5-16gb-512ssd-rtx-2050-%DA%A9%D8%A7%D8%B3%D8%AA%D9%88%D9%85-%D8%B4%D8%AF%D9%87/',
+                #    'https://www.digikala.com/product/dkp-7474479/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-14-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-m433ua-eb406/',
+                #    'https://www.digikala.com/product/dkp-11675167/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-156-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-creator-q-q540vj-i93050-i9-13900h-16gb-1ssd-rtx3050/',
+                #    'https://www.digikala.com/product/dkp-11274885/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-16-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-rog-strix-g16-g614jv-as73/',
+                #    'https://www.digikala.com/product/dkp-10004069/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-156-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-vivobook-r1502za-bq558/',\
+                #    'https://www.digikala.com/product/dkp-10659378/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-156-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-tuf-gaming-f15-fx506hc-i5-16gb-512gb-3050-w11-%DA%A9%D8%A7%D8%B3%D8%AA%D9%88%D9%85-%D8%B4%D8%AF%D9%87/',
+                #    'https://www.digikala.com/product/dkp-12019914/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-156-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-q530vj/',
+                #    'https://www.digikala.com/product/dkp-12405561/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-133-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-zenbook-s-13-oled-ux5304va-nq003/',
+                #    'https://www.digikala.com/product/dkp-12656284/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-145-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-zenbook-14x-oled-q410va-i5-8gb-512ssd/',
+                #    'https://www.digikala.com/product/dkp-12438500/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-145-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-zenbook-pro-duo-14-ux8402ze-m3026w-clone-1-of-9943357/',
+                #    'https://www.digikala.com/product/dkp-12956692/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-156-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-x515ep-ej743-i7-16gb-1ssd-mx330/',
+                #    'https://www.digikala.com/product/dkp-9210719/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-134-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-rog-flow-z13-gz301ze-a/',
+                #    'https://www.digikala.com/product/dkp-12837600/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ultra-2-titanium-case-ocean-band-49mm/',
+                #    'https://www.digikala.com/product/dkp-9422706/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-series-8-aluminum-45mm/',
+                #    'https://www.digikala.com/product/dkp-12839926/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ultra-2-titanium-case-trail-loop-49mm/',
+                #    'https://www.digikala.com/product/dkp-12836450/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-series-9-aluminum-45mm-ml/',
+                #    'https://www.digikala.com/product/dkp-9422843/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-se-2022-aluminum-case-44mm/',
+                #    'https://www.digikala.com/product/dkp-9767721/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%88%D8%A7%DA%86-%D9%85%D8%AF%D9%84-ultra-49-mm-ocean-band/',
+                #    'https://www.digikala.com/product/dkp-9423172/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-se-2022-aluminum-case-40mm/',
+                #    'https://www.digikala.com/product/dkp-12840129/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ultra-2-titanium-case-alpine-loop-49mm/',
+                #    'https://www.digikala.com/product/dkp-9422726/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-series-8-aluminum-41mm/',
+                #    'https://www.digikala.com/product/dkp-6845577/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%88%D8%A7%DA%86-%D8%B3%D8%B1%DB%8C-se-2021-%D9%85%D8%AF%D9%84-40mm-aluminum-case-with-sport-silicone-band/',
                    ]
-    scraper = product_extrection(geko_path,)
+    scraper = product_extraction(driver_path=geko_path,db_path=db_path)
     for link in product_url:
         scraper.run(link)
-    scraper.close_resources()
+    scraper.driver.close_driver()
 
