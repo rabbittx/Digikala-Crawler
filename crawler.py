@@ -5,6 +5,10 @@ from bs4 import BeautifulSoup
 import sqlite3 ,time 
 from time import gmtime, strftime
 from logger import setup_logger
+from driver_manager import DriverManager
+from db_handler import DataBaseHandler
+import json
+
 class WebScraper:
     
     def __init__(self, driver_path ):
