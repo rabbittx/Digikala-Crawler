@@ -23,7 +23,6 @@ def check_existing_data( row_id, column_name, table_name):
     result = cursor.fetchone()
     existing_data = {col[0]: val for col, val in zip(cursor.description, result)}
     print(existing_data)
-        # اینجا result را مستقیماً به parse_json_fields ارسال می‌کنیم
     return False if not result else parse_json_fields(existing_data)
 
 def parse_json_fields( record):
@@ -36,4 +35,4 @@ def parse_json_fields( record):
     return parsed_record
 
 test = check_existing_data(table_name=table_name,row_id=row_id,column_name=column_name)
-print(test)
+print(type(test))

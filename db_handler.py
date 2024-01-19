@@ -137,18 +137,22 @@ class DataBaseHandler():
         for key in row_data:
             if key != 'crawl_date' and key != 'product_image' and key != 'reviews' and key != 'question_box'  :
                 if row_data[key] != crawl_data[key]:
+                    print(f'key => {key}')
+                    print('================== row_data[key] =======================')
+                    print(row_data[key])
+                    print('================== crawl_data[key] =======================')
+                    print(crawl_data[key])
+
                     return True
         return False
     
-    def check_existing_data(self, data, column_name, table_name):
-        row_id = data[column_name]
+    def check_existing_data(self, row_id, column_name, table_name):
         query = f'SELECT * FROM {table_name} WHERE {column_name} = "{row_id}"'
         self.cursor.execute(query)
         result = self.cursor.fetchone()
-        if result != None and result != []:
+        if result != [] and result != None:
             result = {col[0]: val for col, val in zip(self.cursor.description, result)}
-
-        return False if not result else self.parse_json_fields(dict(result))
+        return False if not result else self.parse_json_fields(result)
 
     def parse_json_fields(self, record):
         parsed_record = {}
@@ -166,16 +170,14 @@ class DataBaseHandler():
             query = f'SELECT * FROM {table_name} WHERE {column_name} = "{row_id}"'
             self.cursor.execute(query)
             record = self.cursor.fetchone()
-            existing_data = {col[0]: val for col, val in zip(self.cursor.description, record)}
+            record = {col[0]: val for col, val in zip(self.cursor.description, record)}
             if record:
-                columns = ', '.join(existing_data.keys())
-                placeholders = ', '.join([f":{k}" for k in existing_data])
-                self.cursor.execute(f"INSERT INTO {table_name}_history ({columns}) VALUES (?)", (placeholders,))
+                self.insert_recode_to_table(data=record,table_name=f'{table_name}_history')
                 self.cursor.execute(f'DELETE FROM {table_name} WHERE {column_name} = "{row_id}" ') # شرط مشابه برای حذف
                 self.conn.commit()
                 self.log.info(f'[+] recode DELETED from {table_name} table and insert to {table_name}_history table')
             else:
-                self.log.Error("[-] recode not found.")
+                self.log.error("[-] recode not found.")
         except sqlite3.Error as e:
             self.log.error(f"[-] database ERROR : {e}")
 
@@ -191,13 +193,13 @@ class DataBaseHandler():
         self.log.info('[+] insert recode to table successfully ')
 
     def run(self,data,column_name,table_name):
-        if self.check_existing_data(data,column_name,table_name) :
-            existing_recode = self.check_existing_data(data,column_name,table_name) 
+        if self.check_existing_data(row_id=data[column_name],column_name=column_name,table_name=table_name) :
+            existing_recode = self.check_existing_data(row_id=data[column_name],column_name=column_name,table_name=table_name) 
             existing_recode = self.parse_json_fields(existing_recode)
             self.log.info("[!] Data already exist")
             if self.check_field_value(data,existing_recode):
                 self.log.info("[!] page data get updated start to replace recode ")
-                self.replace_recode_to_history_table(data,column_name,table_name)
+                self.replace_recode_to_history_table(data=data,column_name=column_name,table_name=table_name)
                 self.insert_recode_to_table(data,table_name)
             else :
                 self.log.info('[-] Fields are the same no update on this data - PASS')

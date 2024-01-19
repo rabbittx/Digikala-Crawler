@@ -135,39 +135,31 @@ class WebScraper:
         page_source = self.driver.get_page_source()
         prodcut_links = self.driver.get_prdoucts_on_page(page_source,return_value='products_link')
         sellers_id = []
-        print(len(prodcut_links))
-        for link in prodcut_links[:10]:
+        for link in prodcut_links:
             self.driver.open_page(link)
-            # extrect seller id 
-            # make seller page links
-            # open  seller page 
             seller_id = self.driver.get_seller_id()
             if seller_id not in sellers_id and seller_id != None:
                 sellers_id.append(seller_id)
-                print(seller_id)
-
-        for seller in sellers_id[:10] :
+        for seller in sellers_id:
             seller_link = f'https://www.digikala.com/seller/{seller}'
+            self.log.info(f'[!] try to open seller page with id=[{seller}]')
             self.driver.open_page(seller_link)
             self.driver.scroll_page(scroll_count=True)
             self.driver.click_on_element_by_xpath("//p[text()='جزئیات بیشتر']/..")
             seller_page_source_code = self.driver.get_page_source()
             seller_info = self.seller_details(seller_page_source_code)
             seller_info['seller_id'] = seller
-            print(seller_info)
             self.db_handler.run(data=seller_info,column_name='seller_id',table_name='sellers')
             self.driver.click_on_element_by_xpath("//div[@role='dialog']//div[@class='flex cursor-pointer']")
             product_elements = self.driver.get_prdoucts_on_page(seller_page_source_code,return_value='products_element')
-            print('#'*30)
             for product in product_elements:
                 product_info = self.extract_product_details(product)
                 product_info['seller_name'] = seller_info['seller_name']
                 self.db_handler.run(data=product_info,column_name='product_id',table_name='products')
-                print(product_info)
-            # extrect seller info on page 
-            # extrect seller products info 
-            # store seller data on the table 
-            # store seller products info on the table 
+        
+    def check_seller(self,url):
+        pass
+
 
 # new_run => (category_url/seller_url):
         # if input category_url -> 
@@ -195,7 +187,7 @@ if __name__== "__main__":
     # TODO add data analysis -> (TODO)
     
     
-    geko_path = r'geckodriver'
+    geko_path = r'geckodriver.exe'
     db_path = r'digikala.db'
     category_url = 'https://www.digikala.com/search/category-notebook-netbook-ultrabook/asus/'
     scraper = WebScraper(driver_path=geko_path,db_path=db_path)

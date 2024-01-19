@@ -168,11 +168,13 @@ class DriverManager:
     def open_page(self,url:str):
         self.driver.get(url)
         time.sleep(5)
+        self.log.info('[+] page open successfully ')
 
     def click_on_element_by_xpath(self,xpath):
         elemnt = self.driver.find_element(By.XPATH,xpath)
         time.sleep(1)
         elemnt.click()
+        self.log.info('[+] click on element successfully ')   
 
     def scroll_down(self):
         self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
@@ -192,9 +194,12 @@ class DriverManager:
                 if new_height == last_height:
                     break
                 last_height = new_height
+            self.log.info('[+] page scrolling successfully ')
+
         elif isinstance(scroll_count, int):
             for _ in range(scroll_count):
                 self.scroll_down()
+            self.log.info('[+] page scrolling successfully ')
         else:
             raise ValueError("Invalid input. scroll_count must be an [integer] or [True] value.")
         self.scroll_to_top()
@@ -205,6 +210,7 @@ class DriverManager:
     def get_prdoucts_on_page(self,page_source,return_value):
         product_in_page = page_source.find_all('div',{'class':'product-list_ProductList__item__LiiNI'})
         if 'products_element' in return_value:
+            self.log.info('[+] products element extrection successfully ')
             return product_in_page
         elif 'products_link'in return_value:
             product_link = []
@@ -214,7 +220,8 @@ class DriverManager:
                     if href not in product_link:
                         product_link.append(href)
                 except:
-                    print('product link not found')    
+                    self.log.error('product link not found') 
+            self.log.info('[+] products link extrection successfully ')   
             return product_link
         else :
             raise KeyError("Key Error : check your return_value parameter ")
@@ -230,6 +237,7 @@ class DriverManager:
             else :
                 href = seller_info.find_parent('a',{'class':'styles_Link__RMyqc'})
                 seller_id = href['href'].split('/')[-2]
+                self.log.info('[+] seller id extrection successfully ')   
                 return seller_id
         except Exception as e :
             print(f"Can't find seller id , error : {e}")
