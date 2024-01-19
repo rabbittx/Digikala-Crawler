@@ -177,7 +177,7 @@ class DataBaseHandler():
             else:
                 self.log.Error("[-] recode not found.")
         except sqlite3.Error as e:
-            self.log.Error(f"[-] database ERROR : {e}")
+            self.log.error(f"[-] database ERROR : {e}")
 
     def insert_recode_to_table(self,data,table_name) :
         for key in data:

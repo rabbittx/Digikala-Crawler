@@ -103,9 +103,9 @@ class WebScraper:
             base_seller_id = self.driver.find_seller_ids(product_link)
             for seller in base_seller_id:
                 url = f'https://www.digikala.com/seller/{seller}/' 
-                page_data = self.scan(self.get_seller_source_page(url))
+                page_data = self.scan(self.driver.get_seller_source_page(url))
                 page_data[0]['seller_id'] = seller
-                self.save_to_database(page_data)
+                self.run(page_data)
             self.log.info('Scraper run completed successfully')
         except Exception as e:
             self.log.error(f'Error during scraper run: {e}')
@@ -116,11 +116,73 @@ class WebScraper:
             self.log.info('Starting scraper run for single seller ...')
             page_data = self.scan(self.driver.get_seller_source_page(seller_url))
             page_data[0]['seller_id'] = seller_url.split('/')[-2]
-            self.save_to_database(page_data)
+            print(page_data)
+            self.db_handler.run(page_data)
             self.log.info('Scraper run completed successfully')
         except Exception as e:
             self.log.error(f'Error during scraper run: {e}')
             raise
+
+    def open_category_page(self,url):
+        self.driver.get(url)
+        time.sleep(3) #wait until the page is loaded
+        self.driver.scan_product_category_page(scroll_count=5)
+
+
+    def check_category(self,url,scroll_count):
+        self.driver.open_page(url)
+        self.driver.scroll_page(scroll_count)
+        page_source = self.driver.get_page_source()
+        prodcut_links = self.driver.get_prdoucts_on_page(page_source,return_value='products_link')
+        sellers_id = []
+        print(len(prodcut_links))
+        for link in prodcut_links[:10]:
+            self.driver.open_page(link)
+            # extrect seller id 
+            # make seller page links
+            # open  seller page 
+            seller_id = self.driver.get_seller_id()
+            if seller_id not in sellers_id and seller_id != None:
+                sellers_id.append(seller_id)
+                print(seller_id)
+
+        for seller in sellers_id[:10] :
+            seller_link = f'https://www.digikala.com/seller/{seller}'
+            self.driver.open_page(seller_link)
+            self.driver.scroll_page(scroll_count=True)
+            self.driver.click_on_element_by_xpath("//p[text()='جزئیات بیشتر']/..")
+            seller_page_source_code = self.driver.get_page_source()
+            seller_info = self.seller_details(seller_page_source_code)
+            seller_info['seller_id'] = seller
+            print(seller_info)
+            self.db_handler.run(data=seller_info,column_name='seller_id',table_name='sellers')
+            self.driver.click_on_element_by_xpath("//div[@role='dialog']//div[@class='flex cursor-pointer']")
+            product_elements = self.driver.get_prdoucts_on_page(seller_page_source_code,return_value='products_element')
+            print('#'*30)
+            for product in product_elements:
+                product_info = self.extract_product_details(product)
+                product_info['seller_name'] = seller_info['seller_name']
+                self.db_handler.run(data=product_info,column_name='product_id',table_name='products')
+                print(product_info)
+            # extrect seller info on page 
+            # extrect seller products info 
+            # store seller data on the table 
+            # store seller products info on the table 
+
+# new_run => (category_url/seller_url):
+        # if input category_url -> 
+            # open page -> 
+                # extrect products ->
+                    # open products page ->
+                        # extrect seller info -> 
+                            # open seller page ->
+                                # extrect seller data -> store seller data to table 
+        # if input seller_url -->
+            # open seller page -->
+                # extrect seller info -->
+                    # store data to table 
+        
+
 
 if __name__== "__main__":
     # TODO replace time.sleep with WebDriverWait -> (TODO)
@@ -133,8 +195,8 @@ if __name__== "__main__":
     # TODO add data analysis -> (TODO)
     
     
-    geko_path = r'geckodriver.exe'
-    db_path = 'digikala.db'
+    geko_path = r'geckodriver'
+    db_path = r'digikala.db'
     category_url = 'https://www.digikala.com/search/category-notebook-netbook-ultrabook/asus/'
     scraper = WebScraper(driver_path=geko_path,db_path=db_path)
-    scraper.run_single(category_url)
+    scraper.check_category(category_url,0)

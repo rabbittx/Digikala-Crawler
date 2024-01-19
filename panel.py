@@ -19,7 +19,7 @@ class WebScraperPanel:
         return choice
 
     def run_scraper_category(self):
-        category_url = input("enter catagory url to crawl: ")
+        category_url = input("enter category url to crawl: ")
         scroll_count = input("Please enter the number of page scroll rates (Example 5 ) : ")
         try:
             scroll_count = int(scroll_count)

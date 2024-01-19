@@ -6,6 +6,9 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+
+from typing import Union
+from bs4 import BeautifulSoup
 class DriverManager:
     def __init__(self,log, driver_path):
         self.log = log
@@ -97,6 +100,7 @@ class DriverManager:
 
             return self.driver.page_source
 
+    
     def get_seller_source_page(self, url):
             self.log.info(f'start to scroll seller [{url.split("/")[-2]}] page ')
             self.driver.get(url)
@@ -159,3 +163,74 @@ class DriverManager:
         if self.driver:
             self.driver.quit()
 
+###########################################################
+
+    def open_page(self,url:str):
+        self.driver.get(url)
+        time.sleep(5)
+
+    def click_on_element_by_xpath(self,xpath):
+        elemnt = self.driver.find_element(By.XPATH,xpath)
+        time.sleep(1)
+        elemnt.click()
+
+    def scroll_down(self):
+        self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(5) # find element to use WebDriverWait() instead of of time.sleep()
+                         # metod 1 for category and seller page 
+                            # get product elements len() if new_product_count > product_count keep scrolling 
+
+    def scroll_to_top(self):
+        self.driver.execute_script("window.scrollTo(0, 0);")    
+
+    def scroll_page(self, scroll_count: Union[int, bool]):
+        last_height = self.driver.execute_script("return document.body.scrollHeight")
+        if scroll_count is True:
+            while True:
+                self.scroll_down()
+                new_height = self.driver.execute_script("return document.body.scrollHeight")
+                if new_height == last_height:
+                    break
+                last_height = new_height
+        elif isinstance(scroll_count, int):
+            for _ in range(scroll_count):
+                self.scroll_down()
+        else:
+            raise ValueError("Invalid input. scroll_count must be an [integer] or [True] value.")
+        self.scroll_to_top()
+
+    def get_page_source(self):
+        return BeautifulSoup(self.driver.page_source, 'html.parser')
+    
+    def get_prdoucts_on_page(self,page_source,return_value):
+        product_in_page = page_source.find_all('div',{'class':'product-list_ProductList__item__LiiNI'})
+        if 'products_element' in return_value:
+            return product_in_page
+        elif 'products_link'in return_value:
+            product_link = []
+            for link in product_in_page:
+                try:
+                    href = f"https://www.digikala.com{link.find('a')['href']}"
+                    if href not in product_link:
+                        product_link.append(href)
+                except:
+                    print('product link not found')    
+            return product_link
+        else :
+            raise KeyError("Key Error : check your return_value parameter ")
+    
+    def get_seller_id(self):
+        page_source = self.get_page_source()
+        try : 
+            buy_box =  page_source.find('div',{'data-testid':'buy-box'})
+            seller_info = buy_box.find('div',{'data-cro-id':'pdp-seller-info-cta'})
+            seller_name = seller_info.find('p').text
+            if 'دیجی‌کالا' in seller_name :
+               raise ValueError("this product seller is digikala - PASS .")
+            else :
+                href = seller_info.find_parent('a',{'class':'styles_Link__RMyqc'})
+                seller_id = href['href'].split('/')[-2]
+                return seller_id
+        except Exception as e :
+            print(f"Can't find seller id , error : {e}")
+        

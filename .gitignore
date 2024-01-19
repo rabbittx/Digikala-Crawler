@@ -1,4 +1,5 @@
 env
+venv
 old_files
 json_bk
 geckodriver.exe
