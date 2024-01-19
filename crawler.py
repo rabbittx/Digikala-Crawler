@@ -75,74 +75,23 @@ class WebScraper:
             'stock':self.has_desired_text(product.find('p'),'باقی مانده').replace('تنها ','').replace(' عدد در انبار باقی مانده','') if self.has_desired_text(product.find('p'),'باقی مانده') else 'Quantity unspecified',
         }
 
-    def scan(self,page_source):
-        soup = BeautifulSoup(page_source,'html.parser')
-        return self.seller_details(soup),[self.extract_product_details(product) for product in soup.find_all('div', {'class':'product-list_ProductList__item__LiiNI'})]
-   
-
-    def get_product(self,page_source):
-        try:
-            soup = BeautifulSoup(page_source,'html.parser')
-            product_element_link = soup.find_all('a',{'class':'block cursor-pointer relative bg-neutral-000 overflow-hidden grow py-3 px-4 lg:px-2 h-full styles_VerticalProductCard--hover__ud7aD'})
-            product_link = []
-            for element in product_element_link:
-                link = 'https://www.digikala.com' + element['href']
-                if link not in product_link:
-                    product_link.append(link)
-            self.log.info(f'Found {len(product_link)} product links')
-            return product_link
-        except Exception as e:
-            self.log.error(f'Error while extracting product links: {e}')
-            raise
-    
-    def run_category(self,category_url,scroll_count):
-        try :
-            self.log.info('Starting scraper run for category ...')
-            page_source = self.driver.scan_product_category_page(category_url,scroll_count)
-            product_link = self.get_product(page_source)
-            base_seller_id = self.driver.find_seller_ids(product_link)
-            for seller in base_seller_id:
-                url = f'https://www.digikala.com/seller/{seller}/' 
-                page_data = self.scan(self.driver.get_seller_source_page(url))
-                page_data[0]['seller_id'] = seller
-                self.run(page_data)
-            self.log.info('Scraper run completed successfully')
-        except Exception as e:
-            self.log.error(f'Error during scraper run: {e}')
-            raise
-    
-    def run_single(self,seller_url):
-        try :
-            self.log.info('Starting scraper run for single seller ...')
-            page_data = self.scan(self.driver.get_seller_source_page(seller_url))
-            page_data[0]['seller_id'] = seller_url.split('/')[-2]
-            print(page_data)
-            self.db_handler.run(page_data)
-            self.log.info('Scraper run completed successfully')
-        except Exception as e:
-            self.log.error(f'Error during scraper run: {e}')
-            raise
-
-    def open_category_page(self,url):
-        self.driver.get(url)
-        time.sleep(3) #wait until the page is loaded
-        self.driver.scan_product_category_page(scroll_count=5)
-
-
     def check_category(self,url,scroll_count):
         self.driver.open_page(url)
         self.driver.scroll_page(scroll_count)
         page_source = self.driver.get_page_source()
         prodcut_links = self.driver.get_prdoucts_on_page(page_source,return_value='products_link')
         sellers_id = []
+        self.log.info(f"{len(prodcut_links)} - product links found on this category page with scroll count of {scroll_count}")
         for link in prodcut_links:
             self.driver.open_page(link)
             seller_id = self.driver.get_seller_id()
             if seller_id not in sellers_id and seller_id != None:
                 sellers_id.append(seller_id)
-        for seller in sellers_id:
+        
+        self.log.info(f"{len(sellers_id)} - unique seller found on this category")
+        for index , seller in  enumerate(sellers_id):
             seller_link = f'https://www.digikala.com/seller/{seller}'
-            self.log.info(f'[!] try to open seller page with id=[{seller}]')
+            self.log.info(f'[!] try to open seller page with id=[{seller}] - {index+1}/{len(sellers_id)}')
             self.driver.open_page(seller_link)
             self.driver.scroll_page(scroll_count=True)
             self.driver.click_on_element_by_xpath("//p[text()='جزئیات بیشتر']/..")
@@ -155,10 +104,30 @@ class WebScraper:
             for product in product_elements:
                 product_info = self.extract_product_details(product)
                 product_info['seller_name'] = seller_info['seller_name']
+                product_info['product_id'] = f"{seller_info['seller_id']}_{product_info['product_id']}"
                 self.db_handler.run(data=product_info,column_name='product_id',table_name='products')
-        
+            self.log.info(f'[!] seller page with id=[{seller}] - extrection successfully ')
+        self.driver.close_driver()
+
     def check_seller(self,url):
-        pass
+        self.log.info(f'[!] try to open seller page')
+        self.driver.open_page(url)
+        self.driver.scroll_page(scroll_count=True)
+        self.driver.click_on_element_by_xpath("//p[text()='جزئیات بیشتر']/..")
+        seller_page_source_code = self.driver.get_page_source()
+        seller_info = self.seller_details(seller_page_source_code)
+        seller_info['seller_id'] = url.split('/')[-2]
+        self.db_handler.run(data=seller_info,column_name='seller_id',table_name='sellers')
+        self.driver.click_on_element_by_xpath("//div[@role='dialog']//div[@class='flex cursor-pointer']")
+        product_elements = self.driver.get_prdoucts_on_page(seller_page_source_code,return_value='products_element')
+        for product in product_elements:
+            product_info = self.extract_product_details(product)
+            product_info['seller_name'] = seller_info['seller_name']
+            product_info['product_id'] = f"{seller_info['seller_id']}_{product_info['product_id']}"
+            self.db_handler.run(data=product_info,column_name='product_id',table_name='products')
+        self.log.info(f'[!] seller page with id=[{seller_info["seller_id"]}] - extrection successfully ')
+        self.driver.close_driver()
+
 
 
 # new_run => (category_url/seller_url):

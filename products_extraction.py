@@ -8,7 +8,6 @@ from driver_manager import DriverManager
 from db_handler import DataBaseHandler
 import json
 
-
 class product_extraction:
     def __init__(self, driver_path ,db_path):
             self.log = setup_logger()
@@ -16,7 +15,6 @@ class product_extraction:
             self.db_handler = DataBaseHandler(db_path,self.log)
 
     def clean_text(self, text):
-        ## TODO test with unicodedata
         pattern = '[^ا-یآ-ی۰-۹a-zA-Z0-9\s:/\.\-،%(),\n _]'
         def is_url(s):
             return re.match(r'https?://\S+\.\S+', s)
@@ -37,7 +35,6 @@ class product_extraction:
                 break
             else:
                 field = f"{field_name} Not available"
-
         return field
 
     def make_soup(self,page_source):
@@ -57,7 +54,7 @@ class product_extraction:
             return extraction_function(element)
         except Exception as e:
             # self.log.error(f'NOT FOUND - {element_name} - {e}')
-            return f'{element_name} not found'
+            return f'{element_name} not found {e}'
         
     def product_elements_extraction(self,soup):
         specific_text = 'پیشنهاد فروشندگان'
@@ -304,6 +301,7 @@ class product_extraction:
 
         soup = self.make_soup(page_source)
         elements = self.product_elements_extraction(soup)
+        seller_id = self.driver.get_seller_id()
         main_product_details = self.clean_text(self.main_product_details_extraction(elements["main_product_details"]))
         buy_box = self.clean_text(self.product_buy_box_extraction(elements["buy_box"]))
         product_images = self.clean_text(self.product_image_extraction(elements["image_box"]))
@@ -319,7 +317,7 @@ class product_extraction:
         seller_offer = self.clean_text(self.seller_offer_extraction(elements["seller_offer"]))
         prodcut_info= {
                     'crawl_date' : strftime("%Y-%m-%d %H:%M:%S", gmtime()),     
-                    'product_id' : prdouct_id,
+                    'product_id' : f"{seller_id}_{prdouct_id}",
                     'product_link' : prdouct_url,
                     "main_product_details" : main_product_details,
                     "buy_box" : buy_box,
@@ -338,23 +336,9 @@ class product_extraction:
         data_json = json.dumps(prodcut_info)
         with open(f'{prdouct_id}.json','w',encoding='utf-8') as info:
             info.write(data_json)
-            
         self.db_handler.run(data=prodcut_info,column_name='product_id',table_name='products_extraction')
 
-
-    def run(self,url):  
-        # load the page -> DONE
-        # scroll to fotter back to top -> DONE
-        # scroll to the links -> click on them -> DONE
-        # get the page suorce code -> DONE
-
-        # start to extract info -> DONE
-        # return data -> DONE 
-
-        # store data to the database -> OPTIMIZEING 
-
-        # start next page -> DONE 
-         
+    def run(self,url):          
         page_source = self.driver.load_page(url)
         ids = url.split('/')[4]
         self.page_extraction(page_source,ids,url)
@@ -400,15 +384,15 @@ if __name__=="__main__":
                    'https://www.digikala.com/product/dkp-12956692/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-156-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-x515ep-ej743-i7-16gb-1ssd-mx330/',
                    'https://www.digikala.com/product/dkp-9210719/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-134-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-rog-flow-z13-gz301ze-a/',
                    'https://www.digikala.com/product/dkp-12837600/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ultra-2-titanium-case-ocean-band-49mm/',
-                   'https://www.digikala.com/product/dkp-9422706/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-series-8-aluminum-45mm/',
-                   'https://www.digikala.com/product/dkp-12839926/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ultra-2-titanium-case-trail-loop-49mm/',
-                   'https://www.digikala.com/product/dkp-12836450/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-series-9-aluminum-45mm-ml/',
-                   'https://www.digikala.com/product/dkp-9422843/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-se-2022-aluminum-case-44mm/',
-                   'https://www.digikala.com/product/dkp-9767721/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%88%D8%A7%DA%86-%D9%85%D8%AF%D9%84-ultra-49-mm-ocean-band/',
-                   'https://www.digikala.com/product/dkp-9423172/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-se-2022-aluminum-case-40mm/',
-                   'https://www.digikala.com/product/dkp-12840129/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ultra-2-titanium-case-alpine-loop-49mm/',
-                   'https://www.digikala.com/product/dkp-9422726/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-series-8-aluminum-41mm/',
-                   'https://www.digikala.com/product/dkp-6845577/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%88%D8%A7%DA%86-%D8%B3%D8%B1%DB%8C-se-2021-%D9%85%D8%AF%D9%84-40mm-aluminum-case-with-sport-silicone-band/',
+                #    'https://www.digikala.com/product/dkp-9422706/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-series-8-aluminum-45mm/',
+                #    'https://www.digikala.com/product/dkp-12839926/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ultra-2-titanium-case-trail-loop-49mm/',
+                #    'https://www.digikala.com/product/dkp-12836450/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-series-9-aluminum-45mm-ml/',
+                #    'https://www.digikala.com/product/dkp-9422843/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-se-2022-aluminum-case-44mm/',
+                #    'https://www.digikala.com/product/dkp-9767721/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%88%D8%A7%DA%86-%D9%85%D8%AF%D9%84-ultra-49-mm-ocean-band/',
+                #    'https://www.digikala.com/product/dkp-9423172/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-se-2022-aluminum-case-40mm/',
+                #    'https://www.digikala.com/product/dkp-12840129/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ultra-2-titanium-case-alpine-loop-49mm/',
+                #    'https://www.digikala.com/product/dkp-9422726/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-series-8-aluminum-41mm/',
+                #    'https://www.digikala.com/product/dkp-6845577/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%88%D8%A7%DA%86-%D8%B3%D8%B1%DB%8C-se-2021-%D9%85%D8%AF%D9%84-40mm-aluminum-case-with-sport-silicone-band/',
                    ]
     scraper = product_extraction(driver_path=geko_path,db_path=db_path)
     for link in product_url:

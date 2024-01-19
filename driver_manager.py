@@ -15,6 +15,7 @@ class DriverManager:
         self.driver_path =driver_path
         self.log.info('Initializing Web Scraper...')
         self.driver = self.initialize_driver()
+   
     def initialize_driver(self,):
         try:
             service = Service(self.driver_path)
@@ -26,6 +27,7 @@ class DriverManager:
             self.log.error(f'Error initializing web driver: {e}')
             raise
 
+######################### for products_extrection.py ##################################
 
     def get_prdouct_source_page( self,):
         current_url_id = self.driver.current_url.split('/')[4]
@@ -99,71 +101,9 @@ class DriverManager:
                 self.log.info('more question element not found')
 
             return self.driver.page_source
+######################### for products_extrection.py ##################################
 
-    
-    def get_seller_source_page(self, url):
-            self.log.info(f'start to scroll seller [{url.split("/")[-2]}] page ')
-            self.driver.get(url)
-            time.sleep(5)
-            last_height = self.driver.execute_script("return document.body.scrollHeight")
-            while True:
-                self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                time.sleep(5)
-                new_height = self.driver.execute_script("return document.body.scrollHeight")
-                if new_height == last_height:
-                    break
-                last_height = new_height
-            self.driver.execute_script("window.scrollTo(0, 0);")
-            details_elemnt = self.driver.find_element(By.XPATH,"//p[text()='جزئیات بیشتر']/..")
-            time.sleep(1)
-            details_elemnt.click()
-            return self.driver.page_source
-    
-    
-    def scan_product_category_page(self,url,scroll_count ):
-        try:
-            self.log.info(f'Accessing category page: {url}')
-            self.driver.get(url)
-            time.sleep(5)
-            last_height = self.driver.execute_script("return document.body.scrollHeight")
-            for _ in range(scroll_count ): 
-                self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                time.sleep(5)
-                new_height = self.driver.execute_script("return document.body.scrollHeight")
-                if new_height == last_height:
-                    break
-                last_height = new_height
-            time.sleep(1)
-            self.log.info('Completed scrolling category page')
-            return self.driver.page_source
-        except Exception as e:
-            self.log.error(f'Error while accessing/scanning category page: {e}')
-            raise     
-    
-    def find_seller_ids(self,product_link):
-        seller_ids = []
-        for link in product_link:
-            try:
-                self.driver.get(link)
-                time.sleep(5)
-                div_element = self.driver.find_element(By.XPATH, '//div[@class="flex flex-col lg:mr-3 lg:mb-3 lg:gap-y-2 styles_InfoSection__buyBoxContainer__3nOwP"]')
-                link_element = div_element.find_element(By.XPATH, './/a[@class="styles_Link__RMyqc"]')
-                href_value = link_element.get_attribute('href').split('/')[-2]
-                if href_value not in seller_ids:
-                    seller_ids.append(href_value)
-                    self.log.info(f'[+] Found seller ID: {href_value}')
-                else :
-                    self.log.info(f'[-] Repeat seller ID: {href_value}')
-            except Exception as e:
-                self.log.error(f'Error while finding seller ID from {link}: {e}')
-        self.log.info(f'[!] seller IDs were found : {len (seller_ids)}')
-        return seller_ids
-
-    def close_driver(self):
-        if self.driver:
-            self.driver.quit()
-
-###########################################################
+######################### for crawler.py ##################################
 
     def open_page(self,url:str):
         self.driver.get(url)
@@ -241,4 +181,9 @@ class DriverManager:
                 return seller_id
         except Exception as e :
             print(f"Can't find seller id , error : {e}")
-        
+
+######################### for crawler.py ##################################
+
+    def close_driver(self):
+        if self.driver:
+            self.driver.quit()

@@ -134,15 +134,10 @@ class DataBaseHandler():
                           # -> else not same -> send data of table to historical table + save new data to table 
                 # if false --> insert data to table 
     def check_field_value(self,row_data, crawl_data):
+        key_to_pass = ['crawl_date','product_image','reviews','question_box','seller_name']
         for key in row_data:
-            if key != 'crawl_date' and key != 'product_image' and key != 'reviews' and key != 'question_box'  :
+            if key not in key_to_pass  :
                 if row_data[key] != crawl_data[key]:
-                    print(f'key => {key}')
-                    print('================== row_data[key] =======================')
-                    print(row_data[key])
-                    print('================== crawl_data[key] =======================')
-                    print(crawl_data[key])
-
                     return True
         return False
     
