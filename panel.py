@@ -1,8 +1,13 @@
 from crawler import WebScraper
 import csv ,sqlite3 , os
+from logger import setup_logger
+from driver_manager import DriverManager
+from db_handler import DataBaseHandler
 class WebScraperPanel:
-    def __init__(self, scraper):
-        self.scraper = scraper
+    def __init__(self,driver_path,db_path ):
+        self.log = setup_logger()
+        self.driver = DriverManager(self.log,driver_path)
+        self.db_handler = DataBaseHandler(db_path,self.log)
 
     def display_menu(self):
         print("welcome to digikala web crawler")
@@ -21,12 +26,12 @@ class WebScraperPanel:
         except ValueError:
             print("The number of scrolling times must be a number. By default, it is set to 3.")
             scroll_count = 3
-        self.scraper.run_category(category_url,scroll_count)
+        self.driver.run_category(category_url,scroll_count)
         print("Data extraction was done successfully.")
 
     def run_scraper_single(self):
         seller_page_url = input("enter seller page url to crawl: ")
-        self.scraper.run_single(seller_page_url)
+        self.driver.run_single(seller_page_url)
         print("Data extraction was done successfully.")
 
     def export_table_to_csv(self,db_path, table_name, csv_file_path):
@@ -67,6 +72,6 @@ class WebScraperPanel:
     
 if __name__ == "__main__":
     geko_path = r'geckodriver.exe' # path to geckodriver.exe
-    scraper = WebScraper(geko_path)
-    panel = WebScraperPanel(scraper)
+    db_path = 'digikala.db'
+    panel = WebScraperPanel(driver_path=geko_path,db_path=db_path)
     panel.start()

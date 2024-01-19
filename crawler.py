@@ -11,46 +11,15 @@ import json
 
 class WebScraper:
     
-    def __init__(self, driver_path ):
+    def __init__(self, driver_path ,db_path):
         self.log = setup_logger()
-        self.db_path = 'digikala.db'
-        self.log.info('Initializing Web Scraper...')
-        self.driver = self.initialize_driver(driver_path)
-        self.conn = sqlite3.connect(self.db_path)
-        self.cursor = self.conn.cursor()
-
-    def initialize_driver(self, driver_path):
-        try:
-            service = Service(driver_path)
-            driver = webdriver.Firefox(service=service)
-            self.log.info('Web driver initialized successfully')
-            return driver
-        except Exception as e:
-            self.log.error(f'Error initializing web driver: {e}')
-            raise
+        self.driver = DriverManager(self.log,driver_path)
+        self.db_handler = DataBaseHandler(db_path,self.log)
 
     def has_desired_text(self,tags,find_text):
         for element in tags:
             if find_text in element.text :
                 return element
-
-    def get_seller_source_page(self, url):
-        self.log.info(f'start to scroll seller [{url.split("/")[-2]}] page ')
-        self.driver.get(url)
-        time.sleep(5)
-        last_height = self.driver.execute_script("return document.body.scrollHeight")
-        while True:
-            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            time.sleep(5)
-            new_height = self.driver.execute_script("return document.body.scrollHeight")
-            if new_height == last_height:
-                break
-            last_height = new_height
-        self.driver.execute_script("window.scrollTo(0, 0);")
-        details_elemnt = self.driver.find_element(By.XPATH,"//p[text()='جزئیات بیشتر']/..")
-        time.sleep(1)
-        details_elemnt.click()
-        return self.driver.page_source
 
     def seller_details(self,soup):
         self.log.info('start to ectrext seller details')
@@ -110,98 +79,6 @@ class WebScraper:
         soup = BeautifulSoup(page_source,'html.parser')
         return self.seller_details(soup),[self.extract_product_details(product) for product in soup.find_all('div', {'class':'product-list_ProductList__item__LiiNI'})]
    
-    def split_value(self,intput):
-        return intput if ';' not in intput else intput.split(';')[-1]
-
-    def check_field_value(self,row_data, crawl_data):
-        for key in row_data:
-            if key != 'crawl_date' and key != 'product_image'  :
-                row_value = row_data[key].split(';')[-1] if ';' in row_data[key] else row_data[key]
-                if row_value != crawl_data[key]:
-                    return True
-        return False
-
-    def update_or_insert_seller(self, seller_data):
-        row_id = self.split_value(seller_data['seller_id'])
-        self.cursor.execute('SELECT * FROM sellers WHERE seller_id = ?', (row_id,))
-        existing_row = self.cursor.fetchone()
-        if existing_row:
-            # Create a dictionary from the existing row
-            existing_data = {col[0]: val for col, val in zip(self.cursor.description, existing_row)}
-            # Check if the data needs to be updated
-            if self.check_field_value(existing_data, seller_data):
-                updated_data = {}
-                for key, value in seller_data.items():
-                    if key in existing_data and existing_data[key] is not None:
-                        updated_data[key] = existing_data[key] + ";" + value
-                    else:
-                        updated_data[key] = value
-                self.update_data('sellers', updated_data, 'seller_id', row_id)
-        else:
-            self.insert_data('sellers', seller_data)
-    
-    def update_or_insert_product(self, product_data):
-        row_id = self.split_value(product_data['product_id'])
-        self.cursor.execute('SELECT * FROM products WHERE product_id = ?', (row_id,))
-        existing_row = self.cursor.fetchone()
-        if existing_row:
-            existing_data = {col[0]: val for col, val in zip(self.cursor.description, existing_row)} 
-            if self.check_field_value(existing_data, product_data):
-                    updated_data = {}
-                    for key, value in product_data.items():
-                        if key in existing_data and existing_data[key] is not None:
-                            updated_data[key] = existing_data[key] + ";" + value
-                        else:
-                            updated_data[key] = value
-                    self.update_data('products', updated_data, 'product_id', row_id)
-        else:
-            self.insert_data('products', product_data)
-
-    def update_data(self, table_name, data, key_field, key_value_field):
-        set_clause = ', '.join([f"{k} = :{k}" for k in data])
-        data[key_field] = key_value_field  
-        try:
-            self.cursor.execute(f'UPDATE {table_name} SET {set_clause} WHERE {key_field} = :{key_field}', data)
-            self.conn.commit()  
-        except Exception as e:
-            self.log.error(f'Error during updating data in {table_name}: {e}')
-            raise
-
-    def insert_data(self, table_name, data):
-        columns = ', '.join(data.keys())
-        placeholders = ', '.join([f":{k}" for k in data])
-        try:
-            self.cursor.execute(f'INSERT INTO {table_name} ({columns}) VALUES ({placeholders})', data)
-            self.conn.commit()  
-        except Exception as e:
-            self.log.error(f'Error during inserting data into {table_name}: {e}')
-            raise
-
-    def save_to_database(self,  data):
-                self.update_or_insert_seller(data[0])
-                for product in data[1]:
-                    product['seller_name'] = data[0]['seller_name']
-                    self.update_or_insert_product(product)
-
-    def scan_product_category_page(self,url,scroll_count ):
-        try:
-            self.log.info(f'Accessing category page: {url}')
-            self.driver.get(url)
-            time.sleep(5)
-            last_height = self.driver.execute_script("return document.body.scrollHeight")
-            for _ in range(scroll_count ): 
-                self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                time.sleep(5)
-                new_height = self.driver.execute_script("return document.body.scrollHeight")
-                if new_height == last_height:
-                    break
-                last_height = new_height
-            time.sleep(1)
-            self.log.info('Completed scrolling category page')
-            return self.driver.page_source
-        except Exception as e:
-            self.log.error(f'Error while accessing/scanning category page: {e}')
-            raise     
 
     def get_product(self,page_source):
         try:
@@ -218,42 +95,17 @@ class WebScraper:
             self.log.error(f'Error while extracting product links: {e}')
             raise
     
-    def find_seller_ids(self,product_link):
-        seller_ids = []
-        for link in product_link:
-            try:
-                self.driver.get(link)
-                time.sleep(5)
-                div_element = self.driver.find_element(By.XPATH, '//div[@class="flex flex-col lg:mr-3 lg:mb-3 lg:gap-y-2 styles_InfoSection__buyBoxContainer__3nOwP"]')
-                link_element = div_element.find_element(By.XPATH, './/a[@class="styles_Link__RMyqc"]')
-                href_value = link_element.get_attribute('href').split('/')[-2]
-                if href_value not in seller_ids:
-                    seller_ids.append(href_value)
-                    self.log.info(f'[+] Found seller ID: {href_value}')
-                else :
-                    self.log.info(f'[-] Repeat seller ID: {href_value}')
-            except Exception as e:
-                self.log.error(f'Error while finding seller ID from {link}: {e}')
-        self.log.info(f'[!] seller IDs were found : {len (seller_ids)}')
-        return seller_ids
-    
-    def close_resources(self):
-        self.conn.commit()
-        self.conn.close()
-        self.driver.quit()
-
     def run_category(self,category_url,scroll_count):
         try :
             self.log.info('Starting scraper run for category ...')
-            page_source = self.scan_product_category_page(category_url,scroll_count)
+            page_source = self.driver.scan_product_category_page(category_url,scroll_count)
             product_link = self.get_product(page_source)
-            base_seller_id = self.find_seller_ids(product_link)
+            base_seller_id = self.driver.find_seller_ids(product_link)
             for seller in base_seller_id:
                 url = f'https://www.digikala.com/seller/{seller}/' 
                 page_data = self.scan(self.get_seller_source_page(url))
                 page_data[0]['seller_id'] = seller
                 self.save_to_database(page_data)
-                self.conn.commit()
             self.log.info('Scraper run completed successfully')
         except Exception as e:
             self.log.error(f'Error during scraper run: {e}')
@@ -262,10 +114,9 @@ class WebScraper:
     def run_single(self,seller_url):
         try :
             self.log.info('Starting scraper run for single seller ...')
-            page_data = self.scan(self.get_seller_source_page(seller_url))
+            page_data = self.scan(self.driver.get_seller_source_page(seller_url))
             page_data[0]['seller_id'] = seller_url.split('/')[-2]
             self.save_to_database(page_data)
-            self.conn.commit()
             self.log.info('Scraper run completed successfully')
         except Exception as e:
             self.log.error(f'Error during scraper run: {e}')
@@ -283,6 +134,7 @@ if __name__== "__main__":
     
     
     geko_path = r'geckodriver.exe'
+    db_path = 'digikala.db'
     category_url = 'https://www.digikala.com/search/category-notebook-netbook-ultrabook/asus/'
-    scraper = WebScraper(geko_path,)
-    scraper.run(category_url,0)
+    scraper = WebScraper(driver_path=geko_path,db_path=db_path)
+    scraper.run_single(category_url)
