@@ -167,18 +167,19 @@ class DriverManager:
             raise KeyError("Key Error : check your return_value parameter ")
     
     def get_seller_id(self):
+        # TODO If the product is not available this function retrun None need to fix 
+        # TODO if the product seller is digikala this function return None on the prodcuts_extraction need to fix 
+         
         page_source = self.get_page_source()
         try : 
             buy_box =  page_source.find('div',{'data-testid':'buy-box'})
+            if 'ناموجود' in buy_box.find('p').text:
+                return 'No_seller'
             seller_info = buy_box.find('div',{'data-cro-id':'pdp-seller-info-cta'})
-            seller_name = seller_info.find('p').text
-            if 'دیجی‌کالا' in seller_name :
-               raise ValueError("this product seller is digikala - PASS .")
-            else :
-                href = seller_info.find_parent('a',{'class':'styles_Link__RMyqc'})
-                seller_id = href['href'].split('/')[-2]
-                self.log.info('[+] seller id extrection successfully ')   
-                return seller_id
+            href = seller_info.find_parent('a',{'class':'styles_Link__RMyqc'})
+            seller_id = href['href'].split('/')[-2]
+            self.log.info('[+] seller id extrection successfully ')   
+            return seller_id
         except Exception as e :
             print(f"Can't find seller id , error : {e}")
 

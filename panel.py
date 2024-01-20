@@ -6,8 +6,9 @@ from db_handler import DataBaseHandler
 class WebScraperPanel:
     def __init__(self,driver_path,db_path ):
         self.log = setup_logger()
-        self.driver = DriverManager(self.log,driver_path)
+        self.driver = DriverManager(driver_path=driver_path,log=self.log)
         self.db_handler = DataBaseHandler(db_path,self.log)
+        self.webScraper = WebScraper(driver=self.driver,db_handler=self.db_handler)
 
     def display_menu(self):
         print("welcome to digikala web crawler")
@@ -18,6 +19,7 @@ class WebScraperPanel:
         choice = input("enter your choice : ")
         return choice
 
+
     def run_scraper_category(self):
         category_url = input("enter category url to crawl: ")
         scroll_count = input("Please enter the number of page scroll rates (Example 5 ) : ")
@@ -26,12 +28,12 @@ class WebScraperPanel:
         except ValueError:
             print("The number of scrolling times must be a number. By default, it is set to 3.")
             scroll_count = 3
-        self.driver.run_category(category_url,scroll_count)
+        self.webScraper.check_category(category_url,scroll_count)
         print("Data extraction was done successfully.")
 
     def run_scraper_single(self):
         seller_page_url = input("enter seller page url to crawl: ")
-        self.driver.run_single(seller_page_url)
+        self.webScraper.check_seller(seller_page_url)
         print("Data extraction was done successfully.")
 
     def export_table_to_csv(self,db_path, table_name, csv_file_path):
@@ -64,7 +66,7 @@ class WebScraperPanel:
                 self.export_table_to_csv(self.scraper.db_path, 'products', 'product.csv')
                 print(' [!] CSV file create successfully')
             elif choice == "4":
-                self.scraper.close_resources()
+                self.driver.close_driver()
                 print("Exit the program.")
                 break
             else:
@@ -72,6 +74,7 @@ class WebScraperPanel:
     
 if __name__ == "__main__":
     geko_path = r'geckodriver.exe' # path to geckodriver.exe
-    db_path = 'digikala.db'
-    panel = WebScraperPanel(driver_path=geko_path,db_path=db_path)
-    panel.start()
+    db_path = 'digikala_database.db'
+    WebScraperPanel(driver_path=geko_path,db_path=db_path).start()
+
+    

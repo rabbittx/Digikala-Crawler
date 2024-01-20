@@ -1,20 +1,14 @@
-from selenium.webdriver.common.by import By
-from selenium.webdriver.firefox.service import Service
-from selenium import webdriver
-from bs4 import BeautifulSoup
-import sqlite3 ,time 
 from time import gmtime, strftime
 from logger import setup_logger
 from driver_manager import DriverManager
 from db_handler import DataBaseHandler
-import json
 
 class WebScraper:
     
-    def __init__(self, driver_path ,db_path):
+    def __init__(self, driver ,db_handler):
         self.log = setup_logger()
-        self.driver = DriverManager(self.log,driver_path)
-        self.db_handler = DataBaseHandler(db_path,self.log)
+        self.driver = driver
+        self.db_handler = db_handler
 
     def has_desired_text(self,tags,find_text):
         for element in tags:
@@ -159,5 +153,6 @@ if __name__== "__main__":
     geko_path = r'geckodriver.exe'
     db_path = r'digikala.db'
     category_url = 'https://www.digikala.com/search/category-notebook-netbook-ultrabook/asus/'
+    digikala_seller_url = 'https://www.digikala.com/seller/5a52n/'
     scraper = WebScraper(driver_path=geko_path,db_path=db_path)
-    scraper.check_category(category_url,0)
+    scraper.check_seller(digikala_seller_url)

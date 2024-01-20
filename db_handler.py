@@ -134,7 +134,7 @@ class DataBaseHandler():
                           # -> else not same -> send data of table to historical table + save new data to table 
                 # if false --> insert data to table 
     def check_field_value(self,row_data, crawl_data):
-        key_to_pass = ['crawl_date','product_image','reviews','question_box','seller_name']
+        key_to_pass = ['crawl_date','product_image','reviews','question_box','seller_name','product_id','seller_id']
         for key in row_data:
             if key not in key_to_pass  :
                 if row_data[key] != crawl_data[key]:
@@ -205,3 +205,6 @@ class DataBaseHandler():
     def close_connection(self):
         self.conn.commit()
         self.conn.close()
+
+if __name__ == "__main__" :
+    DataBaseHandler(db_path='digikala_database.db',log='log').create_tables()
