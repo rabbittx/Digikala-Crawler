@@ -1,18 +1,13 @@
 
 from bs4 import BeautifulSoup, Tag, ResultSet
 from time import gmtime, strftime
-from logger import setup_logger
 import re
-from time import gmtime, strftime
-from driver_manager import DriverManager
-from db_handler import DataBaseHandler
-import json
 
-class product_extraction:
-    def __init__(self, driver_path ,db_path):
-            self.log = setup_logger()
-            self.driver = DriverManager(self.log,driver_path)
-            self.db_handler = DataBaseHandler(db_path,self.log)
+class productExtraction:
+    def __init__(self, driver,db_handler,log):
+            self.log = log
+            self.driver = driver
+            self.db_handler = db_handler
 
     def clean_text(self, text):
         pattern = '[^ا-یآ-ی۰-۹a-zA-Z0-9\s:/\.\-،%(),\n _]'
@@ -36,9 +31,6 @@ class product_extraction:
             else:
                 field = f"{field_name} Not available"
         return field
-
-    def make_soup(self,page_source):
-        return BeautifulSoup(page_source,"html.parser")
     
     def safe_find(self,soup,finds, tag, attrs):
         try:
@@ -297,9 +289,9 @@ class product_extraction:
             return seller_offers_items
         else : return []
 
-    def page_extraction(self,page_source,prdouct_id,prdouct_url):
+    def page_extraction(self,prdouct_id,prdouct_url):
 
-        soup = self.make_soup(page_source)
+        soup = self.driver.get_page_source()
         elements = self.product_elements_extraction(soup)
         seller_id = self.driver.get_seller_id()
         main_product_details = self.clean_text(self.main_product_details_extraction(elements["main_product_details"]))
@@ -337,13 +329,12 @@ class product_extraction:
         self.db_handler.run(data=prodcut_info,column_name='product_id',table_name='products_extraction')
 
     def run(self,url):          
-        page_source = self.driver.load_page(url)
+        self.driver.load_page(url)
         ids = url.split('/')[4]
-        self.page_extraction(page_source,ids,url)
+        self.page_extraction(ids,url)
     
     
 
-if __name__=="__main__":
     # Currently, 20 items are received in reviews and questions. To get more items, if available, 
             # get first page items click on the next page button get source and add it to temp in loop  
                 # source_code = driver.source_code ->
@@ -351,49 +342,4 @@ if __name__=="__main__":
                     # click on button -> 
                       # source_code += driver.source_code ->
                         # send for extraction
-
-    # TODO usage -> single scan -> Select single product -> scan page 
-    # TODO usage -> seller scan -> select seller -> get all seller product -> scan pages 
-    # TODO usage -> category scan -> select category -> get all product links -> scan pages 
-    # TODO usage -> products table scan -> get all prdouct links from table -> scan all prdoucts page
-    
- 
-    geko_path = r'geckodriver.exe'
-    db_path = r'digikala_database.db'
-    product_url = [
-                   'https://www.digikala.com/product/dkp-6903697/%D8%AA%D8%A8%D9%84%D8%AA-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ipad-9th-generation-102-inch-wi-fi-2021-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-64-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA/',
-                   'https://www.digikala.com/product/dkp-7857839/%D8%AA%D8%A8%D9%84%D8%AA-%D9%85%D8%A7%DB%8C%DA%A9%D8%B1%D9%88%D8%B3%D8%A7%D9%81%D8%AA-%D9%85%D8%AF%D9%84-surface-pro-8-b-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-128-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA/',
-                   'https://www.digikala.com/product/dkp-4170482/%D8%AA%D8%A8%D9%84%D8%AA-%D9%86%D8%A7%D8%B1%D8%AA%D8%A8-%D9%85%D8%AF%D9%84-n28-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-32-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA/',
-                   'https://www.digikala.com/product/dkp-10805903/%D8%AA%D8%A8%D9%84%D8%AA-%D9%85%D8%A7%DB%8C%DA%A9%D8%B1%D9%88%D8%B3%D8%A7%D9%81%D8%AA-%D9%85%D8%AF%D9%84-surface-pro-8-i5-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-256-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA-%D9%88-8-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA-%D8%B1%D9%85-%D8%A8%D9%87-%D9%87%D9%85%D8%B1%D8%A7%D9%87-%DA%A9%DB%8C%D8%A8%D9%88%D8%B1%D8%AF-black-type-signature-%D9%88-%D9%82%D9%84%D9%85-surface-slim-pen-2/',
-                   'https://www.digikala.com/product/dkp-7290673/%D8%AA%D8%A8%D9%84%D8%AA-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ipad-9th-generation-102-inch-wi-fi-2021-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-256-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA/',
-                   'https://www.digikala.com/product/dkp-2887055/%D8%AA%D8%A8%D9%84%D8%AA-%D9%84%D9%86%D9%88%D9%88-%D9%85%D8%AF%D9%84-tab-m7-7305x-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-32-%DA%AF%DB%8C%DA%AF%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA/',
-                   'https://www.digikala.com/product/dkp-12995544/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-156-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-vivobook-15-oled-k513eq-l1789-i7-16gb-512ssd-mx350/',
-                   'https://www.digikala.com/product/dkp-12216094/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-18-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-rog-strix-scar-18-g834jy-n5049-i9-64gb-1ssd-rtx4090-%DA%A9%D8%A7%D8%B3%D8%AA%D9%88%D9%85-%D8%B4%D8%AF%D9%87-clone-1-of-12216081/',
-                   'https://www.digikala.com/product/dkp-11476991/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-156-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-tuf-gaming-f15-fx506hf-hn014-i5-16gb-512ssd-rtx-2050-%DA%A9%D8%A7%D8%B3%D8%AA%D9%88%D9%85-%D8%B4%D8%AF%D9%87/',
-                   'https://www.digikala.com/product/dkp-7474479/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-14-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-m433ua-eb406/',
-                   'https://www.digikala.com/product/dkp-11675167/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-156-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-creator-q-q540vj-i93050-i9-13900h-16gb-1ssd-rtx3050/',
-                   'https://www.digikala.com/product/dkp-11274885/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-16-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-rog-strix-g16-g614jv-as73/',
-                   'https://www.digikala.com/product/dkp-10004069/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-156-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-vivobook-r1502za-bq558/',\
-                   'https://www.digikala.com/product/dkp-10659378/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-156-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-tuf-gaming-f15-fx506hc-i5-16gb-512gb-3050-w11-%DA%A9%D8%A7%D8%B3%D8%AA%D9%88%D9%85-%D8%B4%D8%AF%D9%87/',
-                   'https://www.digikala.com/product/dkp-12019914/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-156-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-q530vj/',
-                   'https://www.digikala.com/product/dkp-12405561/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-133-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-zenbook-s-13-oled-ux5304va-nq003/',
-                   'https://www.digikala.com/product/dkp-12656284/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-145-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-zenbook-14x-oled-q410va-i5-8gb-512ssd/',
-                   'https://www.digikala.com/product/dkp-12438500/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-145-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-zenbook-pro-duo-14-ux8402ze-m3026w-clone-1-of-9943357/',
-                   'https://www.digikala.com/product/dkp-12956692/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-156-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-x515ep-ej743-i7-16gb-1ssd-mx330/',
-                   'https://www.digikala.com/product/dkp-9210719/%D9%84%D9%BE-%D8%AA%D8%A7%D9%BE-134-%D8%A7%DB%8C%D9%86%DA%86%DB%8C-%D8%A7%DB%8C%D8%B3%D9%88%D8%B3-%D9%85%D8%AF%D9%84-rog-flow-z13-gz301ze-a/',
-                   'https://www.digikala.com/product/dkp-12837600/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ultra-2-titanium-case-ocean-band-49mm/',
-                   'https://www.digikala.com/product/dkp-9422706/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-series-8-aluminum-45mm/',
-                   'https://www.digikala.com/product/dkp-12839926/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ultra-2-titanium-case-trail-loop-49mm/',
-                   'https://www.digikala.com/product/dkp-12836450/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-series-9-aluminum-45mm-ml/',
-                   'https://www.digikala.com/product/dkp-9422843/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-se-2022-aluminum-case-44mm/',
-                   'https://www.digikala.com/product/dkp-9767721/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%88%D8%A7%DA%86-%D9%85%D8%AF%D9%84-ultra-49-mm-ocean-band/',
-                   'https://www.digikala.com/product/dkp-9423172/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-se-2022-aluminum-case-40mm/',
-                   'https://www.digikala.com/product/dkp-12840129/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-ultra-2-titanium-case-alpine-loop-49mm/',
-                   'https://www.digikala.com/product/dkp-9422726/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%85%D8%AF%D9%84-series-8-aluminum-41mm/',
-                   'https://www.digikala.com/product/dkp-6845577/%D8%B3%D8%A7%D8%B9%D8%AA-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D8%A7%D9%BE%D9%84-%D9%88%D8%A7%DA%86-%D8%B3%D8%B1%DB%8C-se-2021-%D9%85%D8%AF%D9%84-40mm-aluminum-case-with-sport-silicone-band/',
-                   ]
-    scraper = product_extraction(driver_path=geko_path,db_path=db_path)
-    for link in product_url:
-        scraper.run(link)
-    scraper.driver.close_driver()
 

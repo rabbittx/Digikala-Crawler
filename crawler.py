@@ -1,12 +1,8 @@
 from time import gmtime, strftime
-from logger import setup_logger
-from driver_manager import DriverManager
-from db_handler import DataBaseHandler
-
 class WebScraper:
     
-    def __init__(self, driver ,db_handler):
-        self.log = setup_logger()
+    def __init__(self, driver ,db_handler,log):
+        self.log = log
         self.driver = driver
         self.db_handler = db_handler
 
@@ -121,38 +117,4 @@ class WebScraper:
             self.db_handler.run(data=product_info,column_name='product_id',table_name='products')
         self.log.info(f'[!] seller page with id=[{seller_info["seller_id"]}] - extrection successfully ')
         self.driver.close_driver()
-
-
-
-# new_run => (category_url/seller_url):
-        # if input category_url -> 
-            # open page -> 
-                # extrect products ->
-                    # open products page ->
-                        # extrect seller info -> 
-                            # open seller page ->
-                                # extrect seller data -> store seller data to table 
-        # if input seller_url -->
-            # open seller page -->
-                # extrect seller info -->
-                    # store data to table 
-        
-
-
-if __name__== "__main__":
-    # TODO replace time.sleep with WebDriverWait -> (TODO)
-    # TODO error handling -> (testing)
-    # TODO historical data -> (DONE) 
-    # TODO extract the full data of product -> (TODO)
-    # TODO add testing unit -> (TODO)
-    # TODO add flask GUI -> (TODO) 
-    # TODO add API endpoint -> (TODO) 
-    # TODO add data analysis -> (TODO)
-    
-    
-    geko_path = r'geckodriver.exe'
-    db_path = r'digikala.db'
-    category_url = 'https://www.digikala.com/search/category-notebook-netbook-ultrabook/asus/'
-    digikala_seller_url = 'https://www.digikala.com/seller/5a52n/'
-    scraper = WebScraper(driver_path=geko_path,db_path=db_path)
-    scraper.check_seller(digikala_seller_url)
+      

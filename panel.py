@@ -1,23 +1,33 @@
 from crawler import WebScraper
-import csv ,sqlite3 , os
+import csv ,sqlite3 , os ,re
 from logger import setup_logger
 from driver_manager import DriverManager
 from db_handler import DataBaseHandler
+from products_extraction import productExtraction
 class WebScraperPanel:
-    def __init__(self,driver_path,db_path ):
-        self.log = setup_logger()
+    def __init__(self,driver_path,db_path,log ):
+        self.log = log
+        self.db_path = db_path
         self.driver = DriverManager(driver_path=driver_path,log=self.log)
-        self.db_handler = DataBaseHandler(db_path,self.log)
-        self.webScraper = WebScraper(driver=self.driver,db_handler=self.db_handler)
+        self.db_handler = DataBaseHandler(db_path,log=self.log)
+        self.webscraper = WebScraper(driver=self.driver,db_handler=self.db_handler,log=log)
+        self.product_extraction_scraper = productExtraction(db_handler=self.db_handler,driver=self.driver,log=self.log)
 
     def display_menu(self):
         print("welcome to digikala web crawler")
         print("1. start to crawl for category")
         print("2. start to crawl for single seller")
         print("3. export all data in csv file ")
-        print("4. quit")
+        print("4. crawl seller product ")
+        print("5. crawl single product ")
+        print("6. crawl all product on database ")
+        print("7. quit")
         choice = input("enter your choice : ")
         return choice
+    def menu_display(self):
+        print(' [!]-[!] --Welcome to digikala scraper-- [!]-[!] ')
+        print('category - search page scan (scan to find seller info and products they sell)')
+        print('single seller page scan (scan to find single seller info and products )')
 
 
     def run_scraper_category(self):
@@ -28,19 +38,76 @@ class WebScraperPanel:
         except ValueError:
             print("The number of scrolling times must be a number. By default, it is set to 3.")
             scroll_count = 3
-        self.webScraper.check_category(category_url,scroll_count)
+        self.webscraper.check_category(category_url,scroll_count)
         print("Data extraction was done successfully.")
 
     def run_scraper_single(self):
         seller_page_url = input("enter seller page url to crawl: ")
-        self.webScraper.check_seller(seller_page_url)
+        self.webscraper.check_seller(seller_page_url)
         print("Data extraction was done successfully.")
+
+    def run_seller_scraper_product(self):
+        row_info = self.db_handler.get_row_info(['seller_id', 'seller_name'], 'sellers')
+    
+        for index, row in enumerate(row_info):
+            self.log.info(f"ID {index} : {row[0]}, Name: {row[1]}")
+        
+        while True:
+            try:
+                user_pick = int(input('choice the seller ID you want to crawl products from: '))
+                if 0 <= user_pick < len(row_info):
+                    break
+                else:
+                    self.log.info('Invalid choice, please try again.')
+            except ValueError:
+                self.log.info('Invalid input, please enter a number.')
+
+        selected_seller = row_info[user_pick]
+        self.log.info(f'You chose {selected_seller[1]} with ID {selected_seller[0]}')    
+        
+        seller_products = self.db_handler.get_row_info(['product_link', 'product_price'], 'products', ['seller_name', selected_seller[1]])
+
+        available_products = [product[0] for product in seller_products if product[1] != 'product unavailable']
+        
+        self.log.info(f'{len(available_products)} available products found for {selected_seller[1]}')
+
+        for index, link in enumerate(available_products):
+            self.log.info(f'Starting to crawl - {index + 1}/{len(available_products)}')
+            self.product_extraction_scraper.run(link)
+
+
+    def run_single_scraper_product(self):
+        while True:
+            url = input('Enter product URL: ')
+
+            # بررسی وجود کلمه 'product' در URL
+            if 'product' not in url:
+                self.log.info('URL must contain the word "product". Please try again.')
+                continue
+
+            # بررسی وجود الگوی مشخص (مانند 'dkp-xxxxxx') در URL
+            if not re.search(r'dkp-\d+', url):
+                self.log.info('URL must contain a product ID in the format "dkp-xxxxxx". Please try again.')
+                continue
+
+            break
+        
+        self.log.info(f'Starting to crawl - {url.split("/")[4]}')
+        self.product_extraction_scraper.run(url)
+
+    def scraper_all_prdouct_on_db(self,):
+        seller_products = self.db_handler.get_row_info(['product_link', 'product_price'], 'products')
+        available_products = [product[0] for product in seller_products if product[1] != 'product unavailable']
+        self.log.info(f'{len(available_products)} available products found on database ')
+        for index, link in enumerate(available_products):
+            self.log.info(f'Starting to crawl - {index + 1}/{len(available_products)}')
+            self.product_extraction_scraper.run(link)
+
 
     def export_table_to_csv(self,db_path, table_name, csv_file_path):
         if os.path.exists(csv_file_path):
             os.remove(csv_file_path)
         if os.path.exists(db_path):
-                
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()   
             cursor.execute(f"SELECT * FROM {table_name}")
@@ -49,7 +116,7 @@ class WebScraperPanel:
                 csv_writer = csv.writer(csv_file)
                 csv_writer.writerow(columns)
                 for row in cursor.fetchall():
-                    processed_row = [self.scraper.split_value(val) if isinstance(val, str) else val for val in row]
+                    processed_row = row
                     csv_writer.writerow(processed_row)
         else : 
             print(f'Database "{db_path}" does not exist! - crawl some pages first ')
@@ -62,10 +129,17 @@ class WebScraperPanel:
             elif choice == "2" :
                 self.run_scraper_single()
             elif choice == "3":
-                self.export_table_to_csv(self.scraper.db_path, 'sellers', 'sellers.csv')
-                self.export_table_to_csv(self.scraper.db_path, 'products', 'product.csv')
+                self.export_table_to_csv(self.db_path, 'sellers', 'sellers.csv')
+                self.export_table_to_csv(self.db_path, 'products', 'product.csv')
                 print(' [!] CSV file create successfully')
-            elif choice == "4":
+
+            elif choice == "4" :
+                self.run_seller_scraper_product()
+            elif choice == "5" :
+                self.run_single_scraper_product()
+            elif choice == "6" :
+                self.scraper_all_prdouct_on_db()
+            elif choice == "7":
                 self.driver.close_driver()
                 print("Exit the program.")
                 break
@@ -73,8 +147,14 @@ class WebScraperPanel:
                 print("Invalid option, please try again.")
     
 if __name__ == "__main__":
+    # TODO add testing unit -> (TODO)
+    # TODO add flask GUI -> (TODO) 
+    # TODO add API endpoint -> (TODO) 
+    # TODO add data analysis -> (TODO)
+    # TODO  add seller category field to sellers table (TODO) 
+
     geko_path = r'geckodriver.exe' # path to geckodriver.exe
     db_path = 'digikala_database.db'
-    WebScraperPanel(driver_path=geko_path,db_path=db_path).start()
+    log = setup_logger()
+    WebScraperPanel(driver_path=geko_path,db_path=db_path,log=log).start()
 
-    

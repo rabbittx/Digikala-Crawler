@@ -1,16 +1,16 @@
-# TODO install driver here 
 import time
 from selenium.webdriver.firefox.service import Service
 from selenium import webdriver
-from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
 from typing import Union
 from bs4 import BeautifulSoup
+
+# TODO driver Option need to add 
+# TODO fix chrome driver (work with firefox and chrome)  
 class DriverManager:
-    def __init__(self,log, driver_path):
+    def __init__(self, driver_path,log):
         self.log = log
         self.driver_path =driver_path
         self.log.info('Initializing Web Scraper...')
@@ -27,7 +27,6 @@ class DriverManager:
             self.log.error(f'Error initializing web driver: {e}')
             raise
 
-######################### for products_extrection.py ##################################
 
     def get_prdouct_source_page( self,):
         current_url_id = self.driver.current_url.split('/')[4]
@@ -101,9 +100,6 @@ class DriverManager:
                 self.log.info('more question element not found')
 
             return self.driver.page_source
-######################### for products_extrection.py ##################################
-
-######################### for crawler.py ##################################
 
     def open_page(self,url:str):
         self.driver.get(url)
@@ -146,7 +142,7 @@ class DriverManager:
 
     def get_page_source(self):
         return BeautifulSoup(self.driver.page_source, 'html.parser')
-    
+        
     def get_prdoucts_on_page(self,page_source,return_value):
         product_in_page = page_source.find_all('div',{'class':'product-list_ProductList__item__LiiNI'})
         if 'products_element' in return_value:
@@ -167,8 +163,6 @@ class DriverManager:
             raise KeyError("Key Error : check your return_value parameter ")
     
     def get_seller_id(self):
-        # TODO If the product is not available this function retrun None need to fix 
-        # TODO if the product seller is digikala this function return None on the prodcuts_extraction need to fix 
          
         page_source = self.get_page_source()
         try : 
@@ -183,7 +177,6 @@ class DriverManager:
         except Exception as e :
             print(f"Can't find seller id , error : {e}")
 
-######################### for crawler.py ##################################
 
     def close_driver(self):
         if self.driver:

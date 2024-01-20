@@ -1,10 +1,11 @@
-import sqlite3
-import json
+import sqlite3 ,json
+
 class DataBaseHandler():
     def __init__(self, db_path,log):
         self.conn = sqlite3.connect(db_path)
         self.cursor = self.conn.cursor()
         self.log = log
+
     def create_tables(self):
         # Create a table for seller information
         self.cursor.execute('''
@@ -127,12 +128,17 @@ class DataBaseHandler():
         ''')
 
 
-# ============================= CLEAN CODE =======================================================
-    # new run -> (data , table_id , table_name)  
-            # -> check data if exists in database(/,/,/) -> return true/false 
-                # if true --> check if fields is same in table -> pass
-                          # -> else not same -> send data of table to historical table + save new data to table 
-                # if false --> insert data to table 
+    def get_row_info(self,fields,table_name,condition=None):
+            
+        field = ','.join(fields)
+        query = f"SELECT {field} FROM {table_name} "
+        if condition != None :
+            query += f'WHERE {condition[0]}= "{condition[1]}" '
+        self.cursor.execute(query)
+        row_info = self.cursor.fetchall()
+        return row_info
+    
+
     def check_field_value(self,row_data, crawl_data):
         key_to_pass = ['crawl_date','product_image','reviews','question_box','seller_name','product_id','seller_id']
         for key in row_data:
@@ -205,6 +211,3 @@ class DataBaseHandler():
     def close_connection(self):
         self.conn.commit()
         self.conn.close()
-
-if __name__ == "__main__" :
-    DataBaseHandler(db_path='digikala_database.db',log='log').create_tables()

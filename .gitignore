@@ -11,3 +11,4 @@ __pycache__
 *.csv
 *.html
 *.json
+seller_category_classifier.py
