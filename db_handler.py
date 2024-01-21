@@ -46,7 +46,8 @@ class DataBaseHandler():
         self.cursor.execute('''
         CREATE TABLE IF NOT EXISTS products_extraction (
             product_id TEXT PRIMARY KEY,                
-            crawl_date TEXT,               
+            crawl_date TEXT,    
+            seller_name TEXT,           
             product_link TEXT ,
             main_product_details TEXT ,
             buy_box TEXT ,
@@ -107,6 +108,7 @@ class DataBaseHandler():
         CREATE TABLE IF NOT EXISTS products_extraction_history (
             history_id INTEGER PRIMARY KEY AUTOINCREMENT,
             product_id TEXT,
+            seller_name TEXT,
             crawl_date TEXT,
             product_link TEXT ,
             main_product_details TEXT ,
