@@ -46,7 +46,7 @@ class productExtraction:
             return extraction_function(element)
         except Exception as e:
             # self.log.error(f'NOT FOUND - {element_name} - {e}')
-            return f'{element_name} not found {e}'
+            return f'{element_name} not found '
         
     def product_elements_extraction(self,soup):
         specific_text = 'پیشنهاد فروشندگان'
@@ -80,9 +80,9 @@ class productExtraction:
             details["user_review"] = self.safe_extraction('user review',element, lambda e: e.find('p',{'class':'ml-2 text-neutral-600 text-body-2'}).text)
             details["colors"] = self.safe_extraction('colors',element, lambda e: [element_color.text for element_color in e.find('div',{"class":"border-complete-t lg:border-none mt-3 lg:mt-0"}).find_all('div',{'data-popper-placement':"bottom"})])
             details["insurer"] = self.safe_extraction('Insurer',element, lambda e: e.find('div',{'class':'bg-neutral-000 flex border-complete-200 rounded-medium'}).find('p',{'class':'text-body2-strong text-neutral-700'}).text)
-            details["discount_percent"] = self.safe_extraction('discount percent',element, lambda e: e.find('div',{'class':'bg-neutral-000 flex border-complete-200 rounded-medium'}).find('span',{'data-testid':'price-discount-percent'}).text)
-            details["price_before_discount"] = self.safe_extraction('Price before discount',element, lambda e: e.find('div',{'class':'bg-neutral-000 flex border-complete-200 rounded-medium'}).find('div',{'class':'text-body-2 text-neutral-300 line-through'}).text)
-            details["final_price"] = self.safe_extraction('final price',element, lambda e: e.find('div',{'class':'bg-neutral-000 flex border-complete-200 rounded-medium'}).find('span',{'data-testid':'price-final'}).text)
+            details["Insurance_discount_percent"] = self.safe_extraction('Insurance discount percent',element, lambda e: e.find('div',{'class':'bg-neutral-000 flex border-complete-200 rounded-medium'}).find('span',{'data-testid':'price-discount-percent'}).text)
+            details["Insurance_price_before_discount"] = self.safe_extraction('Insurance Price before discount',element, lambda e: e.find('div',{'class':'bg-neutral-000 flex border-complete-200 rounded-medium'}).find('div',{'class':'text-body-2 text-neutral-300 line-through'}).text)
+            details["Insurance_final_price"] = self.safe_extraction('Insurance final price',element, lambda e: e.find('div',{'class':'bg-neutral-000 flex border-complete-200 rounded-medium'}).find('span',{'data-testid':'price-final'}).text)
             self.log.info('[+] main details extraction succsusfully')
             return details
         else :
@@ -97,7 +97,7 @@ class productExtraction:
             details["digiclub_points"]= self.safe_extraction('digiclub points',element, lambda e: e.find('div',{'data-cro-id':'pdp-shipment-info'}).find_next('p',{'class':'text-button-2 text-neutral-700'}).text)
             details["discount_percent"] = self.safe_extraction('discount percent',element, lambda e: e.find('span',{'data-testid':'price-discount-percent'}).text)
             details["price_before_discount"] = self.safe_extraction('Price before discount',element, lambda e: e.find('span',{'data-testid':'price-no-discount'}).text)
-            details["final_price"] = self.safe_extraction('final price',element, lambda e: e.find('span',{'data-testid':'price-discount-percent'}).text)
+            details["final_price"] = self.safe_extraction('final price',element, lambda e: e.find('span',{'data-testid':'price-final'}).text)
             details["prdouct_stock"] = self.safe_extraction('prdouct stock', element, lambda e: e.find('p',{"class":"text-primary-500 text-body2-strong mb-3"}).text)
             self.log.info('[+] buy box extraction succsusfully')
             return details
@@ -343,3 +343,4 @@ class productExtraction:
                       # source_code += driver.source_code ->
                         # send for extraction
 
+# main product ditals 

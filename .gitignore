@@ -1,7 +1,6 @@
 env
 venv
 old_files
-json_bk
 geckodriver.exe
 __pycache__
 *.log
@@ -12,3 +11,4 @@ __pycache__
 *.html
 *.json
 seller_category_classifier.py
+*.png

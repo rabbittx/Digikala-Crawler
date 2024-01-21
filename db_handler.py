@@ -137,7 +137,12 @@ class DataBaseHandler():
         self.cursor.execute(query)
         row_info = self.cursor.fetchall()
         return row_info
-    
+    def get_column_names(self, table_name):
+        query = f"PRAGMA table_info({table_name})"
+        self.cursor.execute(query)
+        columns_info = self.cursor.fetchall()
+        column_names = [column_info[1] for column_info in columns_info]
+        return column_names
 
     def check_field_value(self,row_data, crawl_data):
         key_to_pass = ['crawl_date','product_image','reviews','question_box','seller_name','product_id','seller_id']
@@ -185,7 +190,7 @@ class DataBaseHandler():
     def insert_recode_to_table(self,data,table_name) :
         for key in data:
             if isinstance(data[key], dict) or isinstance(data[key], list):
-                data[key] = json.dumps(data[key])
+                data[key] = json.dumps(data[key],ensure_ascii=False)
         columns = ', '.join(data.keys())
         placeholders = ', '.join([f":{k}" for k in data])
         query = f'INSERT INTO {table_name} ({columns}) VALUES ({placeholders})'

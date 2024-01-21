@@ -75,7 +75,8 @@ class WebScraper:
         for link in prodcut_links:
             self.driver.open_page(link)
             seller_id = self.driver.get_seller_id()
-            if seller_id not in sellers_id and seller_id != None:
+            # digikala id = 5a52n - pass this one to extrect 
+            if seller_id not in sellers_id and seller_id != None :
                 sellers_id.append(seller_id)
         
         self.log.info(f"{len(sellers_id)} - unique seller found on this category")
@@ -97,7 +98,7 @@ class WebScraper:
                 product_info['product_id'] = f"{seller_info['seller_id']}_{product_info['product_id']}"
                 self.db_handler.run(data=product_info,column_name='product_id',table_name='products')
             self.log.info(f'[!] seller page with id=[{seller}] - extrection successfully ')
-        self.driver.close_driver()
+        
 
     def check_seller(self,url):
         self.log.info(f'[!] try to open seller page')
@@ -116,5 +117,5 @@ class WebScraper:
             product_info['product_id'] = f"{seller_info['seller_id']}_{product_info['product_id']}"
             self.db_handler.run(data=product_info,column_name='product_id',table_name='products')
         self.log.info(f'[!] seller page with id=[{seller_info["seller_id"]}] - extrection successfully ')
-        self.driver.close_driver()
+        
       

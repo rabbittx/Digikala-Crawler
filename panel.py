@@ -12,6 +12,7 @@ class WebScraperPanel:
         self.db_handler = DataBaseHandler(db_path,log=self.log)
         self.webscraper = WebScraper(driver=self.driver,db_handler=self.db_handler,log=log)
         self.product_extraction_scraper = productExtraction(db_handler=self.db_handler,driver=self.driver,log=self.log)
+        self.db_handler.create_tables()
 
     def display_menu(self):
         print("welcome to digikala web crawler")
@@ -80,12 +81,10 @@ class WebScraperPanel:
         while True:
             url = input('Enter product URL: ')
 
-            # بررسی وجود کلمه 'product' در URL
             if 'product' not in url:
                 self.log.info('URL must contain the word "product". Please try again.')
                 continue
 
-            # بررسی وجود الگوی مشخص (مانند 'dkp-xxxxxx') در URL
             if not re.search(r'dkp-\d+', url):
                 self.log.info('URL must contain a product ID in the format "dkp-xxxxxx". Please try again.')
                 continue
@@ -104,20 +103,102 @@ class WebScraperPanel:
             self.product_extraction_scraper.run(link)
 
 
-    def export_table_to_csv(self,db_path, table_name, csv_file_path):
-        if os.path.exists(csv_file_path):
-            os.remove(csv_file_path)
+
+    def export_table_to_csv(self,):
+        def remove_old_file(filename):
+            if os.path.exists(filename):
+                os.remove(filename)
+                self.log.info(f'{filename} remove succsusfully')
+
+        def save_to_csv(data, headers, filename):
+            with open(filename, mode='w', newline='', encoding='utf-8') as file:
+                writer = csv.writer(file)
+                writer.writerow(headers)
+                writer.writerows(data)
+            self.log.info(f'{filename} exprot succsusfully')
+        print('choies the data you need to export')
+        choies = input('choies what you need')
+        
+        if choies == 'sellers':
+            remove_old_file('sellers_database.csv')
+            data = self.db_handler.get_row_info(['*'],'sellers')
+            headers = self.db_handler.get_column_names('sellers')
+            save_to_csv(data, headers, 'sellers_database.csv')
+            
+        elif choies == 'seller_products_with_ID' :
+            row_info = self.db_handler.get_row_info(['seller_id', 'seller_name'], 'sellers')
+        
+            for index, row in enumerate(row_info):
+                self.log.info(f"ID {index} : {row[0]}, Name: {row[1]}")
+                seller_id = row[0]
+            while True:
+                try:
+                    user_pick = int(input('choice the seller ID you want to export products from: '))
+                    if 0 <= user_pick < len(row_info):
+                        break
+                    else:
+                        self.log.info('Invalid choice, please try again.')
+                except ValueError:
+                    self.log.info('Invalid input, please enter a number.')
+            selected_seller = row_info[user_pick]
+            remove_old_file(f'sellers_{seller_id}_products_database.csv')
+
+            data = self.db_handler.get_row_info(['*'], 'products', ['seller_name', selected_seller[1]])
+            headers = self.db_handler.get_column_names('products')
+            save_to_csv(data, headers, f'sellers_{seller_id}_products_database.csv')
+
+        elif choies == 'all_seller_products':
+            remove_old_file('all_seler_products_database.csv')
+            data = self.db_handler.get_row_info(['*'],'products')
+            headers = self.db_handler.get_column_names('products')
+            save_to_csv(data, headers, 'all_seler_products_database.csv')
+
+        elif choies == 'products':
+            row_info = self.db_handler.get_row_info(['seller_id', 'seller_name'], 'sellers')
+        
+            for index, row in enumerate(row_info):
+                self.log.info(f"ID {index} : {row[0]}, Name: {row[1]}")
+                seller_id = row[0]
+            while True:
+                try:
+                    user_pick = int(input('choice the seller ID you want to export products extraction from: '))
+                    if 0 <= user_pick < len(row_info):
+                        break
+                    else:
+                        self.log.info('Invalid choice, please try again.')
+                except ValueError:
+                    self.log.info('Invalid input, please enter a number.')
+            selected_seller = row_info[user_pick]
+            remove_old_file(f'sellers_{seller_id}_products_extraction_database.csv')
+
+            data = self.db_handler.get_row_info(['*'], 'products_extraction', ['seller_name', selected_seller[1]])
+            headers = self.db_handler.get_column_names('products_extraction')
+            save_to_csv(data, headers, f'sellers_{seller_id}_products_database.csv')
+
+
+        elif choies == 'all':
+            remove_old_file('all_seler_products_database.csv')
+            data = self.db_handler.get_row_info(['*'],'products')
+            headers = self.db_handler.get_column_names('products')
+            save_to_csv(data, headers, 'all_seler_products_database.csv')
+
+            remove_old_file('all_sellers_database.csv')
+            data = self.db_handler.get_row_info(['*'],'sellers')
+            headers = self.db_handler.get_column_names('sellers')
+            save_to_csv(data, headers, 'all_sellers_database.csv')
+            
+            remove_old_file('all_products_database.csv')
+            data = self.db_handler.get_row_info(['*'],'products_extraction')
+            headers = self.db_handler.get_column_names('products_extraction')
+            save_to_csv(data, headers, 'all_products_database.csv')
+
+
         if os.path.exists(db_path):
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()   
-            cursor.execute(f"SELECT * FROM {table_name}")
-            columns = [description[0] for description in cursor.description]
-            with open(csv_file_path, 'w', newline='', encoding='utf-8') as csv_file:
-                csv_writer = csv.writer(csv_file)
-                csv_writer.writerow(columns)
-                for row in cursor.fetchall():
-                    processed_row = row
-                    csv_writer.writerow(processed_row)
+            
+
+
         else : 
             print(f'Database "{db_path}" does not exist! - crawl some pages first ')
 
@@ -129,9 +210,8 @@ class WebScraperPanel:
             elif choice == "2" :
                 self.run_scraper_single()
             elif choice == "3":
-                self.export_table_to_csv(self.db_path, 'sellers', 'sellers.csv')
-                self.export_table_to_csv(self.db_path, 'products', 'product.csv')
-                print(' [!] CSV file create successfully')
+               self.export_table_to_csv()
+               print(' [!] CSV file create successfully')
 
             elif choice == "4" :
                 self.run_seller_scraper_product()
