@@ -121,6 +121,17 @@ class WebScraperPanel:
                 writer.writerow(headers)
                 writer.writerows(data)
             self.log.info(f'{filename} exprot succsusfully')
+
+        def export_to_csv(table_name,seller_id=None,condition=None):
+            csv_file_name = f'{table_name}'
+            if seller_id != None :
+                csv_file_name = f'{seller_id}-{table_name}'
+            remove_old_file(f'{csv_file_name}-database.csv')
+            data = self.db_handler.get_row_info(['*'],table_name,condition)
+            headers = self.db_handler.get_column_names(table_name)
+            save_to_csv(data, headers, f'{csv_file_name}-database.csv')
+        
+        
         if os.path.exists(self.db_path):
             print('----------- export menu ---------')
             print('choies the data you need to export')
@@ -134,11 +145,8 @@ class WebScraperPanel:
             choies = input('choies what you need : ')
 
             if choies == '1':
-                remove_old_file('sellers_database.csv')
-                data = self.db_handler.get_row_info(['*'],'sellers')
-                headers = self.db_handler.get_column_names('sellers')
-                save_to_csv(data, headers, 'sellers_database.csv')
-                
+                export_to_csv('sellers',seller_id=None,condition=None)
+
             elif choies == '2' :
                 row_info = self.db_handler.get_row_info(['seller_id', 'seller_name'], 'sellers')
             
@@ -154,18 +162,13 @@ class WebScraperPanel:
                             self.log.info('Invalid choice, please try again.')
                     except ValueError:
                         self.log.info('Invalid input, please enter a number.')
+                    
                 selected_seller = row_info[user_pick]
-                remove_old_file(f'sellers_{seller_id}_products_database.csv')
-
-                data = self.db_handler.get_row_info(['*'], 'products', ['seller_name', selected_seller[1]])
-                headers = self.db_handler.get_column_names('products')
-                save_to_csv(data, headers, f'sellers_{seller_id}_products_database.csv')
+                export_to_csv('products',seller_id,['seller_name', selected_seller[1]])
 
             elif choies == '3':
-                remove_old_file('all_seler_products_database.csv')
-                data = self.db_handler.get_row_info(['*'],'products')
-                headers = self.db_handler.get_column_names('products')
-                save_to_csv(data, headers, 'all_seler_products_database.csv')
+                export_to_csv('products',seller_id)
+               
 
             elif choies == '4':
                 row_info = self.db_handler.get_row_info(['seller_id', 'seller_name'], 'sellers')
@@ -183,48 +186,19 @@ class WebScraperPanel:
                     except ValueError:
                         self.log.info('Invalid input, please enter a number.')
                 selected_seller = row_info[user_pick]
-                remove_old_file(f'sellers_{seller_id}_products_extraction_database.csv')
 
-                data = self.db_handler.get_row_info(['*'], 'products_extraction', ['seller_name', selected_seller[1]])
-                headers = self.db_handler.get_column_names('products_extraction')
-                save_to_csv(data, headers, f'sellers_{seller_id}_products_database.csv')
+                export_to_csv('products_extraction',seller_id,['seller_name', selected_seller[1]])
+
             elif choies == '5':
-                row_info = self.db_handler.get_row_info(['seller_id', 'seller_name'], 'sellers')
-            
-                for index, row in enumerate(row_info):
-                    self.log.info(f"ID {index} : {row[0]}, Name: {row[1]}")
-                    seller_id = row[0]
-                while True:
-                    try:
-                        user_pick = int(input('choice the seller ID you want to export products extraction from: '))
-                        if 0 <= user_pick < len(row_info):
-                            break
-                        else:
-                            self.log.info('Invalid choice, please try again.')
-                    except ValueError:
-                        self.log.info('Invalid input, please enter a number.')
-                selected_seller = row_info[user_pick]
-                remove_old_file(f'sellers_{seller_id}_products_extraction_database.csv')
 
-                data = self.db_handler.get_row_info(['*'], 'products_extraction', )
-                headers = self.db_handler.get_column_names('products_extraction')
-                save_to_csv(data, headers, f'sellers_{seller_id}_products_database.csv')
+                export_to_csv('products_extraction',seller_id)
+
 
             elif choies == '6':
-                remove_old_file('all_seler_products_database.csv')
-                data = self.db_handler.get_row_info(['*'],'products')
-                headers = self.db_handler.get_column_names('products')
-                save_to_csv(data, headers, 'all_seler_products_database.csv')
+                export_to_csv('sellers',seller_id)
+                export_to_csv('products',seller_id)
+                export_to_csv('products_extraction',seller_id)
 
-                remove_old_file('all_sellers_database.csv')
-                data = self.db_handler.get_row_info(['*'],'sellers')
-                headers = self.db_handler.get_column_names('sellers')
-                save_to_csv(data, headers, 'all_sellers_database.csv')
-                
-                remove_old_file('all_products_database.csv')
-                data = self.db_handler.get_row_info(['*'],'products_extraction')
-                headers = self.db_handler.get_column_names('products_extraction')
-                save_to_csv(data, headers, 'all_products_database.csv')
             elif choies == '7':
                 pass
         else :
