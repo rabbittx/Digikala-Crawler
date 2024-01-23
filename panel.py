@@ -116,7 +116,7 @@ class WebScraperPanel:
                 self.log.info(f'{filename} remove succsusfully')
 
         def save_to_csv(data, headers, filename):
-            with open(filename, mode='w', newline='', encoding='utf-8') as file:
+            with open(filename, mode='w', newline='', encoding='utf-8-sig') as file:
                 writer = csv.writer(file)
                 writer.writerow(headers)
                 writer.writerows(data)
