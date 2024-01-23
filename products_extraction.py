@@ -92,7 +92,6 @@ class productExtraction:
         if isinstance(element ,(Tag, ResultSet)):
             details={}
             details["other_sellers"]= self.safe_extraction('other sellers',element, lambda e: e.find('span',{'data-cro-id':'pdp-other-seller'}).text)
-            details['seller_name'] = self.safe_extraction('seller name',element ,lambda e: e.find('p',{'class':'text-neutral-700 ml-2 text-subtitle'}).text)
             details["satisfaction_with_the_product"]= self.safe_extraction('satisfaction with the product',element, lambda e: e.find('div',{"data-cro-id":"pdp-seller-info-cta"}).find('p',{'class':'ml-1 text-body2-strong'}).text)
             details["warranty"]= self.safe_extraction('warranty',element, lambda e: e.find('div',{'data-cro-id':'pdp-shipment-info'}).find_previous('p',{'class':'text-button-2 text-neutral-700'}).text)
             details["digiclub_points"]= self.safe_extraction('digiclub points',element, lambda e: e.find('div',{'data-cro-id':'pdp-shipment-info'}).find_next('p',{'class':'text-button-2 text-neutral-700'}).text)
@@ -311,6 +310,7 @@ class productExtraction:
         prodcut_info= {
                     'crawl_date' : strftime("%Y-%m-%d %H:%M:%S", gmtime()),     
                     'product_id' : f"{seller_id}_{prdouct_id}",
+                    'seller_name': self.safe_extraction('seller name',elements["buy_box"] ,lambda e: e.find('p',{'class':'text-neutral-700 ml-2 text-subtitle'}).text),
                     'product_link' : prdouct_url,
                     "main_product_details" : main_product_details,
                     "buy_box" : buy_box,

@@ -1,5 +1,5 @@
 from crawler import WebScraper
-import csv ,sqlite3 , os ,re
+import csv  , os ,re
 from logger import setup_logger
 from driver_manager import DriverManager
 from db_handler import DataBaseHandler
@@ -15,14 +15,14 @@ class WebScraperPanel:
         self.db_handler.create_tables()
 
     def display_menu(self):
-        print("----------- welcome to digikala web crawler -------------")
-        print("1. start to crawl for category")
-        print("2. start to crawl for single seller")
-        print("3. export all data in csv file ")
-        print("4. crawl seller product ")
-        print("5. crawl single product ")
-        print("6. crawl all product on database ")
-        print("7. quit")
+        self.log.info("----------- welcome to digikala web crawler -------------")
+        self.log.info("1. start to crawl for category")
+        self.log.info("2. start to crawl for single seller")
+        self.log.info("3. export all data in csv file ")
+        self.log.info("4. crawl seller product ")
+        self.log.info("5. crawl single product ")
+        self.log.info("6. crawl all product on database ")
+        self.log.info("7. quit")
         choice = input("enter your choice : ")
         return choice
 
@@ -33,7 +33,7 @@ class WebScraperPanel:
             category_url = input("enter category url to crawl: ")
 
             if 'search/?q=' not in category_url :
-                print('wrong category url try one more time') 
+                self.log.info('wrong category url try one more time') 
                 continue
             break        
         
@@ -42,15 +42,15 @@ class WebScraperPanel:
         try:
             scroll_count = int(scroll_count)
         except ValueError:
-            print("The number of scrolling times must be a number. By default, it is set to 3.")
+            self.log.error("The number of scrolling times must be a number. By default, it is set to 3.")
             scroll_count = 3
         self.webscraper.check_category(category_url,scroll_count)
-        print("Data extraction was done successfully.")
+        self.log.info("Data extraction was done successfully.")
 
     def run_scraper_single(self):
         seller_page_url = input("enter seller page url to crawl: ")
         self.webscraper.check_seller(seller_page_url)
-        print("Data extraction was done successfully.")
+        self.log.info("Data extraction was done successfully.")
 
     def run_seller_scraper_product(self):
         row_info = self.db_handler.get_row_info(['seller_id', 'seller_name'], 'sellers')
@@ -133,15 +133,15 @@ class WebScraperPanel:
         
         
         if os.path.exists(self.db_path):
-            print('----------- export menu ---------')
-            print('choies the data you need to export')
-            print('1.sellers table data .')
-            print('2.seller products table data with ID .')
-            print('3.all seller products table .')
-            print('4.single seller products extraction .')
-            print('5.all seller products extraction .')
-            print('6.all table  .')
-            print('7.back to crawler menu .')
+            self.log.info('----------- export menu ---------')
+            self.log.info('choies the data you need to export')
+            self.log.info('1.sellers table data .')
+            self.log.info('2.seller products table data with ID .')
+            self.log.info('3.all seller products table .')
+            self.log.info('4.single seller products extraction .')
+            self.log.info('5.all seller products extraction .')
+            self.log.info('6.all table  .')
+            self.log.info('7.back to crawler menu .')
             choies = input('choies what you need : ')
 
             if choies == '1':
@@ -167,7 +167,7 @@ class WebScraperPanel:
                 export_to_csv('products',seller_id,['seller_name', selected_seller[1]])
 
             elif choies == '3':
-                export_to_csv('products',seller_id)
+                export_to_csv('products',seller_id=None)
                
 
             elif choies == '4':
@@ -191,18 +191,18 @@ class WebScraperPanel:
 
             elif choies == '5':
 
-                export_to_csv('products_extraction',seller_id)
+                export_to_csv('products_extraction',seller_id=None)
 
 
             elif choies == '6':
-                export_to_csv('sellers',seller_id)
-                export_to_csv('products',seller_id)
-                export_to_csv('products_extraction',seller_id)
+                export_to_csv('sellers',seller_id=None)
+                export_to_csv('products',seller_id=None)
+                export_to_csv('products_extraction',seller_id=None)
 
             elif choies == '7':
                 pass
         else :
-            print(f'database at {db_path} not found !. check database path .')    
+            self.log.erro(f'database at {db_path} not found !. check database path .')    
 
         
 
@@ -215,8 +215,7 @@ class WebScraperPanel:
                 self.run_scraper_single()
             elif choice == "3":
                self.export_table_to_csv()
-               print(' [!] CSV file create successfully')
-
+               self.log.info(' [!] CSV file create successfully')
             elif choice == "4" :
                 self.run_seller_scraper_product()
             elif choice == "5" :
@@ -225,10 +224,10 @@ class WebScraperPanel:
                 self.scraper_all_prdouct_on_db()
             elif choice == "7":
                 self.driver.close_driver()
-                print("Exit the program.")
+                self.log.info("Exit the program.")
                 break
             else:
-                print("Invalid option, please try again.")
+                self.log.error("Invalid option, please try again.")
     
 if __name__ == "__main__":
     # TODO add testing unit -> (TODO)
