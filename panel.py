@@ -8,7 +8,8 @@ class WebScraperPanel:
     def __init__(self,driver_path,db_path,log ):
         self.log = log
         self.db_path = db_path
-        self.driver = DriverManager(driver_path=driver_path,log=self.log)
+        self.driver_path = driver_path
+        self.driver =  DriverManager(driver_path=self.driver_path,log=self.log)
         self.db_handler = DataBaseHandler(db_path,log=self.log)
         self.webscraper = WebScraper(driver=self.driver,db_handler=self.db_handler,log=log)
         self.product_extraction_scraper = productExtraction(db_handler=self.db_handler,driver=self.driver,log=self.log)
@@ -193,7 +194,6 @@ class WebScraperPanel:
 
                 export_to_csv('products_extraction',seller_id=None)
 
-
             elif choies == '6':
                 export_to_csv('sellers',seller_id=None)
                 export_to_csv('products',seller_id=None)
@@ -204,8 +204,7 @@ class WebScraperPanel:
         else :
             self.log.erro(f'database at {db_path} not found !. check database path .')    
 
-        
-
+                    
     def start(self):
         while True:
             choice = self.display_menu()
@@ -217,8 +216,10 @@ class WebScraperPanel:
                self.export_table_to_csv()
                self.log.info(' [!] CSV file create successfully')
             elif choice == "4" :
+
                 self.run_seller_scraper_product()
             elif choice == "5" :
+
                 self.run_single_scraper_product()
             elif choice == "6" :
                 self.scraper_all_prdouct_on_db()

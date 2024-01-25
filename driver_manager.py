@@ -6,6 +6,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from typing import Union
 from bs4 import BeautifulSoup
+from selenium.webdriver.firefox.options import Options
 
 # TODO driver Option need to add 
 # TODO fix chrome driver (work with firefox and chrome)  
@@ -14,19 +15,24 @@ class DriverManager:
         self.log = log
         self.driver_path =driver_path
         self.log.info('Initializing Web Scraper...')
-        self.driver = self.initialize_driver()
+        self.driver = self.initialize_driver(headless=True) # to make driver headless set it to True 
    
-    def initialize_driver(self,):
+    def initialize_driver(self, headless=False):
         try:
-            service = Service(self.driver_path)
-            driver = webdriver.Firefox(service=service)
-            self.log.info('Web driver initialized successfully')
+            options = Options()
 
+            if headless:
+                options.add_argument("--headless")
+
+            service = Service(self.driver_path)
+            driver = webdriver.Firefox(service=service, options=options)
+
+            driver.maximize_window()
+            self.log.info('Web driver initialized successfully')
             return driver
         except Exception as e:
             self.log.error(f'Error initializing web driver: {e}')
             raise
-
 
     def get_prdouct_source_page( self,):
         current_url_id = self.driver.current_url.split('/')[4]
