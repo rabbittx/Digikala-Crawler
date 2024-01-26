@@ -15,7 +15,7 @@ class DriverManager:
         self.log = log
         self.driver_path =driver_path
         self.log.info('Initializing Web Scraper...')
-        self.driver = self.initialize_driver(headless=True) # to make driver headless set it to True 
+        self.driver = self.initialize_driver() # to make driver headless set it to True 
    
     def initialize_driver(self, headless=False):
         try:
