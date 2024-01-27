@@ -12,3 +12,4 @@ __pycache__
 *.json
 seller_category_classifier.py
 *.png
+*.txt
