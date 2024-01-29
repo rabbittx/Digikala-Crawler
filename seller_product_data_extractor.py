@@ -76,11 +76,12 @@ class SellerProductDataExtractor:
             self.driver.open_page(link)
             seller_id = self.driver.get_seller_id()
             # digikala id = 5a52n - pass this one to extrect 
-            if seller_id not in sellers_id and seller_id != None :
+            if seller_id not in sellers_id and seller_id != None and seller_id != 'No_seller':
                 sellers_id.append(seller_id)
         
         self.log.info(f"{len(sellers_id)} - unique seller found on this category")
         for index , seller in  enumerate(sellers_id):
+            
             seller_link = f'https://www.digikala.com/seller/{seller}'
             self.log.info(f'[!] try to open seller page with id=[{seller}] - {index+1}/{len(sellers_id)}')
             self.driver.open_page(seller_link)

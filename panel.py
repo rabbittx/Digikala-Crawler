@@ -35,10 +35,11 @@ class WebScraperPanel:
     def run_scraper_category(self):
         while True :
             category_url = input("enter category url to crawl: ")
-            if 'search/?q=' not in category_url :
-                self.log.info('wrong category url try one more time') 
-                continue
-            break        
+            print(category_url)
+            if 'search/?q=' in category_url or '/category-' in category_url or '/search/' in category_url:
+                break
+            else:
+                self.log.info('wrong category url, try one more time')       
         scroll_count = input("Please enter the number of page scroll rates (Example 5 ) : ")
         try:
             scroll_count = int(scroll_count)
