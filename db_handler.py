@@ -7,7 +7,7 @@ class DataBaseHandler():
         self.log = log
 
     def create_tables(self):
-        # Create a table for seller information
+        # Create a table to store seller information
         self.cursor.execute('''
         CREATE TABLE IF NOT EXISTS sellers (
             seller_id TEXT PRIMARY KEY,
@@ -24,7 +24,7 @@ class DataBaseHandler():
         )
         ''')
 
-        # Create a table for product details
+        # Create a table to store product details
         self.cursor.execute('''
         CREATE TABLE IF NOT EXISTS products (
             product_id TEXT PRIMARY KEY,
@@ -42,12 +42,14 @@ class DataBaseHandler():
         )
         ''')
 
-        # Create a table for extracted product details
+        # Create a table to store extracted product details
         self.cursor.execute('''
         CREATE TABLE IF NOT EXISTS products_extraction (
-            product_id TEXT PRIMARY KEY,                
+            product_id TEXT PRIMARY KEY,  
+            seller_id TEXT,              
             crawl_date TEXT,    
-            seller_name TEXT,           
+            seller_name TEXT, 
+            categories TEXT,          
             product_link TEXT ,
             main_product_details TEXT ,
             buy_box TEXT ,
@@ -64,7 +66,8 @@ class DataBaseHandler():
             seller_offer TEXT
         )
         ''')
-        # جدول تاریخچه برای فروشندگان
+
+        # Create a table to store historical sellers details
         self.cursor.execute('''
         CREATE TABLE IF NOT EXISTS sellers_history (
             history_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -84,6 +87,7 @@ class DataBaseHandler():
         )
         ''')
 
+        # Create a table to store historical products details
         self.cursor.execute('''
         CREATE TABLE IF NOT EXISTS products_history (
             history_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -104,12 +108,15 @@ class DataBaseHandler():
         )
         ''')
 
+        # Create a table to store historical extracted product details
         self.cursor.execute('''
         CREATE TABLE IF NOT EXISTS products_extraction_history (
             history_id INTEGER PRIMARY KEY AUTOINCREMENT,
             product_id TEXT,
+            seller_id TEXT, 
             seller_name TEXT,
             crawl_date TEXT,
+            categories TEXT,
             product_link TEXT ,
             main_product_details TEXT ,
             buy_box TEXT ,
@@ -129,17 +136,34 @@ class DataBaseHandler():
         )
         ''')
 
-
-    def get_row_info(self,fields,table_name,condition=None):
-            
+    def get_row_info(self,fields,table_name,condition=None,return_as_list=False):
+        ''' 
+        this function help to  extract information from the database based on certain conditions and fields requested by the user
+        This function is used to select rows from the database based on certain conditions.
+        
+        Args:
+            fields : A list of strings or single string  representing the columns you want to retrieve. If * then all.
+            table_name : name of table want to select data from it 
+            condition :  dictionary contains field and value for filtering data in the table
+                        if None all records will be returned
+            return_as_list : set it to True to  return selected rows as list
+        '''
         field = ','.join(fields)
         query = f"SELECT {field} FROM {table_name} "
         if condition != None :
             query += f'WHERE {condition[0]}= "{condition[1]}" '
         self.cursor.execute(query)
         row_info = self.cursor.fetchall()
-        return row_info
+        return row_info if return_as_list is True else [product for product in row_info]
+     
+    
     def get_column_names(self, table_name):
+        '''
+        
+        
+        '''
+
+
         query = f"PRAGMA table_info({table_name})"
         self.cursor.execute(query)
         columns_info = self.cursor.fetchall()
@@ -172,7 +196,6 @@ class DataBaseHandler():
         return parsed_record
 
     def replace_recode_to_history_table(self,data,column_name,table_name):
-        # TODO need to check if this funcion work successfully or not 
         try:
             row_id = data[column_name]
             query = f'SELECT * FROM {table_name} WHERE {column_name} = "{row_id}"'
@@ -200,7 +223,7 @@ class DataBaseHandler():
         self.conn.commit()
         self.log.info('[+] insert recode to table successfully ')
 
-    def run(self,data,column_name,table_name):
+    def update_database(self,data,column_name,table_name):
         if self.check_existing_data(row_id=data[column_name],column_name=column_name,table_name=table_name) :
             existing_recode = self.check_existing_data(row_id=data[column_name],column_name=column_name,table_name=table_name) 
             existing_recode = self.parse_json_fields(existing_recode)
