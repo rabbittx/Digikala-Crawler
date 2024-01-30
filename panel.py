@@ -35,12 +35,13 @@ class WebScraperPanel:
     def run_scraper_category(self):
         while True :
             category_url = input("enter category url to crawl: ")
-            print(category_url)
+
             if 'search/?q=' in category_url or '/category-' in category_url or '/search/' in category_url:
                 break
             else:
                 self.log.info('wrong category url, try one more time')       
         scroll_count = input("Please enter the number of page scroll rates (Example 5 ) : ")
+        self.get_driver()
         try:
             scroll_count = int(scroll_count)
         except ValueError:
@@ -51,11 +52,16 @@ class WebScraperPanel:
 
     def run_scraper_single(self):
         seller_page_url = input("enter seller page url to crawl: ")
+        self.get_driver()
         self.webscraper.check_seller(seller_page_url)
         self.log.info("Data extraction was done successfully.")
 
     def run_seller_scraper_product(self):
         row_info = self.db_handler.get_row_info(fields=['seller_id', 'seller_name'], table_name='sellers',condition=None,return_as_list=False)
+        if len(row_info) == 0 :
+            self.log.warning("There are no sellers in the database.")
+            return None
+        
         for index, row in enumerate(row_info):
             self.log.info(f"ID {index} : {row[0]}, Name: {row[1]}")
         while True:
@@ -68,6 +74,7 @@ class WebScraperPanel:
             except ValueError:
                 self.log.info('Invalid input, please enter a number.')
         selected_seller = row_info[user_pick]
+        self.get_driver()
         self.log.info(f'You chose {selected_seller[1]} with ID {selected_seller[0]}')    
         seller_products = self.db_handler.get_row_info(['product_link', 'product_price'], 'products', ['seller_name', selected_seller[1]])
         available_products = [product[0] for product in seller_products if product[1] != 'product unavailable']
@@ -87,6 +94,7 @@ class WebScraperPanel:
                 continue
             break        
         self.log.info(f'Starting to crawl - {url.split("/")[4]}')
+        self.get_driver()
         self.product_extraction_scraper.run(url)
 
     def scraper_all_product_on_db(self,):
@@ -135,6 +143,9 @@ class WebScraperPanel:
                 export_to_csv('sellers',seller_id=None,condition=None)
             elif choose == '2' :
                 row_info = self.db_handler.get_row_info(['seller_id', 'seller_name'], 'sellers') 
+                if len(row_info) == 0 :
+                    self.log.warning("There are no sellers in the database.")
+                    return None
                 for index, row in enumerate(row_info):
                     self.log.info(f"ID {index} : {row[0]}, Name: {row[1]}")
                     seller_id = row[0]
@@ -153,6 +164,9 @@ class WebScraperPanel:
                 export_to_csv('products',seller_id=None)
             elif choose == '4':
                 row_info = self.db_handler.get_row_info(['seller_id', 'seller_name'], 'sellers') 
+                if len(row_info) == 0 :
+                    self.log.warning("There are no sellers in the database.")
+                    return None
                 for index, row in enumerate(row_info):
                     self.log.info(f"ID {index} : {row[0]}, Name: {row[1]}")
                     seller_id = row[0]
@@ -198,16 +212,12 @@ class WebScraperPanel:
         while True:
             choose = self.display_menu()
             if choose == "1":
-                self.get_driver()
                 self.run_scraper_category()
             elif choose == "2" :
-                self.get_driver()
                 self.run_scraper_single()
             elif choose == "3" :
-                self.get_driver()
                 self.run_seller_scraper_product()
             elif choose == "4" :
-                self.get_driver()
                 self.run_single_scraper_product()
             elif choose == "5" :
                 self.get_driver()
@@ -226,6 +236,7 @@ class WebScraperPanel:
                 self.log.error("Invalid option, please try again.")
     
 if __name__ == "__main__":
+    # TODO add crawler config -> store gecko_path , db_path , headless driver , etc...
     # TODO add testing unit -> (TODO)
     # TODO add flask GUI -> (TODO) 
     # TODO add API endpoint -> (TODO) 

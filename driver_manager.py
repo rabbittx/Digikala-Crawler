@@ -8,14 +8,15 @@ from typing import Union
 from bs4 import BeautifulSoup
 from selenium.webdriver.firefox.options import Options
 
-# TODO driver Option need to add 
 # TODO fix chrome driver (work with firefox and chrome)  
+# TODO fix page error  when there is no more pages to load (check if alert with massage  "خطا در برقراری سرور" exist or not)
+
 class DriverManager:
     def __init__(self, driver_path,log):
         self.log = log
         self.driver_path =driver_path
         self.log.info('Initializing Web Scraper...')
-        self.driver = self.initialize_driver() # to make driver headless set it to True 
+        self.driver = self.initialize_driver(headless=False) # to make driver headless set it to True 
    
     def initialize_driver(self, headless=False):
         try:
@@ -36,7 +37,7 @@ class DriverManager:
 
     def get_prdouct_source_page( self,):
         current_url_id = self.driver.current_url.split('/')[4]
-        print(f'start to scroll prdouct [{current_url_id}] page ')
+        self.log.info(f'start to scroll prdouct [{current_url_id}] page ')
         time.sleep(5)
         last_height = self.driver.execute_script("return document.body.scrollHeight")
         while True:
@@ -181,7 +182,7 @@ class DriverManager:
             self.log.info('[+] seller id extrection successfully ')   
             return seller_id
         except Exception as e :
-            print(f"Can't find seller id , error : {e}")
+            self.log.error(f"Can't find seller id , error : {e}")
 
 
     def close_driver(self):
