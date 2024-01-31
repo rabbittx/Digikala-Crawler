@@ -12,17 +12,17 @@ from selenium.webdriver.firefox.options import Options
 # TODO fix page error  when there is no more pages to load (check if alert with massage  "خطا در برقراری سرور" exist or not)
 
 class DriverManager:
-    def __init__(self, driver_path,log):
+    def __init__(self, driver_path,log,headless_mode):
         self.log = log
         self.driver_path =driver_path
         self.log.info('Initializing Web Scraper...')
-        self.driver = self.initialize_driver(headless=False) # to make driver headless set it to True 
+        self.driver = self.initialize_driver(headless_mode=headless_mode) # to make driver headless set it to True 
    
-    def initialize_driver(self, headless=False):
+    def initialize_driver(self, headless_mode):
         try:
             options = Options()
 
-            if headless:
+            if headless_mode:
                 options.add_argument("--headless")
 
             service = Service(self.driver_path)
