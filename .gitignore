@@ -10,6 +10,7 @@ __pycache__
 *.csv
 *.html
 *.json
-seller_category_classifier.py
+seller_category_finder.py
+find_digikala_category.py
 *.png
 *.txt
