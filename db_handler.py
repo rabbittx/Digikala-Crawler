@@ -7,6 +7,11 @@ class DataBaseHandler():
         self.log = log
 
     def create_tables(self):
+        """
+         Create table if they don't exist already.
+        :return: None
+        
+        """
         # Create a table to store seller information
         self.cursor.execute('''
         CREATE TABLE IF NOT EXISTS sellers (
@@ -137,7 +142,7 @@ class DataBaseHandler():
         ''')
 
     def get_row_info(self,fields,table_name,condition=None,return_as_list=False):
-        ''' 
+        """ 
         this function help to  extract information from the database based on certain conditions and fields requested by the user
         This function is used to select rows from the database based on certain conditions.
         
@@ -147,7 +152,8 @@ class DataBaseHandler():
             condition :  dictionary contains field and value for filtering data in the table
                         if None all records will be returned
             return_as_list : set it to True to  return selected rows as list
-        '''
+        """
+        
         field = ','.join(fields)
         query = f"SELECT {field} FROM {table_name} "
         if condition != None :
@@ -158,11 +164,13 @@ class DataBaseHandler():
      
     
     def get_column_names(self, table_name):
-        '''
+        """
+         Get column names of a given table
+         
+         Args :
+           table_name : Name of the table whose columns are needed.
         
-        
-        '''
-
+        """
 
         query = f"PRAGMA table_info({table_name})"
         self.cursor.execute(query)
@@ -171,6 +179,18 @@ class DataBaseHandler():
         return column_names
 
     def check_field_value(self,row_data, crawl_data):
+        """
+         Checks whether a specific field has been filled or not.
+         
+         Args :
+             row_data : A single record fetched from the database.
+             crawl_data : The data which we need to compare with the database.
+             
+         Returns :
+             True if the field has been filled , False otherwise.
+        
+        """
+
         key_to_pass = ['crawl_date','product_image','reviews','question_box','seller_name','product_id','seller_id']
         for key in row_data:
             if key not in key_to_pass  :
@@ -179,6 +199,20 @@ class DataBaseHandler():
         return False
     
     def check_existing_data(self, row_id, column_name, table_name):
+        """
+         This function is used to check the fields in the database whether they have been updated or not .
+
+         Args : 
+           row_id : Unique id of each entry in the database.
+           column_name : name of feild to check for update.
+           table_name : Name of the table where the data needs to be checked.
+
+         Returns :
+           Data as json if existing else False.
+         
+        
+        """
+
         query = f'SELECT * FROM {table_name} WHERE {column_name} = "{row_id}"'
         self.cursor.execute(query)
         result = self.cursor.fetchone()
@@ -187,6 +221,16 @@ class DataBaseHandler():
         return False if not result else self.parse_json_fields(result)
 
     def parse_json_fields(self, record):
+        """
+         parse fields to json
+
+         Args : 
+            record : Record which contains multiple fields.
+
+         Returns :
+             Json object of the record.
+        
+        """
         parsed_record = {}
         for key in record.keys():
             try:
@@ -196,6 +240,20 @@ class DataBaseHandler():
         return parsed_record
 
     def replace_recode_to_history_table(self,data,column_name,table_name):
+        """
+         Move old data from main table to history table.
+
+         Args :  
+            data : A dictionary that will be inserted into History Table.
+                   It should contain at least 'ID' column.
+            column_name : Name of the column which is used to identify each row uniquely.
+            table_name : Name of the table where we want to move the data.
+
+         Returns :
+              True if success otherwise False.
+        
+        """
+
         try:
             row_id = data[column_name]
             query = f'SELECT * FROM {table_name} WHERE {column_name} = "{row_id}"'
@@ -213,6 +271,21 @@ class DataBaseHandler():
             self.log.error(f"[-] database ERROR : {e}")
 
     def insert_recode_to_table(self,data,table_name) :
+        """
+         Insert a new line or update an existing one in a given table.
+         
+         If there is already a record with same ID then it updates the record  
+         otherwise creates a new one.
+
+         Args :   
+             data : A dictionary containing field name and value pairs. 
+                    The keys should match the columns names in the table.
+             table_name : Name of the table.
+         
+         Returns :
+               None
+        
+        """
         for key in data:
             if isinstance(data[key], dict) or isinstance(data[key], list):
                 data[key] = json.dumps(data[key],ensure_ascii=False)
@@ -224,6 +297,19 @@ class DataBaseHandler():
         self.log.info('[+] insert recode to table successfully ')
 
     def update_database(self,data,column_name,table_name):
+        """
+         Update records in a table based on a column.
+         
+         This function will find all the lines that have the specified 'column_value' 
+         in the 'column_name' column and update them with the provided 'data'.
+
+         Args :      
+             data : A dictionary containing field name and value pairs.  
+                     The keys should match the columns names in the table.
+             column_name : Column name used to filter rows.
+             table_name : Table where the changes are made.
+        
+        """
         if self.check_existing_data(row_id=data[column_name],column_name=column_name,table_name=table_name) :
             existing_recode = self.check_existing_data(row_id=data[column_name],column_name=column_name,table_name=table_name) 
             existing_recode = self.parse_json_fields(existing_recode)
@@ -239,5 +325,9 @@ class DataBaseHandler():
             self.insert_recode_to_table(data,table_name) 
 
     def close_connection(self):
+        """
+         Close the connection to the database.
+        
+        """
         self.conn.commit()
         self.conn.close()

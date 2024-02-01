@@ -54,11 +54,14 @@ class WebScraperPanel:
         else :
             headless_mode = False
             self.log.info('[!] browser will open soon [!] (headless browser set to False )')
+        
+        # Check if the driver is already created
         if not hasattr(self, '_driver'):
-            self._driver = DriverManager(driver_path=self.driver_path, log=self.log,headless_mode=headless_mode)
-            self.webscraper = SellerProductDataExtractor(driver=self.get_driver(),db_handler=self.db_handler,log=log)
-            self.product_extraction_scraper = ProductDetailsExtractor(db_handler=self.db_handler,driver=self.get_driver(),log=self.log)
+            self._driver = DriverManager(driver_path=self.driver_path, log=self.log, headless_mode=headless_mode)
+            self.webscraper = SellerProductDataExtractor(driver=self._driver, db_handler=self.db_handler, log=self.log)
+            self.product_extraction_scraper = ProductDetailsExtractor(db_handler=self.db_handler, driver=self._driver, log=self.log)
         return self._driver
+
     
     def display_menu(self):
         self.log.info("----------- welcome to digikala web crawler -------------")
@@ -272,8 +275,14 @@ class WebScraperPanel:
             elif choose == "8":
                 if hasattr(self, '_driver'):
                     self._driver.close_driver()
-                self.log.info("[-] Exit the program.")
+                    self.log.info('[-] Browser closed successfully.')
+                    self.log.info("[-] Exit the program.")
+                else :
+                    self.log.info("[-] Exit the program.")
+                    exit()
+                
                 break
+
             else:
                 self.log.error("[!] ERROR - Invalid option, please try again.")
     
