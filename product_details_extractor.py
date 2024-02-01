@@ -4,12 +4,25 @@ from time import gmtime, strftime
 import re
 
 class ProductDetailsExtractor:
+    """
+     Class to extract product details from a given HTML page.
+    
+    """
     def __init__(self, driver,db_handler,log):
             self.log = log
             self.driver = driver
             self.db_handler = db_handler
 
     def clean_text(self, text):
+        """
+         Method to remove unwanted characters and return the cleaned text.
+         
+        Args:  
+            text (str,list,dict,url): The input string that needs to be cleaned.
+        
+        Return :
+            clean text
+        """
         pattern = '[^ا-یآ-ی۰-۹a-zA-Z0-9\s:/\.\-،%(),\n _]'
         def is_url(s):
             return re.match(r'https?://\S+\.\S+', s)
@@ -23,6 +36,20 @@ class ProductDetailsExtractor:
             return {k: self.clean_text(v) for k, v in text.items()}
     
     def check_with_multi_class_name(self,element,field_name,tag_name,attrs_name,attrs_list):
+        """
+         this method use to find element if they have multi class name .
+
+         Args :
+            element : tags of element object of Bs4 
+            field_name : field name which we want to search on it .
+            tag_name :  tag name of element .
+            attrs_name : attribute name of element .
+            attrs_list : list of value of attribute .
+            
+         Returns :
+              result of search .
+        
+        """
         for class_combo in attrs_list:
             price_span = element.find(tag_name, {attrs_name: class_combo})
             if price_span:
@@ -33,6 +60,20 @@ class ProductDetailsExtractor:
         return field
     
     def safe_find(self,soup,finds, tag, attrs):
+        """
+         This method help to  find elements with try and catch block ,  
+         so if there is an error in finding process it will not raise any exception  
+         
+         Args :
+             soup : page content that we want to search on it .
+             finds : string that contain the values what you want to find (find,find_all) .
+             tag : tag name of element to find.
+             attrs : dictionary of attributes of element .
+             
+         Returns :
+               Element object or None .
+        
+        """
         try:
             if finds == 'find':
                 return soup.find(tag, attrs)
@@ -42,6 +83,20 @@ class ProductDetailsExtractor:
             return 'element not found'
     
     def safe_extraction(self,element_name ,element, extraction_function):
+        """
+         This method call extraction function by passing required arguments 
+          
+         Args : 
+             element_name : this argument used for making good log message  
+                            when there is a problem in extracting data from html .
+             element       : HtmlElementObject that we want to extract its value .
+             extraction_function : Function that defined how we want to extract data from HtmlElementObject .
+             
+         Returns :
+                 The result of extraction_function .
+        
+        
+        """
         try:
             return extraction_function(element)
         except Exception as e:
@@ -49,6 +104,16 @@ class ProductDetailsExtractor:
             return f'{element_name} not found '
         
     def product_elements_extraction(self,soup):
+        """
+         This method will extraction  all needed products elements from html page using BeautifulSoup library .
+         
+         Args :
+            soup : HtmlElementObject.
+
+         Return :
+              dictionary of  all products information that extracted from the page .
+        
+        """
         specific_text = 'پیشنهاد فروشندگان'
         element = soup.select_one("span:-soup-contains('{}')".format(specific_text)).find_parent('div',{'class':'flex flex-col relative overflow-hidden w-full pt-2 lg:border-complete-200 lg:rounded-medium lg:mt-4 pb-3 styles_PdpProductContent__sectionBorder__39zAX'}) if  soup.select_one("span:-soup-contains('{}')".format(specific_text)) else 'element not found'
         
@@ -74,6 +139,16 @@ class ProductDetailsExtractor:
         return product_elements
     
     def main_product_details_extraction(self,element):
+        """
+         Extracting data from a div element which contains main details about the product .
+
+         Args :
+             element : HtmlElementObject.
+
+         Returns :
+                 Dictionary contain title , price and other main features of the product .
+        
+        """
         if isinstance(element ,(Tag, ResultSet)):
             details={}
             details["product_title"] = self.safe_extraction('product title',element, lambda e: e.find('h1',{'data-testid':'pdp-title'}).text)
@@ -90,6 +165,15 @@ class ProductDetailsExtractor:
             return {}
         
     def product_buy_box_extraction(self,element):
+        """
+         Extracting data from a div element which contains buy box details about the product 
+        
+         Args :
+             element : HtmlElementObject.
+
+         Returns :
+                 Dictionary contain other_sellers,warranty,discount info and etc ... .
+        """
         if isinstance(element ,(Tag, ResultSet)):
             details={}
             details["other_sellers"]= self.safe_extraction('other sellers',element, lambda e: e.find('span',{'data-cro-id':'pdp-other-seller'}).text)
@@ -107,12 +191,32 @@ class ProductDetailsExtractor:
             return {}
         
     def product_image_extraction(self,element):
+        """
+         Get image url from img tag in html page.
+         
+         Args:
+             element : HtmlElementObject.
+             
+         Return:
+                Image Url as String.
+        
+        """
         if isinstance(element ,(Tag, ResultSet)):
             return {'product_images' :self.safe_extraction('images',element, lambda e: [image.find('img')["src"] for image in e])}
         else :
             return {}
         
     def other_seller_box_extraction(self,element):
+        """
+         Extracting information of other sellers who have this product.
+         
+         Args :
+             element : HtmlElementObject that contain all other seller's box.
+             
+         Returns :
+                 List of Dictionaries each dictionary represent one seller with his name and price.
+        
+        """
         class_combinations = [
                                 'text-h4 ml-1 text-neutral-800', 
                                 'text-neutral-800 ml-1 text-h4',  
@@ -135,6 +239,16 @@ class ProductDetailsExtractor:
         else : return []
 
     def similar_products_extraction(self,element):
+        """
+         Extracting information of similar products .
+         
+         Args :
+             element : HtmlElementObject that contain all similar products.
+             
+         Returns :
+                 List of Dictionaries each dictionary represent one similar products name, price etc ...
+        
+        """
         if isinstance(element ,(Tag, ResultSet)):
             similar_products = []
             for product in element:
@@ -152,6 +266,16 @@ class ProductDetailsExtractor:
             return []  
           
     def related_videos_extraction(self,element):
+        """
+         Extracting information of related videos review.
+         
+         Args :
+             element : HtmlElementObject that contain all related videos review.
+             
+         Returns :
+                 List of Dictionaries each dictionary represent one related videos review name, etc ...
+        
+        """
         if isinstance(element ,(Tag, ResultSet)):
             related_videos = []
             for video in element:
@@ -166,6 +290,16 @@ class ProductDetailsExtractor:
         else : return []
 
     def expert_check_box_extraction(self,element):
+        """
+         Extracting information about the experts check box from the page.
+         
+         Args : 
+             element : HtmlElementObject that contain all experts checkboxes.
+             
+         Returns :
+                 A list contains names of checked experts .
+        
+        """
         if isinstance(element ,(Tag, ResultSet)):
             expert_check = []
             for expert in element.find_all('section'):
@@ -181,6 +315,16 @@ class ProductDetailsExtractor:
             return []
         
     def specifications_box_extraction(self,element):
+        """
+         Extracting information about the product specification from the page.
+         
+         Args :  
+             element : HtmlElementObject that contain all specs.
+             
+         Returns :
+                 A dictionary contains key and value pairs of each specs.
+        
+        """
         if isinstance(element ,(Tag, ResultSet)):
             specifications= {}
             for ele in element:
@@ -199,6 +343,16 @@ class ProductDetailsExtractor:
         else : return {}
 
     def reviews_box_extraction(self,element):
+        """
+         Extracting review data from the page.
+
+         Args:
+            element : HtmlElementObject  that contain all reviews.
+
+         Return:
+               List of dictionaries with keys as 'username', 'date' and 'review'.
+        
+        """
         class_combinations_review_title = [
                                             'inline-block  text-caption-strong', 
                                             'text-neutral-900 text-h5 pb-3',
@@ -235,6 +389,16 @@ class ProductDetailsExtractor:
         else : return []
 
     def  question_box_extraction(self,element):
+        """
+         Extracting question data from the page.
+
+         Args:
+             element : HtmlElementObject  that contain questions.
+             
+         Returns:
+                 Dictionay containing key value pairs of question number and its corresponding answer.
+        
+        """
         class_combinations_question_dislike = [
                                             'dp-question-dislike',
                                             'pdp-comment-dislike',
@@ -261,6 +425,17 @@ class ProductDetailsExtractor:
         else : return []
 
     def also_bought_items_extraction(self,element):
+        """
+         Extracting "also bought" items from the product description page.
+
+         Args:
+             element : HtmlElementObject  that contains "also bought" items.
+
+         Returns:
+                 List of item names which are also bought with the main item.
+
+        
+        """
         if isinstance(element ,(Tag, ResultSet)):
             also_bought_items = []
             for item in element :
@@ -277,6 +452,16 @@ class ProductDetailsExtractor:
         else : return []
 
     def seller_offer_extraction(self,element):
+        """
+         Extracting "seller offer" items from the product description page.
+
+         Args:
+             element : HtmlElementObject  that contains "seller offer" items.
+
+         Returns:
+                Dictionary  containing information about the seller offers on the products.
+        
+        """
         if isinstance(element ,(Tag, ResultSet)):
             seller_offers_items = []
             for offer in element:
@@ -292,6 +477,18 @@ class ProductDetailsExtractor:
         else : return []
 
     def page_extraction(self,prdouct_id,prdouct_url):
+        """
+         This method extracts all relevant data from a single webpage.
+
+         Args:
+             prdouct_id   : String representing the unique id of the product .
+                           It's used to store the extracted data into the database.
+             prdouct_url  : String representing the url of the product page.
+
+         Returns:
+                     A dictionary containing all the extracted data from the web page.
+        
+        """
         soup = self.driver.get_page_source()
         elements = self.product_elements_extraction(soup)
         seller_id = self.driver.get_seller_id()
@@ -330,7 +527,18 @@ class ProductDetailsExtractor:
                     "seller_offer" : self.check_not_empity(seller_offer),
             }
         self.db_handler.update_database(data=prodcut_info,column_name='product_id',table_name='products_extraction')
+
     def check_not_empity(self,data):
+        """
+         This method help to find if any field are empity 
+
+         Args :
+             data :  It is the value of a particular key in dictionary .
+         
+         Returns :
+              If the value of the key is not empty then it will return the value otherwise it will return 0.
+        
+        """
         if isinstance(data,str) and len(data)== 0:
             return '0'
         elif isinstance(data,list) and len(data)== 0:
@@ -342,7 +550,7 @@ class ProductDetailsExtractor:
         ids = url.split('/')[4]
         self.page_extraction(ids,url)
     
-    
+    # TODO :
     # Currently, 20 items are received in reviews and questions. To get more items, if available, 
             # get first page items click on the next page button get source and add it to temp in loop  
                 # source_code = driver.source_code ->

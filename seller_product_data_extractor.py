@@ -1,17 +1,38 @@
 from time import gmtime, strftime
 class SellerProductDataExtractor:
+    """
+     This class is used to extract the required data for a seller product listing.
     
+    """
     def __init__(self, driver ,db_handler,log):
         self.log = log
         self.driver = driver
         self.db_handler = db_handler
 
     def has_desired_text(self,tags,find_text):
+        """
+         Check if any of the tags in 'tags' contains 'find_text'. 
+         
+        :param tags: A list of WebElement objects representing the HTML elements being checked.
+        :type tags: List[WebElement]
+        :param find_text: The text that we want to search for within the elements.
+        :type find_text: String
+        :return: element or False depending on whether 'find_text' was found in one of the elements.
+        
+        """
         for element in tags:
             if find_text in element.text :
                 return element
 
     def seller_details(self,soup):
+        """
+         Extracts and returns the details about the seller from the given BeautifulSoup object.
+         
+        :param soup: A BeautifulSoup object containing the page source code.
+        :type soup: BeautifulSoup
+        :return: Dictionary with keys as "name" & "rating". Value corresponding to each key is string.
+        
+        """
         self.log.info('start to ectrext seller details')
         return { 'crawl_date' : strftime("%Y-%m-%d %H:%M:%S", gmtime()),
                 'seller_name':soup.find('h1',{'class':'text-h5 text-neutral-900 whitespace-nowrap'}).text,
@@ -26,6 +47,14 @@ class SellerProductDataExtractor:
             }
     
     def extract_product_details(self,product):
+        """
+         Extracts product information (price, discount price, description) from a single product element.
+         
+        :param product: A WebElement object representing the product's HTML element.
+        :type product: WebElement
+        :return: Dictionary with keys as "price","discounted_price","description". Values are strings.
+        
+        """
         try :
             img_element = product.find('picture').find('img', {'class': 'w-full rounded-medium inline-block'})
         except Exception as e :
@@ -66,6 +95,17 @@ class SellerProductDataExtractor:
         }
 
     def check_category(self,url,scroll_count):
+        """
+         This method use to extrect  data from category page of digikala.
+         
+         :param url: Link of the category page that we want to crawle.
+         :type url: Str
+         :param scroll_count: How many time we will scroll down on this page for load all products.
+         :type scroll_count: Int
+         :return: List of dict contain information about each product in this category.
+         :rtype: List[Dict]
+        
+        """
         self.driver.open_page(url)
         self.driver.scroll_page(scroll_count)
         page_source = self.driver.get_page_source()
@@ -101,6 +141,16 @@ class SellerProductDataExtractor:
             self.log.info(f'[!] seller page with id=[{seller}] - extrection successfully ')
         
     def check_seller(self,url):
+        """
+         This method is used to get the details of a specific seller by url.
+
+         Args :
+            url : seller page url 
+
+         Return :
+                dict : contains all information about the seller .
+        
+        """
         self.log.info(f'[!] try to open seller page')
         self.driver.open_page(url)
         self.driver.scroll_page(scroll_count=True)
