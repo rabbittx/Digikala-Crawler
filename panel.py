@@ -4,22 +4,112 @@ from logger import setup_logger
 from driver_manager import DriverManager
 from db_handler import DataBaseHandler
 from product_details_extractor import ProductDetailsExtractor
+import os
+import configparser
+
+class ConfigManager:
+    """
+     config  manager class to handle the configuration file.
+    
+    """
+    def __init__(self, config_file='config.ini'):
+        self.config_file = config_file
+        self.config = configparser.ConfigParser()
+
+        if not self.config.read(self.config_file):
+            self._create_default_config()
+
+    def _create_default_config(self):
+        """
+         create a default configuration file with necessary information.
+         
+        return: None
+
+        """
+        self.config['Paths'] = {'GeckoPath': input('Enter path of Gecko driver (eq:path/to/geckodriver.exe): '), 'DBPath': input('Enter path to database (eq:path/to/database.db) :')}
+
+        with open(self.config_file, 'w') as configfile:
+            self.config.write(configfile)
+
+    def get_gecko_path(self):
+        """
+         Get geckodriver path from the configuration file.
+        
+        """
+        return self.config.get('Paths', 'GeckoPath')
+
+    def get_db_path(self):
+        """
+         Get database file path from the configuration file.
+        
+        """
+        return self.config.get('Paths', 'DBPath')
+
+    def set_gecko_path(self, path):
+        """
+         Set geckodriver path in the configuration file.
+        
+        :param path: str - The path of Geckodriver.
+        
+        """
+        self.config.set('Paths', 'GeckoPath', path)
+        with open(self.config_file, 'w') as configfile:
+            self.config.write(configfile)
+
+    def set_db_path(self, path):
+        """
+         Set database file path in the configuration file.
+        
+        :param path: str - The path to save the SQLite3 database file.
+        
+        """
+        self.config.set('Paths', 'DBPath', path)
+        with open(self.config_file, 'w') as configfile:
+            self.config.write(configfile)
+
 class WebScraperPanel:
+    """
+     A panel for web scraping using Selenium and BeautifulSoup4.
+    
+    """
     def __init__(self,driver_path,db_path,log ):
         self.log = log
         self.db_path = db_path
         self.driver_path = driver_path
         self.db_handler = DataBaseHandler(db_path,log=self.log)
         self.db_handler.create_tables()
-
+        self.scroll_count = 3
     def get_driver(self):
+        """
+         Initialize driver  object from selenium.webdriver module.
+
+         Return :
+                selenuim driver
+        
+        """
+
+        self.log.info('[-] in need headless browser  ? Enter yes / y / No / n')
+        headless = input('enter option headless (yes / y / No / n) :').lower()
+        if headless in ['yes', 'y']:
+            headless_mode = True
+            self.log.info('[!] browser set to headless [!] (it will work on background)')
+        else :
+            headless_mode = False
+            self.log.info('[!] browser will open soon [!] (headless browser set to False )')
+        
+        # Check if the driver is already created
         if not hasattr(self, '_driver'):
-            self._driver = DriverManager(driver_path=self.driver_path, log=self.log)
-            self.webscraper = SellerProductDataExtractor(driver=self.get_driver(),db_handler=self.db_handler,log=log)
-            self.product_extraction_scraper = ProductDetailsExtractor(db_handler=self.db_handler,driver=self.get_driver(),log=self.log)
+            self._driver = DriverManager(driver_path=self.driver_path, log=self.log, headless_mode=headless_mode)
+            self.webscraper = SellerProductDataExtractor(driver=self._driver, db_handler=self.db_handler, log=self.log)
+            self.product_extraction_scraper = ProductDetailsExtractor(db_handler=self.db_handler, driver=self._driver, log=self.log)
         return self._driver
+
     
     def display_menu(self):
+        """
+         Display menu of options available for user.
+        
+        """
         self.log.info("----------- welcome to digikala web crawler -------------")
         self.log.info("1) start to crawl for category .")
         self.log.info("2) start to crawl for single seller .")
@@ -31,94 +121,176 @@ class WebScraperPanel:
         self.log.info("8) quit .")
         user_pick = input("enter your choose : ")
         return user_pick
+    
+    def get_url_input(self, mode):
+        """
+         This method use to get  URL from user and validate it.
+        
+        @param mode : this parameter tell us what kind of url we are looking for .
+                      can be "category" or "seller" etc ...
+        
+        """
+        while True:
+            fmode = mode.replace('_',' ')
+            if mode == 'single_product':
+                self.log.info(f'[-] enter the url of {fmode} you want to crawle with it id .')
+                self.log.info('[-] Example : https://www.digikala.com/product/dkp-11194944')
+            elif mode == 'single_seller':
+                self.log.info(f'enter the url of {fmode} you want to crawle with it id .')
+                self.log.info('[-] Example : https://www.digikala.com/seller/6xwus/')
+            elif mode == 'category':
+                self.log.info(f'enter the url of {fmode} you want to crawle .')
+                self.log.info('[-] Example : https://www.digikala.com/search/?q=iphone')
+                self.log.info('[-] Example : https://www.digikala.com/search/category-mobile-phone/xiaomi/')
+                self.log.info('[-] Example : https://www.digikala.com/search/')
 
-    def run_scraper_category(self):
-        while True :
-            category_url = input("enter category url to crawl: ")
-
-            if 'search/?q=' in category_url or '/category-' in category_url or '/search/' in category_url:
+            url = input(f'Enter {fmode} URL : ')
+            if  url == 'exit' :
+                self.start() 
                 break
-            else:
-                self.log.info('wrong category url, try one more time')       
-        scroll_count = input("Please enter the number of page scroll rates (Example 5 ) : ")
-        self.get_driver()
-        try:
-            scroll_count = int(scroll_count)
-        except ValueError:
-            self.log.error("The number of scrolling times must be a number. By default, it is set to 3.")
-            scroll_count = 3
-        self.webscraper.check_category(category_url,scroll_count)
-        self.log.info("Data extraction was done successfully.")
+            if mode == 'single_product':
+                if ('product' not in url and not re.search(r'https://www\.digikala\.com/product/dkp-\d+/$', url) ):
+                    self.log.warning('[!] URL is not belong to any product check it and Please try again.')
+                    continue
+            elif mode == 'single_seller':
+                pattern = re.compile(r'https://www\.digikala\.com/seller/[A-Za-z0-9]+/$')
+                if  (not pattern.match(url)):
+                    self.log.warning("[!] URL is not belong to any seller check it and Please try again.")
+                    continue
+            elif mode == 'category':
+                pattern = re.compile(r'search/\?q=|/category-|/search/')
+                if not ('search/?q=' in url or '/category-' in url or '/search/' in url):
+                    self.log.warning('[!] Wrong category URL, try one more time')
+                self.scroll_count = input("Please enter the number of page scroll rates (Example 5 ) : ")
+                try:
+                    self.scroll_count = int(self.scroll_count)
+                except ValueError:
+                    self.log.error("[!] ERROR - The number of scrolling times must be a number. By default, it is set to 3.")
+                    continue
+            break
+        return url
+    
+    def show_sllers(self):
+        """
+         This function will show all sellers that are available on database.
+            also get seller id and name from  user by taking inputs.
 
-    def run_scraper_single(self):
-        seller_page_url = input("enter seller page url to crawl: ")
-        self.get_driver()
-        self.webscraper.check_seller(seller_page_url)
-        self.log.info("Data extraction was done successfully.")
-
-    def run_seller_scraper_product(self):
+        Return :
+             - seller_id,seller_name 
+        
+        """
         row_info = self.db_handler.get_row_info(fields=['seller_id', 'seller_name'], table_name='sellers',condition=None,return_as_list=False)
         if len(row_info) == 0 :
-            self.log.warning("There are no sellers in the database.")
+            self.log.warning("[!] Warning: There are no sellers in the database.")
             return None
-        
         for index, row in enumerate(row_info):
-            self.log.info(f"ID {index} : {row[0]}, Name: {row[1]}")
+            self.log.info(f"[-] ID {index} : {row[0]}, Name: {row[1]}")
         while True:
             try:
-                user_pick = int(input('choose the seller ID you want to crawl products from: '))
-                if 0 <= user_pick < len(row_info):
+                self.log.info('[-] to exit the option enter  "exit"')
+
+                user_pick = input('choose the seller ID you want to crawl products from: ')
+                if  user_pick == 'exit': self.start()
+                elif 0 <= int(user_pick) < len(row_info):
                     break
                 else:
-                    self.log.info('Invalid choose, please try again.')
+                    self.log.error('[!] Error: Invalid option, please try again.')
             except ValueError:
-                self.log.info('Invalid input, please enter a number.')
-        selected_seller = row_info[user_pick]
-        self.get_driver()
-        self.log.info(f'You chose {selected_seller[1]} with ID {selected_seller[0]}')    
-        seller_products = self.db_handler.get_row_info(['product_link', 'product_price'], 'products', ['seller_name', selected_seller[1]])
-        available_products = [product[0] for product in seller_products if product[1] != 'product unavailable']
-        self.log.info(f'{len(available_products)} available products found for {selected_seller[1]}')
-        for index, link in enumerate(available_products):
-            self.log.info(f'Starting to crawl - {index + 1}/{len(available_products)}')
-            self.product_extraction_scraper.run(link)
+                self.log.error('[!] Error: Invalid input , please try again with number.')
+        return row_info[int(user_pick)]
 
-    def run_single_scraper_product(self):
-        while True:
-            url = input('Enter product URL: ')
-            if 'product' not in url:
-                self.log.info('URL must contain the word "product". Please try again.')
-                continue
-            if not re.search(r'dkp-\d+', url):
-                self.log.info('URL must contain a product ID in the format "dkp-xxxxxx". Please try again.')
-                continue
-            break        
-        self.log.info(f'Starting to crawl - {url.split("/")[4]}')
-        self.get_driver()
-        self.product_extraction_scraper.run(url)
+    def unified_scraper(self, mode):
+        """
+         This method use to get url from user also open driver  and scrape data according to the given mode .
+         
+         Args :
+             - mode (str) : this is a string which tell us what we have to do next
+        
+        """
+        url = None
+        self.log.info('[-] to exit the option enter  "exit"')
+        if mode in ['single_product', 'single_seller', 'category']:
+            url = self.get_url_input(mode)
+        if mode == 'seller_products' :
+            selected_seller = self.show_sllers()
+        
+        if not hasattr(self, '_driver'):
+            self.get_driver()
+            
+        if mode == 'all_products':
+            seller_products = self.db_handler.get_row_info(['product_link', 'product_price'], 'products')
+            available_products = [product[0] for product in seller_products if product[1] != 'product unavailable']
+            self.log.info(f'[-] {len(available_products)} available products found on database ')
+            for index, link in enumerate(available_products):
+                self.log.info(f'[-] Starting to crawl - {index + 1}/{len(available_products)}')
+                self.product_extraction_scraper.run(link)
+                
+        elif mode == 'single_product':
+            self.log.info(f'[-] Starting to crawl - {url.split("/")[4]}')
+            self.product_extraction_scraper.run(url)
 
-    def scraper_all_product_on_db(self,):
-        seller_products = self.db_handler.get_row_info(['product_link', 'product_price'], 'products')
-        available_products = [product[0] for product in seller_products if product[1] != 'product unavailable']
-        self.log.info(f'{len(available_products)} available products found on database ')
-        for index, link in enumerate(available_products):
-            self.log.info(f'Starting to crawl - {index + 1}/{len(available_products)}')
-            self.product_extraction_scraper.run(link)
+        elif mode == 'seller_products':
+            
+            self.log.info(f'[-] You chose {selected_seller[1]} with ID {selected_seller[0]}')    
+            seller_products = self.db_handler.get_row_info(['product_link', 'product_price'], 'products', ['seller_name', selected_seller[1]])
+            available_products = [product[0] for product in seller_products if product[1] != 'product unavailable']
+            self.log.info(f'{len(available_products)} available products found for {selected_seller[1]}')
+            for index, link in enumerate(available_products):
+                self.log.info(f'[-] Starting to crawl - {index + 1}/{len(available_products)}')
+                self.product_extraction_scraper.run(link)
+
+        elif mode == 'single_seller':
+            self.webscraper.check_seller(url)
+            self.log.info("[-] Data extraction was done successfully.")
+            
+        elif mode == 'category':
+            self.webscraper.check_category(url,self.scroll_count)
+            self.log.info("[-] Data extraction was done successfully.")  
+            
+        else:
+            raise ValueError("[!] Invalid mode selected")
 
     def export_table_to_csv(self,):
+        """
+         This function exports the table data into a csv file.
+        
+        """
         def remove_old_file(filename):
+            """
+             A helper function that removes old files before creating new ones.
+             
+             Args : 
+                
+            
+            """
             if os.path.exists(filename):
                 os.remove(filename)
-                self.log.info(f'{filename} remove successfully')
+                self.log.info(f'[-] {filename} remove successfully')
 
         def save_to_csv(data, headers, filename):
+            """
+             Save the scraped data into a CSV file from database.
+             
+             Args : 
+                 header :  list of strings names of database table fields 
+                 filename : name of file to save csv file into it
+            
+            """
             with open(filename, mode='w', newline='', encoding='utf-8-sig') as file:
                 writer = csv.writer(file)
                 writer.writerow(headers)
                 writer.writerows(data)
-            self.log.info(f'{filename} export successfully')
+            self.log.info(f'[-] {filename} export successfully')
 
         def export_to_csv(table_name,seller_id=None,condition=None):
+            """
+             Export specific rows or all rows in a table to a CSV file.
+
+             Args :  
+                 seller_id : string seller_id represents id of seller who own this product (optional).
+                 condition : the condition to get data from database 
+            
+            """
             csv_file_name = f'{table_name}'
             if seller_id != None :
                 csv_file_name = f'{seller_id}-{table_name}'
@@ -141,46 +313,15 @@ class WebScraperPanel:
 
             if choose == '1':
                 export_to_csv('sellers',seller_id=None,condition=None)
-            elif choose == '2' :
-                row_info = self.db_handler.get_row_info(['seller_id', 'seller_name'], 'sellers') 
-                if len(row_info) == 0 :
-                    self.log.warning("There are no sellers in the database.")
-                    return None
-                for index, row in enumerate(row_info):
-                    self.log.info(f"ID {index} : {row[0]}, Name: {row[1]}")
-                    seller_id = row[0]
-                while True:
-                    try:
-                        user_pick = int(input('choose the seller ID you want to export products from: '))
-                        if 0 <= user_pick < len(row_info):
-                            break
-                        else:
-                            self.log.info('Invalid choose, please try again.')
-                    except ValueError:
-                        self.log.info('Invalid input, please enter a number.')                
-                selected_seller = row_info[user_pick]
-                export_to_csv('products',seller_id,['seller_name', selected_seller[1]])
+            elif choose == '2' :            
+                selected_seller = self.show_sllers()
+                export_to_csv('products',selected_seller[0],['seller_name', selected_seller[1]])
             elif choose == '3':
                 export_to_csv('products',seller_id=None)
             elif choose == '4':
-                row_info = self.db_handler.get_row_info(['seller_id', 'seller_name'], 'sellers') 
-                if len(row_info) == 0 :
-                    self.log.warning("There are no sellers in the database.")
-                    return None
-                for index, row in enumerate(row_info):
-                    self.log.info(f"ID {index} : {row[0]}, Name: {row[1]}")
-                    seller_id = row[0]
-                while True:
-                    try:
-                        user_pick = int(input('choose the seller ID you want to export products extraction from: '))
-                        if 0 <= user_pick < len(row_info):
-                            break
-                        else:
-                            self.log.info('Invalid choose, please try again.')
-                    except ValueError:
-                        self.log.info('Invalid input, please enter a number.')
-                selected_seller = row_info[user_pick]
-                export_to_csv('products_extraction',seller_id,['seller_name', selected_seller[1]])
+
+                selected_seller = self.show_sllers()
+                export_to_csv('products_extraction',selected_seller[0],['seller_name', selected_seller[1]])
             elif choose == '5':
                 export_to_csv('products_extraction',seller_id=None)
             elif choose == '6':
@@ -190,9 +331,14 @@ class WebScraperPanel:
             elif choose == '7':
                 pass
         else :
-            self.log.error(f'database at {self.db_path} not found !. check database path .')    
+            self.log.error(f'[!] ERROR - database at {self.db_path} not found !. check database path .')    
 
     def database_report(self):
+        """
+         This method is used for generating a report about the database 
+         it will show how many rows and columns in each table 
+        
+        """
         seller_count = len(self.db_handler.get_row_info(fields='*',table_name='sellers',condition=None,return_as_list=True))
         product_count = len(self.db_handler.get_row_info(fields='*',table_name='products',condition=None,return_as_list=True))
         products_extrection_count = len(self.db_handler.get_row_info(fields='*',table_name='products_extraction',condition=None,return_as_list=True))
@@ -200,51 +346,59 @@ class WebScraperPanel:
         products_historical_count = len(self.db_handler.get_row_info(fields='*',table_name='products_history',condition=None,return_as_list=True))
         products_extrection_historical_count = len(self.db_handler.get_row_info(fields='*',table_name='products_extraction_history',condition=None,return_as_list=True))
         self.log.info(f"==================== DATABASE TABLES INFO ==================")
-        self.log.info(f"{seller_count} sellers in the table.")
-        self.log.info(f"{product_count} products in the table.")
-        self.log.info(f"{products_extrection_count} products with all specifications in the table.")
-        self.log.info(f"{seller_historical_count} historical sellers in the table.")
-        self.log.info(f"{products_historical_count} historical products in the table.")
-        self.log.info(f"{products_extrection_historical_count} products with all specifications in the historical table.")
+        self.log.info(f"[-] {seller_count} sellers in the table.")
+        self.log.info(f"[-] {product_count} products in the table.")
+        self.log.info(f"[-] {products_extrection_count} products with all specifications in the table.")
+        self.log.info(f"[-] {seller_historical_count} historical sellers in the table.")
+        self.log.info(f"[-] {products_historical_count} historical products in the table.")
+        self.log.info(f"[-] {products_extrection_historical_count} products with all specifications in the historical table.")
         self.log.info(f"==================== DATABASE TABLES INFO ==================")          
 
     def start(self):
+        """
+         This method start the panel to help user to use crawler  
+         It contains loop that keep asking user what want to do until he type
+        
+        """
         while True:
             choose = self.display_menu()
             if choose == "1":
-                self.run_scraper_category()
+                self.unified_scraper('category')
             elif choose == "2" :
-                self.run_scraper_single()
+                self.unified_scraper('single_seller')
             elif choose == "3" :
-                self.run_seller_scraper_product()
+                self.unified_scraper('seller_products')
             elif choose == "4" :
-                self.run_single_scraper_product()
+                self.unified_scraper('single_product')
             elif choose == "5" :
-                self.get_driver()
-                self.scraper_all_product_on_db()
+                self.unified_scraper('all_products')
             elif choose == "6":
                self.export_table_to_csv()
-               self.log.info(' [!] CSV file created successfully')
+               self.log.info('[-] CSV file created successfully')
             elif choose == "7":
                 self.database_report()
             elif choose == "8":
                 if hasattr(self, '_driver'):
                     self._driver.close_driver()
-                self.log.info("Exit the program.")
+                    self.log.info('[-] Browser closed successfully.')
+                    self.log.info("[-] Exit the program.")
+                else :
+                    self.log.info("[-] Exit the program.")
+                    exit()
+                
                 break
+
             else:
-                self.log.error("Invalid option, please try again.")
-    
+                self.log.error("[!] ERROR - Invalid option, please try again.")
+
 if __name__ == "__main__":
-    # TODO add crawler config -> store gecko_path , db_path , headless driver , etc...
     # TODO add testing unit -> (TODO)
     # TODO add flask GUI -> (TODO) 
     # TODO add API endpoint -> (TODO) 
     # TODO add data analysis -> (TODO)
-    # TODO  add seller category field to sellers table (TODO) 
 
-    gecko_path = r'geckodriver.exe' # path to geckodriver.exe
-    db_path = 'digikala_database.db'
     log = setup_logger()
-    WebScraperPanel(driver_path=gecko_path,db_path=db_path,log=log).start()
+    config_manager = ConfigManager()
+
+    WebScraperPanel(driver_path=config_manager.get_gecko_path(), db_path=config_manager.get_db_path(), log=log).start()
 
