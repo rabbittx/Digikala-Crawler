@@ -1,7 +1,7 @@
 env
 venv
 old_files
-geckodriver.exe
+*.exe
 __pycache__
 *.log
 *.txt !(requirements.txt)

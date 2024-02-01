@@ -1,5 +1,5 @@
 import time
-from selenium.webdriver.firefox.service import Service
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -13,9 +13,10 @@ from selenium.webdriver.firefox.options import Options
 # TODO add more options for user to choose browser, proxy type etc... 
 # TODO optimize code.
 class DriverManager:
-    def __init__(self, driver_path,log,headless_mode):
+    def __init__(self, driver_path,log,headless_mode,driver_type):
         self.log = log
         self.driver_path =driver_path
+        self.driver_type = driver_type
         self.log.info('Initializing Web Scraper...')
         self.driver = self.initialize_driver(headless_mode=headless_mode) # to make driver headless set it to True 
    
@@ -36,8 +37,16 @@ class DriverManager:
             if headless_mode:
                 options.add_argument("--headless")
 
-            service = Service(self.driver_path)
-            driver = webdriver.Firefox(service=service, options=options)
+            if self.driver_type == 'firefox': 
+                from selenium.webdriver.firefox.service import Service as firefox_service
+                service = firefox_service(self.driver_path)
+                driver = webdriver.Firefox(service=service, options=options)
+            elif self.driver_type == 'chrome':
+                from selenium.webdriver.chrome.service import Service as chrome_service
+                service = chrome_service(self.driver_path)
+                driver = webdriver.Chrome(service=service,options=options)
+            else :
+                 raise Exception('[-] Invalid Browser Type! Please Choose between Firefox or Chrome. check the config file .')
 
             driver.maximize_window()
             self.log.info('Web driver initialized successfully')

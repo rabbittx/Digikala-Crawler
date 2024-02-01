@@ -8,14 +8,17 @@ import os
 import configparser
 
 class ConfigManager:
+    # TODO add more setting 
+    # TODO add config
+    # TODO optimize code 
     """
      config  manager class to handle the configuration file.
     
     """
-    def __init__(self, config_file='config.ini'):
+    def __init__(self, log, config_file='config.ini'):
         self.config_file = config_file
         self.config = configparser.ConfigParser()
-
+        self.log = log
         if not self.config.read(self.config_file):
             self._create_default_config()
 
@@ -26,8 +29,39 @@ class ConfigManager:
         return: None
 
         """
-        self.config['Paths'] = {'GeckoPath': input('Enter path of Gecko driver (eq:path/to/geckodriver.exe): '), 'DBPath': input('Enter path to database (eq:path/to/database.db) :')}
 
+        self.log.info('Pick driver type .')
+        self.log.info('1) firefox .')
+        self.log.info('2) chrome .')
+        while  True:
+            driver_type = input('chose the driver type : ')
+            if driver_type == '1':
+                driver_type = 'firefox'
+            elif driver_type == '2':
+                driver_type = 'chrome'
+            else :
+                self.log.error('[-] ERROR - invalid  choice ! \n please chose again .\n')
+            break
+        self.config['Setting'] = {'DriverTpye' : driver_type}
+        self.config['Paths'] = {'GeckoPath': input('Enter path of Gecko driver (eq:path/to/geckodriver.exe): '), 'DBPath': input('Enter path to database (eq:path/to/database.db) :')}
+        
+        with open(self.config_file, 'w') as configfile:
+            self.config.write(configfile)
+
+
+    def get_driver_type(self):
+        """
+        get  the driver type from the configuration file.
+        
+        """
+        return self.config.get('Setting', 'DriverTpye')
+    
+    def set_driver_type(self):
+        """
+        set the  driver type to the configuration file.
+        
+        """
+        self.config.set('Setting', 'DriverTpye')
         with open(self.config_file, 'w') as configfile:
             self.config.write(configfile)
 
@@ -72,14 +106,15 @@ class WebScraperPanel:
      A panel for web scraping using Selenium and BeautifulSoup4.
     
     """
-    def __init__(self,driver_path,db_path,log ):
+    def __init__(self,driver_path,db_path,log,driver_type ):
         self.log = log
         self.db_path = db_path
         self.driver_path = driver_path
+        self.driver_type = driver_type
         self.db_handler = DataBaseHandler(db_path,log=self.log)
         self.db_handler.create_tables()
         self.scroll_count = 3
-    def get_driver(self):
+    def get_driver(self,driver_type):
         """
          Initialize driver  object from selenium.webdriver module.
 
@@ -99,7 +134,7 @@ class WebScraperPanel:
         
         # Check if the driver is already created
         if not hasattr(self, '_driver'):
-            self._driver = DriverManager(driver_path=self.driver_path, log=self.log, headless_mode=headless_mode)
+            self._driver = DriverManager(driver_type=driver_type,driver_path=self.driver_path, log=self.log, headless_mode=headless_mode)
             self.webscraper = SellerProductDataExtractor(driver=self._driver, db_handler=self.db_handler, log=self.log)
             self.product_extraction_scraper = ProductDetailsExtractor(db_handler=self.db_handler, driver=self._driver, log=self.log)
         return self._driver
@@ -215,7 +250,7 @@ class WebScraperPanel:
             selected_seller = self.show_sllers()
         
         if not hasattr(self, '_driver'):
-            self.get_driver()
+            self.get_driver(self.driver_type)
             
         if mode == 'all_products':
             seller_products = self.db_handler.get_row_info(['product_link', 'product_price'], 'products')
@@ -398,7 +433,7 @@ if __name__ == "__main__":
     # TODO add data analysis -> (TODO)
 
     log = setup_logger()
-    config_manager = ConfigManager()
+    config_manager = ConfigManager(log=log)
 
-    WebScraperPanel(driver_path=config_manager.get_gecko_path(), db_path=config_manager.get_db_path(), log=log).start()
+    WebScraperPanel(driver_path=config_manager.get_gecko_path(), db_path=config_manager.get_db_path(),driver_type=config_manager.get_driver_type(), log=log).start()
 
