@@ -136,7 +136,8 @@ class SellerProductDataExtractor:
             for product in product_elements:
                 product_info = self.extract_product_details(product)
                 product_info['seller_name'] = seller_info['seller_name']
-                product_info['product_id'] = f"{seller_info['seller_id']}_{product_info['product_id']}"
+                product_info['seller_id'] = seller_info['seller_id']
+                product_info['product_id'] = product_info['product_id']
                 self.db_handler.update_database(data=product_info,column_name='product_id',table_name='products')
             self.log.info(f'[!] seller page with id=[{seller}] - extrection successfully ')
         
@@ -164,7 +165,8 @@ class SellerProductDataExtractor:
         for product in product_elements:
             product_info = self.extract_product_details(product)
             product_info['seller_name'] = seller_info['seller_name']
-            product_info['product_id'] = f"{seller_info['seller_id']}_{product_info['product_id']}"
+            product_info['seller_id'] = seller_info['seller_id']
+            product_info['product_id'] = product_info['product_id']
             self.db_handler.update_database(data=product_info,column_name='product_id',table_name='products')
         self.log.info(f'[!] seller page with id=[{seller_info["seller_id"]}] - extrection successfully ')
         

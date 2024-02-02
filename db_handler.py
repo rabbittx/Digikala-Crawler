@@ -33,7 +33,8 @@ class DataBaseHandler():
         self.cursor.execute('''
         CREATE TABLE IF NOT EXISTS products (
             product_id TEXT PRIMARY KEY,
-            crawl_date TEXT,
+            seller_id TEXT,
+            crawl_date TEXT,             
             seller_name TEXT,
             product_link TEXT,
             product_image TEXT,
@@ -97,6 +98,7 @@ class DataBaseHandler():
         CREATE TABLE IF NOT EXISTS products_history (
             history_id INTEGER PRIMARY KEY AUTOINCREMENT,
             product_id TEXT,
+            seller_id TEXT,
             crawl_date TEXT,
             seller_name TEXT,
             product_link TEXT,
