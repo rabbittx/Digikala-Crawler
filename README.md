@@ -1,108 +1,88 @@
-[Read this in Persian](README.fa.md)
-Sure, here's the translation of your README.md file into English:
-Introducing Digikala
+[به فارسی بخوانید](README.fa.md)
 
-=======================
-Digikala is a prominent online store in Iran, known for its extensive range of products and services. Initially focused on selling electronic and digital devices, over the past 15 years, it has evolved into a comprehensive e-commerce platform with a diverse range of product categories. This expansion has made Digikala one of the leading e-commerce platforms in the Middle East.
+# DIGIKALA Web Scraper
+Introduction
 
-Digikala has transformed into a complete ecosystem of online businesses, not just limited to e-commerce. This group has focused on completing the value chain of Iran's digital economy and has provided the necessary infrastructures for various types of businesses. Their activities include content production, logistics, financial technology, marketing technology, and cloud technology. With its wide access and comprehensive services, Digikala meets the diverse needs of its customers.
-Key Statistics and Achievements of Digikala include:
+DIGIKALA is a prominent online store in Iran, known for its extensive range of products and services. Initially focusing on the sale of electronic and digital items, DIGIKALA has evolved over the past 15 years into a comprehensive e-commerce platform with diverse product categories. This expansion has turned DIGIKALA into one of the leading e-commerce platforms in the Middle East.
 
-    Over 41.5 million active monthly users.
-    More than 9.7 million SKUs (Stock Keeping Units).
-    Collaboration with over 308,000 sellers.
-    Significant presence in logistics and distribution with more than 530 infrastructure centers.
-    Strong fulfillment capacity, capable of handling over 904,000 orders daily.
-    Expanding product variety, with a 29% growth last year.
-    Diverse subsidiaries and services, including Fidibo (an e-book store), Digistyle (an online fashion and clothing store), Digipay (focusing on mobile and web payments), and Pindo (a consumer-to-consumer advertising platform).
+DIGIKALA has transformed into a complete ecosystem of online businesses, extending beyond just e-commerce. The group's focus has been on completing the digital economic value chain, providing necessary infrastructure for various business types. Their activities include content production, logistics, financial technology, marketing technology, and cloud technology. With broad access and comprehensive services, DIGIKALA caters to the diverse needs of its customer base.
+Key Statistics and Achievements of DIGIKALA:
 
-The success of Digikala is largely due to its commitment to ensuring a positive online buying and selling experience. The company regularly monitors product quality and pricing and actively responds to user feedback and reports to maintain high standards.
-Project Introduction
+  * Over 41.5 million active monthly users.
 
-=======================
-Project Title: Digikala Web Crawler
-Project Introduction:
+  * More than 9.7 million SKUs (Stock Keeping Units).
 
-The Digikala Web Crawler project is a comprehensive and flexible system for collecting and analyzing data from the Digikala online store. Developed in Python, this system is capable of extracting information related to sellers and products from Digikala's web pages. The primary goal of this project is to provide a powerful tool for competitive analysis and precise business decision-making.
+  * Collaboration with over 308,000 sellers.
+
+  * Significant presence in logistics and distribution with over 530 infrastructure centers.
+
+  * Strong fulfillment capacity, handling over 904,000 daily orders.
+
+  * Expanding product diversity, with a 29% growth last year.
+
+  * Subsidiaries and diverse services, including Fidibo (e-book store), DIGISTYLE (online fashion and clothing store), DIGIPEY (focused on mobile and webpayments), and Pindo (consumer-to-consumer advertising platform).
+
+DIGIKALA's success is largely attributed to its commitment to ensuring a positive online buying and selling experience. The company consistently monitors product quality and pricing, actively responding to user feedback and reports to maintain high standards.
+Project Overview
+
+Project Title: DIGIKALA Web Scraper
+
+Project Description:
+The DIGIKALA Web Scraper project is a comprehensive and flexible system for collecting and analyzing data from the DIGIKALA online store. Developed in Python, this system can extract information related to sellers and products from DIGIKALA web pages. The main goal of this project is to provide a powerful tool for competitive analysis and informed business decisions. With this project, you can extract information about sellers and their products, create a history for them, and check them for any changes in product or seller information.
+
 Key Features:
+    
+ + db_handler.py: Manages the SQLite database for storing and manipulating collected data.
+    
+ + driver_manager.py: Creates a driver and manages driver-related operations.
+    
+ + product_details_extractor.py: Extracts information from DIGIKALA product pages and sends the data to db_handler.
+    
+ + seller_product_data_extractor.py: Extracts information from category pages and seller pages, sending the data to db_handler.
+    
+ + panel.py: A text-based user interface (CLI) allowing the user to control the scraper process and export data to CSV format.
+    
+ + logger.py: Event logging system for tracking scraper operations and debugging.
 
-db_handler.py:
-Manages the SQLite database for storing and manipulating collected data.
+Applications and Benefits:
+This project serves as a powerful tool for merchants and market analysts seeking a better understanding of the market and competitors. Users can analyze prices, check product inventory, and gain a better understanding of seller performance. The system can also identify new market opportunities and improve effective sales strategies.
 
-crawler.py:
-The main crawler script that uses Selenium and BeautifulSoup to extract the required data.
+Usage:
+After executing the panel script for the first time, you need to configure the necessary settings. Specify the paths for your web driver and database (the database is automatically created, and you only need to enter the address for storage). You should also indicate which browser you are using, either Firefox or Chrome. The project is ready for use after these configurations. Choose your desired option from the displayed menu, and you can choose whether the browser should run in the background or normally. After extracting the required information, you can obtain your desired data in a CSV file from the export menu.
 
-panel.py:
-A text-based user interface (CLI) that allows users to control the crawler process and export data to CSV format.
+Note:
 
-logger.py:
-A logging system for tracking crawler operations and debugging.
-Uses and Benefits:
+ - The web driver version must match your browser version; otherwise, you will encounter errors.
+ - To prevent overload on DIGIKALA servers, time intervals have been set; please do not delete or reduce them.
+ - Avoid running multiple scripts simultaneously to speed up your extraction.
 
-This project is a powerful tool for traders and market analysts looking to better understand the market and competitors' behavior. Using this crawler, users can analyze prices, review product inventory, and gain a better understanding of seller performance. The system can also identify new market opportunities and improve sales strategies.
-Project Setup
+## Future of the Project
 
-=======================
-Step 1: Install Python
+### Program Features
 
-Ensure that Python version 3.x is installed on your system. Use the following command to check the Python version:
+ - [ ] Adding integration with other browsers.
+ - [ ] Adding the feature to display output in different formats.
+ - [ ] Creating a test unit for different sections.
+ - [ ] Adding an API for using main components in other applications.
 
-```bash
+### Performance Improvements
 
-python --version
-```
-Step 2: Clone the Project Repository
+ - [ ] Optimizing memory usage.
+ - [ ] Improving project execution performance on different systems.
+ - [ ] Increasing the speed and efficiency of algorithms.
 
-Clone the project from the relevant repository (assuming the project is in a Git repository):
+### User Interface Development
+ 
+ - [ ] Increasing features and settings options in the panel.
+ 
+ - [ ] Creating a graphical user interface for easier interaction.
+ 
+ - [ ] Adding navigation and user guidance to the user guide.
 
-```bash
+### Security and Stability
 
-git clone 
-cd DIGIKALA
-```
-Step 3: Create a Virtual Environment
+ - [ ] Checking and improving security for user inputs.
 
-To prevent conflicts between libraries, create a virtual environment:
+ - [ ] Adding better error management and reporting.
 
-```bash
-
-python -m venv env
-```
-Step 4: Activate the Virtual Environment
-
-Activate the virtual environment:
-
-On Windows:
-
-```bash
-
-venv\Scripts\activate
-```
-On macOS and Linux:
-
-```bash
-
-source venv/bin/activate
-```
-Step 5: Install Dependencies
-
-Install the project dependencies using the requirements.txt file:
-
-```bash
-
-pip install -r requirements.txt
-```
-Step 6: Set Up the Environment File (env)
-
-Download the geckodriver.exe file required for the Firefox browser and place it alongside the project.
-Step 7: Run the Project
-
-Execute the panel script to start the project:
-
-```bash
-python panel.py
-```
-
-Step 8: Using the Project
-
-In the displayed panel, first select option 1, then enter the URL of the category you want to extract data from, followed by the amount of page scroll. After completion, you can receive a CSV file output using option 2 and stop the project with option 3.
+ - [ ] Testing and fixing existing bugs.
