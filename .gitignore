@@ -5,7 +5,7 @@ old_files
 __pycache__
 *.log
 *.txt !(requirements.txt)
-*.html
+*.html !(home.html)
 *.db
 *.csv
 *.html
