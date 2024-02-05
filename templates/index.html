@@ -156,30 +156,25 @@ input[type="submit"]:hover {
                 <div class="col text-center"> 
                     <div class="header">Crawler Config</div>
                     <hr>
-                    <form action="/settings/update_profile" method="post" enctype="multipart/form-data">
-                        <label for="GekoDriver-path">GekoDrive Path : </label> <input name="GekoDriver-path" type="text" placeholder="Path/to/GekoDrive.exe"><br>
-                        <label for="DataBase-path">DataBase Path : </label> <input name="DataBase-path" type="text" placeholder="Path/to/DataBase.db">
-                        <div class="driver-type">
-                            <label for="driver-type">Select Driver Type:<br>
-                                <select id="driver-type" onchange="changeDriver_type()">
-                                    
-                                    <option value="FireFox">FireFox</option>
-                                    <option value="Chorme">Chorme</option>
-                                
-                                </select>
-                            </label>
-                        </div>
-                        <div class="headless">
-                            <div class="text_center">
-                                driver headless  mode : 
-                            </div>
-                                <label for="headless_driver"><input type="radio" name="headless_driver" id="headless_driver" >headless driver</lable>
-                                <label for="headless_driver"><input type="radio" name="headless_driver" id="normal_driver">normal driver</lable>
-                        </div>
-                
-                        <input type="submit" value="submit">
+                    <form action="{{ url_for('settings') }}" method="post">
+                        <label for="gekoPath">GekoDriver Path:</label>
+                        <input type="text" id="gekoPath" name="gekoPath" value="{{ geko_path }}" required>
+                        
+                        <label for="dbPath">DataBase Path:</label>
+                        <input type="text" id="dbPath" name="dbPath" value="{{ db_path }}" required>
+                        
+                        <label for="driverType">Driver Type:</label>
+                        <select id="driverType" name="driverType">
+                            <option value="firefox" {% if driver_type == 'firefox' %} selected {% endif %}>Firefox</option>
+                            <option value="chrome" {% if driver_type == 'chrome' %} selected {% endif %}>Chrome</option>
+                        </select>
+                        <select id="HeadlessMode" name="HeadlessMode">
+                            <option value="True" {% if driver_type == 'True' %} selected {% endif %}>headless driver</option>
+                            <option value="False" {% if driver_type == 'False' %} selected {% endif %}>normal driver</option>
+                        </select>
+                        <button type="submit">Save Settings</button>
                     </form>
-                </div>
+                                    </div>
                 <!-- SETTING BOX  END-->
 
                 <!-- Crawler menu -->
@@ -200,14 +195,16 @@ input[type="submit"]:hover {
                        </div>
                             
                        <div class="col-12 text-center">
-                            <label for="driver-type">seller products:<br>
-                                <select id="driver-type" onchange="changeDriver_type()">
-                                    <option value="seller ID 1">seller ID 1 (seller name)</option>
-                                    <option value="seller ID 2">seller ID 2 (seller name)</option>
-                                </select>
-                            </label>
-                            <button type="button" onclick="startWebScraping('seller_products')">Start Scraping</button>
-                       </div>
+                        <label for="seller_products">seller products:<br>
+                            <select id="driver-type" name="driverType" onchange="changeDriver_type()">
+                                {% for seller_id, seller_name in sellers %}
+                                <option value="{{ seller_id }}">{{ seller_name }} ({{ seller_id }})</option>
+                                {% endfor %}
+                            </select>
+                            
+                        </label>
+                        <button type="button" onclick="startWebScraping('seller_products')">Start Scraping</button>
+                    </div>
 
                        <div class="col-12 text-center">
                             <label for="single_product_url">single product:</label>
@@ -307,8 +304,6 @@ input[type="submit"]:hover {
                     </div>
                 <!-- dataBase Report End -->
                 </div>
-
-
 
                 <div class="col text-center">data analysis <br> (coming soon) </div>
                 <div class="col text-center">api setting <br> (coming soon) </div>

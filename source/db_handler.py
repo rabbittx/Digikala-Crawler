@@ -2,7 +2,8 @@ import sqlite3 ,json
 
 class DataBaseHandler():
     def __init__(self, db_path,log):
-        self.conn = sqlite3.connect(db_path,timeout=30)
+        self.db_path = db_path
+        self.conn = sqlite3.connect(self.db_path,timeout=30)
         self.cursor = self.conn.cursor()
         self.log = log
 
@@ -164,6 +165,21 @@ class DataBaseHandler():
         row_info = self.cursor.fetchall()
         return row_info if return_as_list is True else [product for product in row_info]
      
+    
+    def get_connection(self):
+        """ایجاد ارتباط جدید به دیتابیس."""
+        return sqlite3.connect(self.db_path)
+
+    def get_sellers(self):
+        """بازیابی فهرست فروشندگان از دیتابیس."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT seller_id, seller_name FROM sellers")
+            sellers = cursor.fetchall()
+            return sellers
+        finally:
+            conn.close()
     
     def get_column_names(self, table_name):
         """

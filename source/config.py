@@ -162,10 +162,15 @@ class WebConfigManager:
     # Example usage methods
     def get_driver_type(self):
         return self.get_setting('Setting', 'Drivertype')
-    
     def set_driver_type(self, driver_type):
         self.set_setting('Setting', 'Drivertype', driver_type)
     
+    def get_db_path(self):
+        return self.get_setting('Setting', 'Drivertype')
+    def get_db_path(self, driver_type):
+        self.set_setting('Setting', 'Drivertype', driver_type)
+
+
     def get_headless_mode(self):
         return self.config.getboolean('Setting', 'HeadlessMode')
     
