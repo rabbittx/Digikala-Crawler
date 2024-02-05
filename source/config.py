@@ -1,5 +1,7 @@
 import configparser
-class ConfigManager:
+import os
+
+class ConsoleConfigManager:
     # TODO add more setting 
     # TODO add config
     # TODO optimize code 
@@ -7,7 +9,7 @@ class ConfigManager:
      config  manager class to handle the configuration file.
     
     """
-    def __init__(self, log, config_file='config.ini'):
+    def __init__(self, log, config_file='console-config.ini'):
         self.config_file = config_file
         self.config = configparser.ConfigParser()
         self.log = log
@@ -35,9 +37,9 @@ class ConfigManager:
                 self.log.error('[-] ERROR - invalid  choice ! \n please chose again .\n')
             break
         headless_mode = input('Enable headless mode? (yes/no): ')
-        headless_mode = 'true' if headless_mode.lower() in ['yes', 'y'] else 'false'
+        headless_mode = 'True' if headless_mode.lower() in ['yes', 'y'] else 'False'
 
-        self.config['Setting'] = {'DriverType': driver_type, 'HeadlessMode': headless_mode}
+        self.config['Setting'] = {'Drivertype': driver_type, 'HeadlessMode': headless_mode}
         self.config['Paths'] = {'GeckoPath': input('Enter path of Gecko driver (eq:path/to/geckodriver.exe): '), 'DBPath': input('Enter path to database (eq:path/to/database.db) :')}
         
         with open(self.config_file, 'w') as configfile:
@@ -67,14 +69,14 @@ class ConfigManager:
         get  the driver type from the configuration file.
         
         """
-        return self.config.get('Setting', 'DriverTpye')
+        return self.config.get('Setting', 'Drivertype')
     
     def set_driver_type(self):
         """
         set the  driver type to the configuration file.
         
         """
-        self.config.set('Setting', 'DriverTpye')
+        self.config.set('Setting', 'Drivertype')
         with open(self.config_file, 'w') as configfile:
             self.config.write(configfile)
 
@@ -114,3 +116,58 @@ class ConfigManager:
         with open(self.config_file, 'w') as configfile:
             self.config.write(configfile)
 
+
+
+class WebConfigManager:
+    def __init__(self, config_file='web_config.ini'):
+        self.config_file = config_file
+        self.config = configparser.ConfigParser()
+        self.load_config()
+
+    def load_config(self):
+        """Load configuration from file, create with defaults if not exist."""
+        if not os.path.exists(self.config_file):
+            self._create_default_config()
+        else:
+            self.config.read(self.config_file)
+
+    def _create_default_config(self):
+        """Create a default configuration file with initial settings."""
+        self.config['Setting'] = {
+            'Drivertype': 'firefox',  # Default to firefox
+            'HeadlessMode': 'false'  # Default to non-headless mode
+        }
+        self.config['Paths'] = {
+            'GeckoPath': '',  # Empty by default
+            'DBPath': ''  # Empty by default
+        }
+        self.save_config()
+
+    def get_setting(self, section, setting):
+        """Retrieve a specific setting from config."""
+        return self.config.get(section, setting)
+
+    def set_setting(self, section, setting, value):
+        """Set a specific setting in config."""
+        if section not in self.config:
+            self.config[section] = {}
+        self.config[section][setting] = value
+        self.save_config()
+
+    def save_config(self):
+        """Write the current configuration to file."""
+        with open(self.config_file, 'w') as configfile:
+            self.config.write(configfile)
+
+    # Example usage methods
+    def get_driver_type(self):
+        return self.get_setting('Setting', 'Drivertype')
+    
+    def set_driver_type(self, driver_type):
+        self.set_setting('Setting', 'Drivertype', driver_type)
+    
+    def get_headless_mode(self):
+        return self.config.getboolean('Setting', 'HeadlessMode')
+    
+    def set_headless_mode(self, headless):
+        self.set_setting('Setting', 'HeadlessMode', str(headless).lower())

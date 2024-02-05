@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for
-from flask_config import ConfigManager  # اطمینان حاصل کنید که این مسیر درست است
+from source.config import WebConfigManager  # اطمینان حاصل کنید که این مسیر درست است
 
 app = Flask(__name__)
-config_manager = ConfigManager('config.ini')  # اطمینان حاصل کنید که مسیر config.ini درست است
+config_manager = WebConfigManager('web_config.ini')  # اطمینان حاصل کنید که مسیر config.ini درست است
 
 @app.route('/', methods=['GET', 'POST'])
 def settings():

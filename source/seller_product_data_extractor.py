@@ -1,4 +1,4 @@
-from time import gmtime, strftime
+from time import gmtime, strftime ,sleep
 class SellerProductDataExtractor:
     """
      This class is used to extract the required data for a seller product listing.
@@ -55,6 +55,7 @@ class SellerProductDataExtractor:
         :return: Dictionary with keys as "price","discounted_price","description". Values are strings.
         
         """
+   
         try :
             img_element = product.find('picture').find('img', {'class': 'w-full rounded-medium inline-block'})
         except Exception as e :
@@ -79,7 +80,8 @@ class SellerProductDataExtractor:
             product_special_sale = 'special sale' if 'SpecialSell.svg' in (product.find('div', {'class': 'flex items-center justify-start mb-1'}).find('img').get('src', '')) else 'unavailable special sale'
         except AttributeError:
             product_special_sale = 'unavailable special sale'
-    
+
+   
         return {
             'crawl_date' : strftime("%Y-%m-%d %H:%M:%S", gmtime())  ,
             'product_id':product.find('a')['href'].split('/')[2],
@@ -163,11 +165,14 @@ class SellerProductDataExtractor:
         self.driver.click_on_element_by_xpath("//div[@role='dialog']//div[@class='flex cursor-pointer']")
         product_elements = self.driver.get_prdoucts_on_page(seller_page_source_code,return_value='products_element')
         for product in product_elements:
-            product_info = self.extract_product_details(product)
-            product_info['seller_name'] = seller_info['seller_name']
-            product_info['seller_id'] = seller_info['seller_id']
-            product_info['product_id'] = product_info['product_id']
-            self.db_handler.update_database(data=product_info,column_name='product_id',table_name='products')
+            if product.find(lambda tag: tag.name == "title" and tag.text.strip() == "Loading..."):
+                continue
+            else :
+                product_info = self.extract_product_details(product)
+                product_info['seller_name'] = seller_info['seller_name']
+                product_info['seller_id'] = seller_info['seller_id']
+                product_info['product_id'] = product_info['product_id']
+                self.db_handler.update_database(data=product_info,column_name='product_id',table_name='products')
         self.log.info(f'[!] seller page with id=[{seller_info["seller_id"]}] - extrection successfully ')
         
       

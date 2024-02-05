@@ -1,22 +1,23 @@
-from seller_product_data_extractor import SellerProductDataExtractor
+from source.seller_product_data_extractor import SellerProductDataExtractor
 import csv  , os ,re
-from logger import setup_logger
-from driver_manager import DriverManager
-from db_handler import DataBaseHandler
-from product_details_extractor import ProductDetailsExtractor
+from source.logger import setup_logger
+from source.driver_manager import DriverManager
+from source.db_handler import DataBaseHandler
+from source.product_details_extractor import ProductDetailsExtractor
 import os
-from config import ConfigManager
+from source.config import ConsoleConfigManager
 
 class WebScraperPanel:
     """
      A panel for web scraping using Selenium and BeautifulSoup4.
     
     """
-    def __init__(self,driver_path,db_path,log,driver_type ):
+    def __init__(self,driver_path,db_path,log,driver_type,HeadlessMode ):
         self.log = log
         self.db_path = db_path
         self.driver_path = driver_path
         self.driver_type = driver_type
+        self.headless_mode = HeadlessMode
         self.db_handler = DataBaseHandler(db_path,log=self.log)
         self.db_handler.create_tables()
         self.scroll_count = 3
@@ -28,19 +29,13 @@ class WebScraperPanel:
                 selenuim driver
         
         """
-
-        self.log.info('[-] in need headless browser  ? Enter yes / y / No / n')
-        headless = input('enter option headless (yes / y / No / n) :').lower()
-        if headless in ['yes', 'y']:
-            headless_mode = True
-            self.log.info('[!] browser set to headless [!] (it will work on background)')
+        if self.headless_mode == True :
+            self.log.info('[+] browser will work in background headless mode is True ')
         else :
-            headless_mode = False
-            self.log.info('[!] browser will open soon [!] (headless browser set to False )')
-        
+            self.log.info("[+] browser will open normally ")
         # Check if the driver is already created
         if not hasattr(self, '_driver'):
-            self._driver = DriverManager(driver_type=driver_type,driver_path=self.driver_path, log=self.log, headless_mode=headless_mode)
+            self._driver = DriverManager(driver_type=driver_type,driver_path=self.driver_path, log=self.log, headless_mode=self.headless_mode)
             self.webscraper = SellerProductDataExtractor(driver=self._driver, db_handler=self.db_handler, log=self.log)
             self.product_extraction_scraper = ProductDetailsExtractor(db_handler=self.db_handler, driver=self._driver, log=self.log)
         return self._driver
@@ -339,7 +334,7 @@ if __name__ == "__main__":
     # TODO add data analysis -> (TODO)
 
     log = setup_logger()
-    config_manager = ConfigManager(log=log)
+    config_manager = ConsoleConfigManager(log=log)
 
-    WebScraperPanel(driver_path=config_manager.get_gecko_path(), db_path=config_manager.get_db_path(),driver_type=config_manager.get_driver_type(), log=log).start()
+    WebScraperPanel(driver_path=config_manager.get_gecko_path(), db_path=config_manager.get_db_path(),driver_type=config_manager.get_driver_type(),HeadlessMode=config_manager.get_headless_mode(), log=log).start()
 
