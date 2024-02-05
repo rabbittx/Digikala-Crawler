@@ -19,7 +19,7 @@
 
         <style>
 /* General styling for the settings container */
-.col.text-center {
+.col-12,.col.text-center {
     max-width: 600px; /* Adjust based on your preference */
     margin: 1rem;
     padding: 1rem;
@@ -39,9 +39,10 @@
 hr {
     margin-top: 0;
     border: none;
-    height: 1px;
-    background-color: #eaeaea;
+    height: 3px;
+    background-color: #8faac9;
     margin-bottom: 20px;
+    box-shadow: 0px 2px 1px #548bc9;
 }
 
 /* Styling form elements for better appearance */
@@ -150,22 +151,23 @@ input[type="submit"]:hover {
            
             <div class="container">
             <div class="row justify-content-center align-items-center g-2 my-3">
+
                 <!-- SETTING BOX  -->   
                 <div class="col text-center"> 
                     <div class="header">Crawler Config</div>
                     <hr>
-                    <form action="/settings/update_profile" method="post" enctype="multipart/form-data">
+                    <form action="{{ url_for('home') }}" method="post" enctype="multipart/form-data">
                         <label for="GekoDriver-path">GekoDrive Path : </label> <input name="GekoDriver-path" type="text" placeholder="Path/to/GekoDrive.exe"><br>
                         <label for="DataBase-path">DataBase Path : </label> <input name="DataBase-path" type="text" placeholder="Path/to/DataBase.db">
                         <div class="driver-type">
                             <label for="driver-type">Select Driver Type:<br>
-                            <select id="driver-type" onchange="changeDriver_type()">
+                                <select id="driver-type" onchange="changeDriver_type()">
+                                    
+                                    <option value="FireFox">FireFox</option>
+                                    <option value="Chorme">Chorme</option>
                                 
-                                <option value="FireFox">FireFox</option>
-                                <option value="Chorme">Chorme</option>
-                            
-                            </select>
-                        </label>
+                                </select>
+                            </label>
                         </div>
                         <div class="headless">
                             <div class="text_center">
@@ -178,25 +180,136 @@ input[type="submit"]:hover {
                         <input type="submit" value="submit">
                     </form>
                 </div>
-                <!-- SETTING BOX  -->
+                <!-- SETTING BOX  END-->
 
-                <div class="col text-center"> crawler menu </div>
-                <div class="col text-center"> export option </div>
+                <!-- Crawler menu -->
+                <div class="col text-center"> 
+                    <div class="header">Crawler menu</div>
+                    <hr>
+                    <div class="row justify-content-center align-items-center g-2 my-3">
+                       <div class="col-12 text-center">
+                            <label for="categoryUrl">Category URL:</label>
+                            <input type="text" id="categoryUrl" name="categoryUrl"  placeholder="https://www.digikala.com/search/?q=iphone" required>
+                            <button type="button" onclick="startWebScraping('category')">Start Scraping</button>
+                        </div>
+
+                       <div class="col-12 text-center">
+                            <label for="categoryUrl">single seller:</label>
+                            <input type="text" id="single_seller_url" name="single_seller_url"  placeholder="https://www.digikala.com/seller/6xwus/" required>
+                            <button type="button" onclick="startWebScraping('single_seller')">Start Scraping</button>
+                       </div>
+                            
+                       <div class="col-12 text-center">
+                            <label for="driver-type">seller products:<br>
+                                <select id="driver-type" onchange="changeDriver_type()">
+                                    <option value="seller ID 1">seller ID 1 (seller name)</option>
+                                    <option value="seller ID 2">seller ID 2 (seller name)</option>
+                                </select>
+                            </label>
+                            <button type="button" onclick="startWebScraping('seller_products')">Start Scraping</button>
+                       </div>
+
+                       <div class="col-12 text-center">
+                            <label for="single_product_url">single product:</label>
+                            <input type="text" id="single_product_url" name="single_product_url"  placeholder="https://www.digikala.com/product/dkp-11194944" required>
+                            <button type="button" onclick="startWebScraping('single_product')">Start Scraping</button>
+                       </div>
+
+                       <div class="col-12 text-center">
+                            <label for="all_products">all products in dataBase:</label>
+                            <button type="button" onclick="startWebScraping('all_products')">Start Scraping</button>
+                       </div>
+
+                    </div>                
+                <!-- Crawler menu End  -->
+                </div>
+
+
+
+
+
+                <!-- Export menu -->
+                <div class="col text-center">  
+                    <div class="header">Export Menu</div>
+                    <hr>
+                    <div class="row justify-content-center align-items-center g-2 my-3">
+                        <div class="col-12 text-center">
+                            <label for="sellers_table">export all sellers data:</label>
+                            <button type="button" onclick="startWebScraping('sellers_table')">export to CSV</button>
+                        </div>
+
+                        <div class="col-12 text-center">
+                            <label for="driver-type">export sellers products data with ID(name):<br>
+                                <select id="driver-type" onchange="changeDriver_type()">
+                                    <option value="seller ID 1">seller ID 1 (seller name)</option>
+                                    <option value="seller ID 2">seller ID 2 (seller name)</option>
+                                </select>
+                            </label>
+                            <button type="button" onclick="startWebScraping('sellers_products')">export to CSV</button>
+
+                        </div>
+
+                        <div class="col-12 text-center">
+                            <label for="all_seller_products">export all seller products table:</label>
+                            <button type="button" onclick="startWebScraping('all_seller_products')">export to CSV</button>
+                        </div>
+
+
+                        <div class="col-12 text-center">
+
+                            <label for="driver-type">export single sellers product information with all specification<br>
+                                <select id="driver-type" onchange="changeDriver_type()">
+                                    <option value="seller ID 1">seller ID 1 (seller name)</option>
+                                    <option value="seller ID 2">seller ID 2 (seller name)</option>
+                                </select>
+                            </label>
+                            <button type="button" onclick="startWebScraping('single_sellers_product_specification')">export to CSV</button>
+
+                        </div>
+                        <div class="col-12 text-center">
+                            <label for="all_sellers_products_specification">export all sellers products with all specifications:</label>
+
+                            <button type="button" onclick="startWebScraping('all_sellers_products_specification')">export to CSV</button>
+
+
+                        </div>
+                        <div class="col-12 text-center">
+                            <label for="all_table_data">export all table data:</label>
+                            <button type="button" onclick="startWebScraping('all_table_data')">export to CSV</button>
+                        </div>
+                    </div>
+                    
+                    
+                    
+                    
+                     
+                    
+
+                <!-- Export menu End -->
+                </div>
                 
             </div>
             
             <div class="row justify-content-center align-items-center g-2 my-3">
                 <div class="col text-center">
-                    log show here 
+                    live log show here 
                 </div>
                 
             </div>
 
             <div class="row justify-content-center align-items-center g-2 my-3">
+                <!-- dataBase Report  -->
+                <div class="col text-center">
+                    <label for="dataBase_report">database report  table:</label>
+                    <button type="button" onclick="startWebScraping('dataBase_report')">report</button>
+                    <div class="text-center">report will show here 
+                        
+                    </div>
+                <!-- dataBase Report End -->
+                </div>
 
-                <div class="col text-center">database report  table</div>
-                <div class="col text-center">data analysis</div>
-                <div class="col text-center">api setting</div>
+                <div class="col text-center">data analysis <br> (coming soon) </div>
+                <div class="col text-center">api setting <br> (coming soon) </div>
 
 
             </div>

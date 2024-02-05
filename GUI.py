@@ -22,7 +22,7 @@ def log_activity(message):
 
 @app.route('/')
 def home():
-    return render_template('pytest.html')
+    return render_template('home.html')
 
 @app.route('/get_logs')
 def get_logs():
