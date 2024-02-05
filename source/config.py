@@ -1,3 +1,4 @@
+import configparser
 class ConfigManager:
     # TODO add more setting 
     # TODO add config
@@ -33,12 +34,33 @@ class ConfigManager:
             else :
                 self.log.error('[-] ERROR - invalid  choice ! \n please chose again .\n')
             break
-        self.config['Setting'] = {'DriverTpye' : driver_type}
+        headless_mode = input('Enable headless mode? (yes/no): ')
+        headless_mode = 'true' if headless_mode.lower() in ['yes', 'y'] else 'false'
+
+        self.config['Setting'] = {'DriverType': driver_type, 'HeadlessMode': headless_mode}
         self.config['Paths'] = {'GeckoPath': input('Enter path of Gecko driver (eq:path/to/geckodriver.exe): '), 'DBPath': input('Enter path to database (eq:path/to/database.db) :')}
         
         with open(self.config_file, 'w') as configfile:
             self.config.write(configfile)
 
+            
+    def get_headless_mode(self):
+        """
+        Get headless mode setting from the configuration file.
+        
+        :return: bool - True if headless mode is enabled, False otherwise.
+        """
+        return self.config.getboolean('Setting', 'HeadlessMode', fallback=False)
+
+    def set_headless_mode(self, mode):
+        """
+        Set headless mode in the configuration file.
+        
+        :param mode: bool - True to enable headless mode, False to disable it.
+        """
+        self.config.set('Setting', 'HeadlessMode', str(mode).lower())
+        with open(self.config_file, 'w') as configfile:
+            self.config.write(configfile)
 
     def get_driver_type(self):
         """

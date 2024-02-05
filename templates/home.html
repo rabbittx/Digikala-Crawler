@@ -156,7 +156,7 @@ input[type="submit"]:hover {
                 <div class="col text-center"> 
                     <div class="header">Crawler Config</div>
                     <hr>
-                    <form action="{{ url_for('home') }}" method="post" enctype="multipart/form-data">
+                    <form action="/settings/update_profile" method="post" enctype="multipart/form-data">
                         <label for="GekoDriver-path">GekoDrive Path : </label> <input name="GekoDriver-path" type="text" placeholder="Path/to/GekoDrive.exe"><br>
                         <label for="DataBase-path">DataBase Path : </label> <input name="DataBase-path" type="text" placeholder="Path/to/DataBase.db">
                         <div class="driver-type">
@@ -307,6 +307,7 @@ input[type="submit"]:hover {
                     </div>
                 <!-- dataBase Report End -->
                 </div>
+
 
                 <div class="col text-center">data analysis <br> (coming soon) </div>
                 <div class="col text-center">api setting <br> (coming soon) </div>
