@@ -1,5 +1,4 @@
 import sqlite3 ,json
-
 class DataBaseHandler():
     def __init__(self, db_path,log):
         self.db_path = db_path
