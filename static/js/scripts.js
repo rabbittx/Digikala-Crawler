@@ -1,5 +1,4 @@
 
-<script>
 function validateForm() {
     var dbPath = document.forms["settingsForm"]["dbPath"].value;
     var gekoPath = document.forms["settingsForm"]["gekoPath"].value;
@@ -15,4 +14,13 @@ function validateForm() {
 
     return true;
 }
-</script>
+
+
+function showHelpPopup() {
+    document.getElementById('helpPopup').style.display = 'block';
+}
+
+function hideHelpPopup() {
+    document.getElementById('helpPopup').style.display = 'none';
+}
+

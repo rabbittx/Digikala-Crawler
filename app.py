@@ -34,6 +34,7 @@ class WebGUIApp:
             if not self.db_handler:  
                 return redirect(url_for('settings'))
             try:
+                # sellers = self.db_handler.get_row_info(fields=['seller_id,seller_name'],table_name='seller_name',condition=None,return_as_list=False)
                 sellers = self.db_handler.get_sellers() if self.db_handler else []
                 return render_template("index.html", sellers=sellers)
             except Exception as e:
