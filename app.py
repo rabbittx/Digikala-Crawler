@@ -1,19 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for
 # فرض می‌شود که WebConfigManager، setup_logger، و DataBaseHandler به درستی پیاده‌سازی شده‌اند
 from source.config import WebConfigManager
-from source.logger import setup_logger
-from source.db_handler import DataBaseHandler
-
-from source.config import WebConfigManager
-from source.logger import setup_logger
-from source.db_handler import DataBaseHandler
-
-from source.config import WebConfigManager
-from source.logger import setup_logger
+from source.logger import web_setup_logger
 from source.db_handler import DataBaseHandler
 
 class WebGUIApp:
-    def __init__(self, config_manager, log):
+    def __init__(self,log,  config_manager):
         self.app = Flask(__name__)
         self.config_manager = config_manager
         self.log = log
@@ -61,13 +53,13 @@ class WebGUIApp:
             headless_mode = self.config_manager.get_setting('Setting', 'HeadlessMode') == 'true'
 
             return render_template('settings.html')
-        
-        @self.app.route('/')
+                
+        @self.app.route('/get-logs')
         def get_logs():
-            # فرض کنید لاگ‌ها در یک فایل متنی ذخیره می‌شوند
-            with open('archive\logs\web_crawler_logs.txt', 'r') as file:
-                logs = file.read()
-            return logs
+            num_lines = 10  # تعداد خطوطی که می‌خواهید نمایش دهید
+            with open(r'archive\logs\web_crawler_logs.txt', 'r') as file:
+                logs = file.readlines()[-num_lines:]  # خواندن آخرین num_lines خط
+            return ''.join(logs)  # برگرداندن آخرین خطوط به عنوان یک رشته
 
 
     def run(self):
@@ -75,8 +67,8 @@ class WebGUIApp:
 
 
 if __name__ == "__main__":
-    config_manager = WebConfigManager("web_config.ini")
-    log = setup_logger()
-    
-    web_app = WebGUIApp(config_manager, log,)
+    log = web_setup_logger()
+    config_manager = WebConfigManager(log=log,config_file="web_config.ini")
+
+    web_app = WebGUIApp(log=log,config_manager=config_manager)
     web_app.run()

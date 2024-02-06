@@ -119,7 +119,8 @@ class ConsoleConfigManager:
 
 
 class WebConfigManager:
-    def __init__(self, config_file='web_config.ini'):
+    def __init__(self,log, config_file='web_config.ini'):
+        self.log = log
         self.config_file = config_file
         self.config = configparser.ConfigParser()
         self.load_config()
@@ -127,9 +128,13 @@ class WebConfigManager:
     def load_config(self):
         """Load configuration from file, create with defaults if not exist."""
         if not os.path.exists(self.config_file):
+            self.log.info('[+] config not found ready to create ... ')
             self._create_default_config()
+            self.log.info('[+] config created successfully')
         else:
             self.config.read(self.config_file)
+            self.log.info('[+] config found successfully')
+
 
     def _create_default_config(self):
         """Create a default configuration file with initial settings."""
@@ -138,10 +143,11 @@ class WebConfigManager:
             'HeadlessMode': 'false'  # Default to non-headless mode
         }
         self.config['Paths'] = {
-            'GeckoPath': '',  # Empty by default
-            'DBPath': ''  # Empty by default
+            'GeckoPath': r'archive\gekcodrive\firefox\geckodriver.exe',  # Empty by default
+            'DBPath': r'archive\dataBase\digikala_database.db'  # Empty by default
         }
         self.save_config()
+        self.log.info('[+] config saved successfully')
 
     def get_setting(self, section, setting):
         """Retrieve a specific setting from config."""
@@ -159,7 +165,6 @@ class WebConfigManager:
         with open(self.config_file, 'w') as configfile:
             self.config.write(configfile)
 
-    # Example usage methods
     def get_driver_type(self):
         return self.get_setting('Setting', 'Drivertype')
     def set_driver_type(self, driver_type):

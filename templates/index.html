@@ -116,15 +116,17 @@
     </div>
     
     <script>
-    function fetchLogs() {
-        fetch('/get-logs')
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById('live-logs').textContent = data;
-        })
-        .catch(error => console.error('Error fetching logs:', error));
-    }
-    
+function fetchLogs() {
+    fetch('/get-logs')
+    .then(response => response.text())
+    .then(data => {
+        const lines = data.split('\n');  // تقسیم لاگ‌ها به خطوط
+        const lastLines = lines.slice(-10);  // گرفتن آخرین ۱۰ خط
+        const formattedLogs = lastLines.join('<br>');  // تبدیل آخرین خطوط به یک رشته HTML
+        document.getElementById('live-logs').innerHTML = formattedLogs;
+    })
+    .catch(error => console.error('Error fetching logs:', error));
+}    
     // دریافت لاگ‌ها هر 5 ثانیه
     setInterval(fetchLogs, 5000);
     </script>
