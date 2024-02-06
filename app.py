@@ -61,6 +61,14 @@ class WebGUIApp:
             headless_mode = self.config_manager.get_setting('Setting', 'HeadlessMode') == 'true'
 
             return render_template('settings.html')
+        
+        @self.app.route('/')
+        def get_logs():
+            # فرض کنید لاگ‌ها در یک فایل متنی ذخیره می‌شوند
+            with open('archive\logs\web_crawler_logs.txt', 'r') as file:
+                logs = file.read()
+            return logs
+
 
     def run(self):
         self.app.run(debug=True)

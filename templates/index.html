@@ -111,10 +111,25 @@
     </div>
     <div class="row justify-content-center align-items-center g-2 my-3">
         <div class="col text-center">
-            live log show here 
+            <div id="live-logs">Live logs show here</div>
         </div>
     </div>
     
+    <script>
+    function fetchLogs() {
+        fetch('/get-logs')
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById('live-logs').textContent = data;
+        })
+        .catch(error => console.error('Error fetching logs:', error));
+    }
+    
+    // دریافت لاگ‌ها هر 5 ثانیه
+    setInterval(fetchLogs, 5000);
+    </script>
+    
+
     <div class="row justify-content-center align-items-center g-2 my-3">
         <!-- dataBase Report  -->
         <div class="col text-center">
