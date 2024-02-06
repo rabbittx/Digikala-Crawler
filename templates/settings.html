@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %} تنظیمات {% endblock %}
+
+{% block content %}
+<main>
+    <!--  Main page content goes here -->
+   
+    <div class="container">
+    <div class="row justify-content-center align-items-center g-2 my-3">
+
+        <!-- SETTING BOX  -->   
+        <div class="col text-center"> 
+            <div class="header">Crawler Config</div>
+            <hr>
+            <form action="{{ url_for('settings') }}" method="post">
+                <label for="gekoPath">GekoDriver Path:</label>
+                <input type="text" id="gekoPath" name="gekoPath" value="" required>
+                
+                <label for="dbPath">DataBase Path:</label>
+                <input type="text" id="dbPath" name="dbPath" value="" required>
+                
+                <label for="driverType">Driver Type:</label>
+                <select id="driverType" name="driverType">
+                    <option value="firefox" {% if driver_type == 'firefox' %} selected {% endif %}>Firefox</option>
+                    <option value="chrome" {% if driver_type == 'chrome' %} selected {% endif %}>Chrome</option>
+                </select>
+                <select id="HeadlessMode" name="HeadlessMode">
+                    <option value="True" {% if driver_type == 'True' %} selected {% endif %}>headless driver</option>
+                    <option value="False" {% if driver_type == 'False' %} selected {% endif %}>normal driver</option>
+                </select>
+                <button type="submit">Save Settings</button>
+            </form>
+                            </div>
+        <!-- SETTING BOX  END-->
+
+
+</div>
+</main>
+
+{% endblock %}
+
+
+
+
+
+
+
+
+
+

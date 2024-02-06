@@ -3,5 +3,270 @@
 {% block title %}صفحه اصلی {% endblock %}
 
 {% block content %}
-    <!-- محتوای خاص این صفحه -->
+    <!--  Main page content goes here -->
+    <div class="container">
+    <div class="row justify-content-center align-items-center g-2 my-3">
+        <!-- SETTING BOX  -->   
+        <div class="col text-center"> 
+            <div class="header">Crawler Config</div>
+            <hr>
+            <form action="{{ url_for('settings') }}" method="post">
+                <label for="gekoPath">GekoDriver Path:</label>
+                <input type="text" id="gekoPath" name="gekoPath" value="{{ geko_path }}" required>
+                <label for="dbPath">DataBase Path:</label>
+                <input type="text" id="dbPath" name="dbPath" value="{{ db_path }}" required>
+                <label for="driverType">Driver Type:</label>
+                <select id="driverType" name="driverType">
+                    <option value="firefox" {% if driver_type == 'firefox' %} selected {% endif %}>Firefox</option>
+                    <option value="chrome" {% if driver_type == 'chrome' %} selected {% endif %}>Chrome</option>
+                </select>
+                <select id="HeadlessMode" name="HeadlessMode">
+                    <option value="True" {% if driver_type == 'True' %} selected {% endif %}>headless driver</option>
+                    <option value="False" {% if driver_type == 'False' %} selected {% endif %}>normal driver</option>
+                </select>
+                <button type="submit">Save Settings</button>
+            </form>
+         </div>
+        <!-- SETTING BOX  END-->
+        <!-- Crawler menu -->
+        <div class="col text-center"> 
+            <div class="header">Crawler menu</div>
+            <hr>
+            <div class="row justify-content-center align-items-center g-2 my-3">
+               <div class="col-12 text-center">
+                    <label for="categoryUrl">crawl Category URL:</label>
+                    <input type="text" id="categoryUrl" name="categoryUrl"  placeholder="https://www.digikala.com/search/?q=iphone" required>
+                    <button type="button" onclick="startWebScraping('category')">Start Scraping</button>
+                </div>
+               <div class="col-12 text-center">
+                    <label for="categoryUrl">crawl single seller:</label>
+                    <input type="text" id="single_seller_url" name="single_seller_url"  placeholder="https://www.digikala.com/seller/6xwus/" required>
+                    <button type="button" onclick="startWebScraping('single_seller')">Start Scraping</button>
+               </div>
+               <div class="col-12 text-center">
+                <label for="single_seller_products">crawl single seller products with all specifications:<br>
+                    <select id="single_seller_products" name="single_seller_products" onchange="changeDriver_type()">
+                        {% for seller_id, seller_name in sellers %}
+                        <option dir="ltr" style="font-size: larger; font-weight: 700;" value="{{ seller_id }}">[ {{ seller_name }} ] - [ {{ seller_id }} ]</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <button type="button" onclick="startWebScraping('single_seller_products')">Start Scraping</button>
+            </div>
+               <div class="col-12 text-center">
+                    <label for="single_product_url">crawl single product with all specifications:</label>
+                    <input type="text" id="single_product_url" name="single_product_url"  placeholder="https://www.digikala.com/product/dkp-11194944" required>
+                    <button type="button" onclick="startWebScraping('single_product')">Start Scraping</button>
+               </div>
+               <div class="col-12 text-center">
+                    <label for="all_products">crawl all products with all specifications in dataBase:</label>
+                    <button type="button" onclick="startWebScraping('all_products')">Start Scraping</button>
+               </div>
+            </div>                
+        <!-- Crawler menu End  -->
+        </div>
+        <!-- Export menu -->
+        <div class="col text-center">  
+            <div class="header">Export Menu</div>
+            <hr>
+            <div class="row justify-content-center align-items-center g-2 my-3">
+                <div class="col-12 text-center">
+                    <label for="sellers_table">export all sellers data:</label>
+                    <button type="button" onclick="startWebScraping('sellers_table')">export to CSV</button>
+                </div>
+                <div class="col-12 text-center">
+                    <label for="driver-type">export sellers products data with ID(name):<br>
+                        <select id="seller_products" name="seller_products" onchange="changeDriver_type()">
+                            {% for seller_id, seller_name in sellers %}
+                            <option value="{{ seller_id }}">{{ seller_name }} ({{ seller_id }})</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <button type="button" onclick="startWebScraping('sellers_products')">export to CSV</button>
+                </div>
+                <div class="col-12 text-center">
+                    <label for="all_seller_products">export all products table:</label>
+                    <button type="button" onclick="startWebScraping('all_seller_products')">export to CSV</button>
+                </div>
+                <div class="col-12 text-center">
+                    <label for="driver-type">export single sellers product information with all specification<br>
+                        <select id="driver-type" onchange="changeDriver_type()">
+                            <option value="seller ID 1">seller ID 1 (seller name)</option>
+                            <option value="seller ID 2">seller ID 2 (seller name)</option>
+                        </select>
+                    </label>
+                    <button type="button" onclick="startWebScraping('single_sellers_product_specification')">export to CSV</button>
+                </div>
+                <div class="col-12 text-center">
+                    <label for="all_sellers_products_specification">export all sellers products with all specifications:</label>
+                    <button type="button" onclick="startWebScraping('all_sellers_products_specification')">export to CSV</button>
+                </div>
+                <div class="col-12 text-center">
+                    <label for="all_table_data">export all table data:</label>
+                    <button type="button" onclick="startWebScraping('all_table_data')">export to CSV</button>
+                </div>
+            </div>
+        <!-- Export menu End -->
+        </div>
+    </div>
+    <div class="row justify-content-center align-items-center g-2 my-3">
+        <div class="col text-center">
+            live log show here 
+        </div>
+    </div>
+    
+    <div class="row justify-content-center align-items-center g-2 my-3">
+        <!-- dataBase Report  -->
+        <div class="col text-center">
+            <label for="dataBase_report">database report  table:</label>
+            <button type="button" onclick="startWebScraping('dataBase_report')">report</button>
+            <ul class="database_report_info">
+                <li class="info_report" id="seller_count">{{seller_count}} sellers in the table.</li>
+                <li class="info_report" id="product_count">{{product_count}} products in the table.</li>
+                <li class="info_report" id="products_extrection_count">{{products_extrection_count}} products with all specifications in the table.</li>
+                <li class="info_report" id="seller_historical_count">{{seller_historical_count}} historical sellers in the table.</li>
+                <li class="info_report" id="products_historical_count">{{products_historical_count}} historical products in the table.</li>
+                <li class="info_report" id="products_extrection_historical_count">{{products_extrection_historical_count}} products with all specifications in the historical table.</li>
+            </ul> 
+        </div>
+        <!-- dataBase Report End -->
+        <div class="col text-center">data analysis <br> (coming soon) <br>
+            <ul class="data_analysis_options" >
+                <li class="analysis_option" >Seller Performance Analysis
+                  <ul class="data_analysis_options" >
+                    <li class="analysis_option" >Changes in Customer Satisfaction</li>
+                    <li class="analysis_option" >Distribution of Ratings Chart</li>
+                  </ul>
+                </li>
+                <li class="analysis_option" >Product Market Analysis
+                  <ul class="data_analysis_options" >
+                    <li class="analysis_option" >Product Price Chart</li>
+                    <li class="analysis_option" >Product Category Analysis</li>
+                  </ul>
+                </li>
+                <li class="analysis_option" >Competitive Analysis
+                  <ul class="data_analysis_options" >
+                    <li class="analysis_option" >Comparison of Sellers</li>
+                    <li class="analysis_option" >Top Sellers Chart</li>
+                  </ul>
+                </li>
+                <li class="analysis_option" >Consumption Trends Analysis
+                  <ul class="data_analysis_options" >
+                    <li class="analysis_option" >Analysis of Commonly Purchased Together Items</li>
+                    <li class="analysis_option" >Product Trends</li>
+                  </ul>
+                </li>
+                <li class="analysis_option" >Historical Analysis
+                  <ul class="data_analysis_options" >
+                    <li class="analysis_option" >Review of Changes and Trends Over Time</li>
+                  </ul>
+                </li>
+                <li class="analysis_option" >Customer Feedback Analysis
+                  <ul class="data_analysis_options" >
+                    <li class="analysis_option" >Reviews Analysis</li>
+                  </ul>
+                </li>
+                <li class="analysis_option" >Data Visualization
+                  <ul class="data_analysis_options" >
+                    <li class="analysis_option" >Bar Charts, Line Charts, Pie Charts, and Scatter Plots</li>
+                  </ul>
+                </li>
+              </ul>
+              
+        
+        
+        </div>
+        <div class="col text-center">Machine Learning Models and Applications <br> (coming soon) <br>
+            
+            <ul class="ml-models-list" >
+                <li class="model-item" >Product Price Prediction
+                  <ul class="ml-models-list" >
+                    <li class="model-item" >Regression Models: Linear Regression, Logistic Regression, Decision Trees</li>
+                  </ul>
+                </li>
+                <li class="model-item" >Customer Reviews Sentiment Analysis
+                  <ul class="ml-models-list" >
+                    <li class="model-item" >Text Classification Models: LSTM, BERT</li>
+                  </ul>
+                </li>
+                <li class="model-item" >Product Stock Prediction
+                  <ul class="ml-models-list" >
+                    <li class="model-item" >Time Series Models: ARIMA, LSTM</li>
+                  </ul>
+                </li>
+                <li class="model-item" >Product Recommendation System
+                  <ul class="ml-models-list" >
+                    <li class="model-item" >Recommendation Algorithms: Matrix Factorization, User and Product Clustering, Deep Neural Networks</li>
+                  </ul>
+                </li>
+                <li class="model-item" >Market Trends Identification
+                  <ul class="ml-models-list" >
+                    <li class="model-item" >Cluster Analysis: K-means, DBSCAN</li>
+                  </ul>
+                </li>
+                <li class="model-item" >Seller Performance Prediction
+                  <ul class="ml-models-list" >
+                    <li class="model-item" >Classification Models: Support Vector Machines (SVM), Decision Trees, Random Forests</li>
+                  </ul>
+                </li>
+                <li class="model-item" >Detection of Counterfeit Sellers or Products
+                  <ul class="ml-models-list" >
+                    <li class="model-item" >Deep Learning Models: Deep Neural Networks for Image and Text Analysis</li>
+                  </ul>
+                </li>
+              </ul>
+              
+        
+        
+        </div>
+        <div class="col text-center">api setting <br> (coming soon) <br> 
+        
+            <ul class="api-list">
+                <li class="api-category">Seller Data Access
+                  <ul class="api-details">
+                    <li class="api-item">List of Sellers</li>
+                    <li class="api-item">Seller Details</li>
+                  </ul>
+                </li>
+                <li class="api-category">Product Data Access
+                  <ul class="api-details">
+                    <li class="api-item">List of Products</li>
+                    <li class="api-item">Product Details</li>
+                  </ul>
+                </li>
+                <li class="api-category">Analysis and Findings
+                  <ul class="api-details">
+                    <li class="api-item">Seller Performance Analysis</li>
+                    <li class="api-item">Product Market Analysis</li>
+                  </ul>
+                </li>
+                <li class="api-category">Machine Learning Models
+                  <ul class="api-details">
+                    <li class="api-item">Product Price Prediction</li>
+                    <li class="api-item">Customer Reviews Sentiment Analysis</li>
+                  </ul>
+                </li>
+                <li class="api-category">Recommendation System
+                  <ul class="api-details">
+                    <li class="api-item">Product Recommendation</li>
+                  </ul>
+                </li>
+                <li class="api-category">Historical Data
+                  <ul class="api-details">
+                    <li class="api-item">Product Price History</li>
+                    <li class="api-item">Seller Performance History</li>
+                  </ul>
+                </li>
+              </ul>
+              
+        
+        
+        </bt></div>
+
+    </div>
+
+    
+</div>
+
 {% endblock %}
+
