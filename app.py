@@ -1,9 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for ,jsonify
 # فرض می‌شود که WebConfigManager، setup_logger، و DataBaseHandler به درستی پیاده‌سازی شده‌اند
 from source.config import WebConfigManager
 from source.logger import web_setup_logger
 from source.db_handler import DataBaseHandler
-
+import re
 class WebGUIApp:
     def __init__(self,log,  config_manager):
         self.app = Flask(__name__)
@@ -46,12 +46,10 @@ class WebGUIApp:
                 self.config_manager.set_setting('Setting', 'HeadlessMode', str(headless_mode).lower())
                 self.check_config()
                 return redirect(url_for('index'))     
-            
             geko_path = self.config_manager.get_setting('Paths', 'GeckoPath')
             db_path = self.config_manager.get_setting('Paths', 'DBPath')
             driver_type = self.config_manager.get_setting('Setting', 'DriverType')
             headless_mode = self.config_manager.get_setting('Setting', 'HeadlessMode') == 'true'
-
             return render_template('settings.html')
                 
         @self.app.route('/get-logs')
@@ -61,6 +59,29 @@ class WebGUIApp:
                 logs = file.readlines()[-num_lines:]  # خواندن آخرین num_lines خط
             return ''.join(logs)  # برگرداندن آخرین خطوط به عنوان یک رشته
 
+        @self.app.route('/start-category-crawl', methods=['POST'])
+        def start_category_crawl():
+            # دریافت URL از فرم
+            category_url = request.form['categorycrawl']
+            pattern = re.compile(r'search/\?q=|/category-|/search/')
+            crawler_msg = ''
+            start_crawl = False
+            if not ('search/?q=' in category_url or '/category-' in category_url or '/search/' in category_url):
+                crawler_msg = 'Wrong category URL, try one more time'
+                start_crawl = True
+                self.log.warning('[!] Wrong category URL, try one more time')
+            else : 
+                crawler_msg = 'Category crawl is started... , check helps for currect category url format '
+
+            if start_crawl : 
+                
+            print(category_url)
+            self.log.info(category_url)
+            # اینجا تابع خزنده خود را با URL دریافتی فراخوانی کنید
+            # فرض بر این است که تابع خزنده شما به صورت زیر است:
+            # result = crawl_category(category_url)
+            # برگرداندن پاسخ به کاربر
+            return jsonify({"status": "success", "message": crawler_msg, "url": category_url})
 
     def run(self):
         self.app.run(debug=True)

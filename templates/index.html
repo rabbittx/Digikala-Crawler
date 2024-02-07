@@ -34,9 +34,29 @@
             <hr>
             <div class="row justify-content-center align-items-center g-2 my-3">
                <div class="col-12 text-center">
-                    <label for="categoryUrl">crawl Category URL:</label>
-                    <input type="text" id="categoryUrl" name="categoryUrl"  placeholder="https://www.digikala.com/search/?q=iphone" required>
+                <form action="" method="post">
+                    <label for="category-crawl">crawl Category URL:</label>
+                    <input type="text" id="categorycrawl" name="categorycrawl"  placeholder="https://www.digikala.com/search/?q=iphone" required>
                     <button type="button" onclick="startWebScraping('category')">Start Scraping</button>
+                  </form>
+                  <script>
+                    function startWebScraping(mode) {
+                        if(mode === 'category') {
+                            const categoryUrl = document.getElementById('categorycrawl').value;
+                            fetch('/start-category-crawl', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                },
+                                body: `categorycrawl=${encodeURIComponent(categoryUrl)}`
+                            })
+                            .then(response => response.json())
+                            .then(data => alert(data.message))
+                            .catch(error => console.error('Error:', error));
+                        }
+                    }
+                    </script>
+                    
                 </div>
                <div class="col-12 text-center">
                     <label for="categoryUrl">crawl single seller:</label>
@@ -113,6 +133,21 @@
         <div class="col text-center">
             <div id="live-logs">Live logs show here</div>
         </div>
+
+        <!-- dataBase Report  -->
+        <div class="col text-center">
+          <label for="dataBase_report">database report  table:</label>
+          <button type="button" onclick="startWebScraping('dataBase_report')">report</button>
+          <ul class="database_report_info">
+              <li class="info_report" id="seller_count">{{seller_count}} sellers in the table.</li>
+              <li class="info_report" id="product_count">{{product_count}} products in the table.</li>
+              <li class="info_report" id="products_extrection_count">{{products_extrection_count}} products with all specifications in the table.</li>
+              <li class="info_report" id="seller_historical_count">{{seller_historical_count}} historical sellers in the table.</li>
+              <li class="info_report" id="products_historical_count">{{products_historical_count}} historical products in the table.</li>
+              <li class="info_report" id="products_extrection_historical_count">{{products_extrection_historical_count}} products with all specifications in the historical table.</li>
+          </ul> 
+      </div>
+
     </div>
     
     <script>
@@ -133,19 +168,7 @@ function fetchLogs() {
     
 
     <div class="row justify-content-center align-items-center g-2 my-3">
-        <!-- dataBase Report  -->
-        <div class="col text-center">
-            <label for="dataBase_report">database report  table:</label>
-            <button type="button" onclick="startWebScraping('dataBase_report')">report</button>
-            <ul class="database_report_info">
-                <li class="info_report" id="seller_count">{{seller_count}} sellers in the table.</li>
-                <li class="info_report" id="product_count">{{product_count}} products in the table.</li>
-                <li class="info_report" id="products_extrection_count">{{products_extrection_count}} products with all specifications in the table.</li>
-                <li class="info_report" id="seller_historical_count">{{seller_historical_count}} historical sellers in the table.</li>
-                <li class="info_report" id="products_historical_count">{{products_historical_count}} historical products in the table.</li>
-                <li class="info_report" id="products_extrection_historical_count">{{products_extrection_historical_count}} products with all specifications in the historical table.</li>
-            </ul> 
-        </div>
+
         <!-- dataBase Report End -->
         <div class="col text-center">data analysis <br> (coming soon) <br>
             <ul class="data_analysis_options" >
