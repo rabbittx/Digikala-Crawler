@@ -11,15 +11,19 @@ class DigiKalaScraper:
     def __init__(self, config, log, db_handler):
         self.config_manager = config
         self.logger = log
-        self.db_path = self.config_manager.get_db_path()
-        self.gecko_path = self.config_manager.get_gecko_path()
-        self.headless_mode = self.config_manager.get_headless_mode()
-        self.driver_type = self.config_manager.get_driver_type()
         self.db_handler = db_handler
-        self.db_handler.create_tables()
+        self._initialize_settings()
+
+    def _initialize_settings(self):
+        """Initializes settings from the configuration."""
+        self.db_path = self.config.get_db_path()
+        self.gecko_path = self.config.get_gecko_path()
+        self.headless_mode = self.config.get_headless_mode()
+        self.driver_type = self.config.get_driver_type()
         self.scroll_count = 3
         self.page_load_timeout = 10
-
+        self.db_handler.create_tables()
+        
     def initialize_driver(self, geko_path, driver_type, headless_mode, db_handler, logger):
         if self.headless_mode:
             self.logger.info('[+] browser will work in background, headless mode is True')
@@ -144,7 +148,6 @@ class DigiKalaScraper:
         headers = self.db_handler.get_column_names(table_name)
         self.save_to_csv(data, headers, csv_filename)
 
-
     def export_data_to_csv(self, export_mode, seller_info):
 
         seller_id, seller_name = ('-', '-') if seller_info is None else seller_info
@@ -171,7 +174,16 @@ class DigiKalaScraper:
             self.logger.error(f'Invalid export mode: {export_mode}')
 
 
-
+    def database_report(self):
+        return {
+            "seller_count":len(self.db_handler.get_row_info(fields='*',table_name='sellers',condition=None,return_as_list=True)),
+            "product_count":len(self.db_handler.get_row_info(fields='*',table_name='products',condition=None,return_as_list=True)),
+            "products_extrection_count":len(self.db_handler.get_row_info(fields='*',table_name='products_extraction',condition=None,return_as_list=True)),
+            "seller_historical_count":len(self.db_handler.get_row_info(fields='*',table_name='sellers_history',condition=None,return_as_list=True)),
+            "products_historical_count":len(self.db_handler.get_row_info(fields='*',table_name='products_history',condition=None,return_as_list=True)),
+            "products_extrection_historical_count":len(self.db_handler.get_row_info(fields='*',table_name='products_extraction_history',condition=None,return_as_list=True)),
+        }
+     
 
 
 
