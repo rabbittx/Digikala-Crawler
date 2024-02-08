@@ -8,21 +8,22 @@ import os
 from source.config import ConsoleConfigManager
 
 class DigiKalaScraper:
-    def __init__(self, config, log, db_handler):
-        self.config_manager = config
+    def __init__(self, config_file_path, log,):
         self.logger = log
-        self.db_handler = db_handler
+        self.config_file_path = config_file_path
+        self.config_manager = ConsoleConfigManager(log=self.logger,config_file=self.config_file_path)
         self._initialize_settings()
+        self.db_handler = DataBaseHandler(log=self.logger,db_path=self.config_manager.get_db_path())
+        self.db_handler.create_tables()        
 
     def _initialize_settings(self):
         """Initializes settings from the configuration."""
-        self.db_path = self.config.get_db_path()
-        self.gecko_path = self.config.get_gecko_path()
-        self.headless_mode = self.config.get_headless_mode()
-        self.driver_type = self.config.get_driver_type()
+        self.db_path = self.config_manager.get_db_path()
+        self.gecko_path = self.config_manager.get_gecko_path()
+        self.headless_mode = self.config_manager.get_headless_mode()
+        self.driver_type = self.config_manager.get_driver_type()
         self.scroll_count = 3
         self.page_load_timeout = 10
-        self.db_handler.create_tables()
         
     def initialize_driver(self, geko_path, driver_type, headless_mode, db_handler, logger):
         if self.headless_mode:
