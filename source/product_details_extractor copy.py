@@ -180,7 +180,7 @@ class ProductDetailsExtractor:
             details["discount_percent"] = self.safe_extraction('discount percent',element, lambda e: e.find('span',{'data-testid':'price-discount-percent'}).text)
             details["price_before_discount"] = self.safe_extraction('Price before discount',element, lambda e: e.find('span',{'data-testid':'price-no-discount'}).text)
             details["final_price"] = self.safe_extraction('final price',element, lambda e: e.find('span',{'data-testid':'price-final'}).text)
-            details["prdouct_stock"] = self.safe_extraction('prdouct stock', element, lambda e: e.find('p',{"class":"text-primary-500 text-body2-strong mb-3"}).text)
+            details["product_stock"] = self.safe_extraction('prdouct stock', element, lambda e: e.find('p',{"class":"text-primary-500 text-body2-strong mb-3"}).text)
             self.log.info('[+] buy box extraction successfully')
             return details
         else :
@@ -252,7 +252,7 @@ class ProductDetailsExtractor:
                 similar_products_info["product_link"] = 'https://www.digikala.com' + self.safe_extraction('product link', product, lambda e: e["href"])
                 similar_products_info["product_name"] = self.safe_extraction('product name', product, lambda e: e.find('h3').text)
                 similar_products_info["final_price"] = self.safe_extraction('final price', product, lambda e: e.find('span',{"data-testid":"price-final"}).text)
-                similar_products_info["prdouct_stock"] = self.safe_extraction('prdouct stock', product, lambda e: e.find('p',{"class":"text-caption text-primary-700"}).text)
+                similar_products_info["product_stockproduct"] = self.safe_extraction('prdouct stock', product, lambda e: e.find('p',{"class":"text-caption text-primary-700"}).text)
                 similar_products_info["discount_percent"] = self.safe_extraction('discount percent', product, lambda e: e.find('span',{'data-testid':"price-discount-percent"}).text)
                 similar_products_info["price_before_discount"] = self.safe_extraction('price before discount', product, lambda e: e.find('span',{'data-testid':"price-no-discount"}).text)
                 similar_products.append(similar_products_info)
@@ -508,8 +508,21 @@ class ProductDetailsExtractor:
                     'seller_name': self.safe_extraction('seller name',elements["buy_box"] ,lambda e: e.find('p',{'class':'text-neutral-700 ml-2 text-subtitle'}).text),
                     'categories' : elements['categories'],
                     'product_link' : prdouct_url,
-                    "main_product_details" : main_product_details,
-                    "buy_box" : buy_box,
+                    'product_title' : main_product_details["product_title"] ,
+                    'product_main_title' : main_product_details["product_main_title"] ,
+                    'user_review' : main_product_details["user_review"] ,
+                    'insurer' : main_product_details["insurer"] ,
+                    'Insurance_discount_percent' : main_product_details["Insurance_discount_percent"] ,
+                    'Insurance_price_before_discount' : main_product_details["Insurance_price_before_discount"] ,
+                    'Insurance_final_price' : main_product_details["Insurance_final_price"] ,
+                    'Other_sellers_for_this_product' : buy_box["other_sellers"] , 
+                    'satisfaction_with_the_product' : buy_box["satisfaction_with_the_product"] , 
+                    'warranty' : buy_box["warranty"] , 
+                    'digiclub_points' : buy_box["digiclub_points"] , 
+                    'discount_percent' : buy_box["discount_percent"] , 
+                    'price_before_discount' : buy_box["price_before_discount"] , 
+                    'final_price' : buy_box["final_price"] , 
+                    'product_stock' : buy_box["product_stock"] , 
                     "product_image" : product_images,
                     "other_seller" : self.check_not_empity(other_seller),
                     "similar_products" : self.check_not_empity(similar_products),
