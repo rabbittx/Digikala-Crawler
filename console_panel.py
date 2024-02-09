@@ -30,13 +30,13 @@ class DigikalaScraperConsolePanel:
         
         export_menu = {
                         'export_welcome' : '----------- CSV export menu ---------\nChoose the data you wish to export .',
-                        '1' : 'export sellers table data .',
-                        '2' : 'export seller\'s products data with ID .',
-                        '3' : 'export all seller products table .',
-                        '4' : 'export single seller\'s product information with all specifications .',
-                        '5' : 'export all seller\'s products with all specifications .',
-                        '6' : 'export all table data .',
-                        '7' : 'back to crawler menu .',
+                        '1' : ('export sellers table data .','all_seller'),
+                        '2' : ('export seller\'s products data with ID .','seller_products'),
+                        '3' : ('export all seller products table .','all_products'),
+                        '4' : ('export single seller\'s product information with all specifications .','seller_products_with_all_specifications'),
+                        '5' : ('export all seller\'s products with all specifications .','all_products_with_specifications'),
+                        '6' : ('export all table data .','all_data'),
+                        '7' : ('back to crawler menu .','back_to_menu')
                       }
         return {
                 'scraper_menu' : scraper_menu,
@@ -44,30 +44,38 @@ class DigikalaScraperConsolePanel:
                 'export_menu' : export_menu,
                 }
     
-    def crawl_options(self,mode,input_url,scroll_count=None,seller_info=None):
-        print(f'page scrolling count is ===> [{scroll_count}]')
+    def crawl_options(self,mode,input_url=None,scroll_count=None,seller_info=None):
         crawler_option = {
-                            'CategoryCrawlMode': lambda: self.scraper.execute_crawl(mode=mode, input_url=input_url, scroll_count=scroll_count, seller_info=None),
-                            'SingleSellerCrawlMode': lambda: self.scraper.execute_crawl(mode=mode, input_url=input_url, scroll_count=scroll_count, seller_info=None),
-                            'SingleSellerProductCrawlMode': '',
-                            'SingleProductCrawlMode': '',
-                            'AllProductsCrawlMode': '',
-                            'CSVExportMode': '',
-                            'ComprehensiveDatabaseReportMode': '',
+                            'CategoryCrawlMode': lambda: self.scraper.execute_crawl(mode=mode, input_url=input_url, scroll_count=scroll_count, seller_info=seller_info),
+                            'SingleSellerCrawlMode': lambda: self.scraper.execute_crawl(mode=mode, input_url=input_url, scroll_count=scroll_count, seller_info=seller_info),
+                            'SingleSellerProductCrawlMode': lambda: self.scraper.execute_crawl(mode=mode, input_url=input_url, scroll_count=scroll_count, seller_info=seller_info),
+                            'SingleProductCrawlMode': lambda: self.scraper.execute_crawl(mode=mode, input_url=input_url, scroll_count=scroll_count, seller_info=seller_info),
+                            'AllProductsCrawlMode': lambda: self.scraper.execute_crawl(mode=mode, input_url=input_url, scroll_count=scroll_count, seller_info=seller_info),
+                            'CSVExportMode': lambda : self.csv_export(self.menus()['export_menu']),
+                            'ComprehensiveDatabaseReportMode': lambda : self.database_report_show(self.scraper.database_report()),
                             'QuitMode':lambda: sys.exit("Exiting the program..."),
 
                         }
+
         if mode in crawler_option:
             crawler_option[mode]()
         else:
             raise ValueError("Invalid mode specified.")
+
+    def csv_export(self,menu):
+        mode = self.show_menu(menu=menu)
+        self.scraper.export_data_to_csv(mode)
+
+    def database_report_show(self,report):
+        for k,v in  report.items():
+            self.logger.info(f'[+] DATABASE REPROT : for {k.replace("_count"," ").replace("_"," ")} have [{v}] record found .')
         
     def get_crawl_input(self,mode):
         while True:
             input_url = input(f"Please enter the {mode.replace('CrawlMode','')} URL you want to crawl, or type 'exit' to quit: ")
 
             if input_url.lower() == 'exit':
-                print("Exiting the crawl input process.")
+                self.logger.info("Exiting the crawl input process.")
                 return None  
             crawl_data = self.scraper.check_crawl_url(mode=mode, input_url=input_url)
             
@@ -75,34 +83,39 @@ class DigikalaScraperConsolePanel:
                 return input_url.lower()
 
             else:
-                print("The URL is not valid for crawling. Please try again.")
-                
-    def run(self):
-        menus = self.menus()
-        for (k,v) in  menus['scraper_menu'].items():
-           
+                self.logger.info("The URL is not valid for crawling. Please try again.")
+   
+    def show_menu(self,menu):
+        for (k,v) in  menu.items():
             self.logger.info(f"[+] {k} => {v[0]}") if k == 'help' else self.logger.info(f"[+] {k}) {v[0]}")
-                
-
         user_choose = input('choose the option you need : ')
-        if user_choose not in menus['scraper_menu'].keys():
+        if user_choose not in menu.keys():
             self.logger.info('[-] choose again !')
-        # if menus['scraper_menu'][str(user_choose)][1] == 'SingleSellerProductCrawlMode' :
-        #     seller_info = self.scraper.show_sllers()
-        #     print(seller_info)
-        if menus['scraper_menu'][str(user_choose)][1] in ['CategoryCrawlMode','SingleSellerCrawlMode','SingleProductCrawlMode'] :
-            input_url = self.get_crawl_input(menus['scraper_menu'][str(user_choose)][1])
-            if input_url is None:
-                self.run()
+        mode = menu[str(user_choose)][1]
+        return mode
 
-        if menus['scraper_menu'][str(user_choose)][1] == 'CategoryCrawlMode' :
-            scroll_count = int(input('enter scroll count on page : '))
-        else :
-            scroll_count = True
+
+    def run(self):
+        while True: 
+            mode = self.show_menu(self.menus()['scraper_menu'] )
+            if mode in ['CategoryCrawlMode','SingleSellerCrawlMode','SingleProductCrawlMode'] :
+                input_url = self.get_crawl_input(mode)
+                if input_url is None:
+                    self.run()
+            else : 
+                input_url = None  
+            if mode == 'CategoryCrawlMode' :
+                scroll_count = int(input('enter scroll count on page : '))
+            else :
+                scroll_count = True
+            if mode == 'SingleSellerProductCrawlMode' :
+                seller_info = self.scraper.show_sllers()
+            else :
+                seller_info = None
+
+            self.crawl_options(mode=mode,input_url=input_url,scroll_count=scroll_count,seller_info=seller_info)
         
-        
-        self.crawl_options(mode=menus["scraper_menu"][str(user_choose)][1],input_url=input_url,scroll_count=scroll_count)
-        
+    
         
     
 
@@ -113,9 +126,9 @@ if __name__ == '__main__' :
     panel.run()
 
 
-# BUG -> get_next_id need to be same when data need to replace with historyical table . 
+# BUG -> get_next_id need to be same when data need to replace with historyical table . ( updated need to check ids print(id) added for check ids value )
 # TODO -> all mode name need to get update in all script files .
-# TODO -> check for 404 pages and product not available page on open_page()
+# TODO -> check for 404,503 pages and product not available page on open_page()
 # TODO -> regex patterns need to get updated to check if link is valid => eq : link start with https(fixed),url split tokens length etc ...
 # TODO -> befor get page_source in driver_manager need to check if products in loading... with to it get load 
-      
+# TODO -> with full scrolling on seller page get products of 10 page at once need to add for more pages to get all products from seller

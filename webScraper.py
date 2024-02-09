@@ -3,7 +3,7 @@ import csv  , os ,re
 from source.logger import setup_logger
 from source.driver_manager import DriverManager
 from source.db_handler import DataBaseHandler
-from source.product_details_extractor import ProductDetailsExtractor
+from source.product_details_extractor2 import ProductDetailsExtractor
 import os
 from source.config import ConsoleConfigManager
 
@@ -116,7 +116,7 @@ class DigiKalaScraper:
         """Logs and executes crawling for a list of available product URLs."""
         self.logger.info(f'Found {len(available_products)} available products.')
         for index, link in enumerate(available_products):
-            self.logger.info(f'Starting crawl {index + 1} of {len(available_products)}: {link}')
+            self.logger.info(f'[+] Starting crawl {index + 1} of {len(available_products)}: {link}')
             self.product_extraction_scraper.run(link)
 
     def execute_crawl(self, mode, input_url, scroll_count, seller_info=None):
@@ -179,24 +179,29 @@ class DigiKalaScraper:
         self.logger.info(f'Exported data to {filename} successfully.')
 
     def export_table(self, table_name, seller_id=None, condition=None):
-        csv_file_name = f'{seller_id}-{table_name}' if seller_id != '-' else f'{table_name}'
+        if seller_id == None :
+            csv_file_name = f'{table_name}' if seller_id != '-' else f'{table_name}'
+        else :
+            csv_file_name = f'{seller_id}-{table_name}' if seller_id != '-' else f'{table_name}'
         csv_filename = f'{csv_file_name}-database.csv'
         self.remove_old_file(csv_filename)
         data = self.db_handler.get_row_info(['*'], table_name, condition)
         headers = self.db_handler.get_column_names(table_name)
         self.save_to_csv(data, headers, csv_filename)
 
-    def export_data_to_csv(self, export_mode, seller_info):
+    def export_data_to_csv(self, export_mode):
 
-        seller_id, seller_name = ('-', '-') if seller_info is None else seller_info
 
         if not os.path.exists(self.db_path):
             self.logger.error(f'ERROR: Database at {self.db_path} not found. Check database path.')
             return
+        
+        if export_mode in ['seller_products','seller_products_with_all_specifications']:
+            seller_id, seller_name = self.show_sllers()
 
         mode_actions = {
             'all_seller': lambda: self.export_table('sellers'),
-            'seller_products': lambda: self.export_table('products', seller_id, ['seller_name', seller_name]),
+            'seller_products': lambda:  self.export_table('products', seller_id, ['seller_name', seller_name]),
             'all_products': lambda: self.export_table('products'),
             'seller_products_with_all_specifications': lambda: self.export_table('products_extraction', seller_id, ['seller_name', seller_name]),
             'all_products_with_specifications': lambda: self.export_table('products_extraction'),

@@ -501,7 +501,9 @@ class ProductDetailsExtractor:
         question_box = self.clean_text(self.question_box_extraction(elements["question_box"]))
         also_bought_items = self.clean_text(self.also_bought_items_extraction(elements["also_bought_items"]))
         seller_offer = self.clean_text(self.seller_offer_extraction(elements["seller_offer"]))
+
         prodcut_info= {
+                    'id' : self.db_handler.get_next_id(table_name='products_extraction',fields_id=prdouct_id,id_name='product_id'),
                     'crawl_date' : strftime("%Y-%m-%d %H:%M:%S", gmtime()),     
                     'product_id' : prdouct_id,
                     'seller_id' : seller_id,
@@ -509,13 +511,13 @@ class ProductDetailsExtractor:
                     'categories' : elements['categories'],
                     'product_link' : prdouct_url,
                     'product_title' : main_product_details["product_title"] ,
-                    'product_main_title' : main_product_details["product_main_title"] ,
+                    'product_main_title' : self.check_not_empity(main_product_details["product_main_title"]) ,
                     'user_review' : main_product_details["user_review"] ,
                     'insurer' : main_product_details["insurer"] ,
                     'Insurance_discount_percent' : main_product_details["Insurance_discount_percent"] ,
                     'Insurance_price_before_discount' : main_product_details["Insurance_price_before_discount"] ,
                     'Insurance_final_price' : main_product_details["Insurance_final_price"] ,
-                    'Other_sellers_for_this_product' : buy_box["other_sellers"] , 
+                    'Other_sellers_for_this_product' : self.check_not_empity(buy_box["other_sellers"]) , 
                     'satisfaction_with_the_product' : buy_box["satisfaction_with_the_product"] , 
                     'warranty' : buy_box["warranty"] , 
                     'digiclub_points' : buy_box["digiclub_points"] , 
@@ -535,6 +537,7 @@ class ProductDetailsExtractor:
                     "also_bought_items" : self.check_not_empity(also_bought_items),
                     "seller_offer" : self.check_not_empity(seller_offer),
             }
+        
         self.db_handler.update_database(data=prodcut_info,column_name='product_id',table_name='products_extraction')
 
     def check_not_empity(self,data):

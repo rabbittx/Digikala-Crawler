@@ -169,7 +169,6 @@ class DataBaseHandler():
         self.cursor.execute(query)
         result = self.cursor.fetchone()
         if result is not None:
-            print(f'field is in database table id is {result[0]}')
             return result[0]
         else:
             query = f'SELECT MAX(id) FROM {table_name}'
@@ -180,8 +179,6 @@ class DataBaseHandler():
                 
                 return 1
             else:
-                print(f'field is not in database table id is {result[0] + 1}')
-
                 return result[0] + 1
 
 

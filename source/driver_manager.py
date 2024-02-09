@@ -195,15 +195,23 @@ class DriverManager:
             None
         """
         if scroll_count is True:
+            last_product_count = 0
             while True:
-                self.scroll_down()
-                self.scroll_to_top()  # اسکرول به بالای صفحه برای ادامه اسکرول به پایین
-                self.log.info('[+] page scrolling... ')
-                time.sleep(1)  # بهتر است از WebDriverWait() استفاده کنید
-                if self.driver.execute_script("return window.innerHeight + window.scrollY") >= self.driver.execute_script("return document.body.scrollHeight"):
+                # Get the current number of products
+                current_product_count = len(self.driver.find_elements(By.XPATH,"//article"))
+                
+                # If the number of products hasn't changed, it means all products are loaded
+                if current_product_count == last_product_count:
+                    self.log.info('[+] All products loaded. Scrolling stopped.')
                     break
-            self.log.info('[+] page scrolling successfully ')
-
+                
+                # Scroll down and update the last product count
+                self.scroll_down()
+                self.scroll_to_top()
+                self.log.info('[+] Page scrolling... ')
+                time.sleep(1)  # بهتر است از WebDriverWait() استفاده کنید
+                
+                last_product_count = current_product_count
         elif isinstance(scroll_count, int):
             for _ in range(scroll_count):
                 self.scroll_down()
