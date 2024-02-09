@@ -132,19 +132,18 @@ class SellerProductDataExtractor:
             seller_page_source_code = self.driver.get_page_source()
             seller_info = self.seller_details(seller_page_source_code)
             seller_info['seller_id'] = seller
-            seller_id_field = self.db_handler.get_next_id('products')
-            seller_info['id'] = seller_id_field
+             
+            seller_info['id'] = self.db_handler.get_next_id(table_name='sellers',fields_id=seller,id_name='seller_id')
             self.db_handler.update_database(data=seller_info,column_name='seller_id',table_name='sellers')
             self.driver.click_on_element_by_xpath("//div[@role='dialog']//div[@class='flex cursor-pointer']")
             product_elements = self.driver.get_prdoucts_on_page(seller_page_source_code,return_value='products_element')
             for product in product_elements:
-                product_id_field = self.db_handler.get_next_id('products')
                 try:
                     product_info = self.extract_product_details(product)
                 except  Exception as e:
                     self.log.error(f"Error while extracting details from the product - Error={str(e)}")
                 if  product_info is not None:
-                    product_info['id'] = product_id_field
+                    product_info['id'] = self.db_handler.get_next_id(table_name='products',fields_id=product_info['product_id'],id_name='product_id')
                     product_info['seller_name'] = seller_info['seller_name']
                     product_info['seller_id'] = seller_info['seller_id']
                     product_info['product_id'] = product_info['product_id']
@@ -169,6 +168,7 @@ class SellerProductDataExtractor:
         seller_page_source_code = self.driver.get_page_source()
         seller_info = self.seller_details(seller_page_source_code)
         seller_info['seller_id'] = url.split('/')[-2]
+        seller_info['id'] = self.db_handler.get_next_id(table_name='sellers',fields_id=url.split('/')[-2],id_name='seller_id')
         self.db_handler.update_database(data=seller_info,column_name='seller_id',table_name='sellers')
         self.driver.click_on_element_by_xpath("//div[@role='dialog']//div[@class='flex cursor-pointer']")
         product_elements = self.driver.get_prdoucts_on_page(seller_page_source_code,return_value='products_element')
@@ -176,11 +176,13 @@ class SellerProductDataExtractor:
             if product.find(lambda tag: tag.name == "title" and tag.text.strip() == "Loading..."):
                 continue
             else :
+
                 product_info = self.extract_product_details(product)
+                product_info['id'] = self.db_handler.get_next_id(table_name='products',fields_id=product_info['product_id'],id_name='product_id')
                 product_info['seller_name'] = seller_info['seller_name']
                 product_info['seller_id'] = seller_info['seller_id']
                 product_info['product_id'] = product_info['product_id']
                 self.db_handler.update_database(data=product_info,column_name='product_id',table_name='products')
         self.log.info(f'[!] seller page with id=[{seller_info["seller_id"]}] - extrection successfully ')
         
-      
+                

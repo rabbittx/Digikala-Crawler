@@ -1,14 +1,6 @@
-from source.seller_product_data_extractor import SellerProductDataExtractor
-import csv  , os ,re
 from source.logger import setup_logger
-from source.driver_manager import DriverManager
-from source.db_handler import DataBaseHandler
-from source.product_details_extractor import ProductDetailsExtractor
-import os
-from source.config import ConsoleConfigManager
-
-
 from webScraper import DigiKalaScraper
+
 class DigikalaScraperConsolePanel:
     def __init__(self,logger,config_file_path):
         self.logger = logger
@@ -53,9 +45,10 @@ class DigikalaScraperConsolePanel:
                 }
     
     def crawl_options(self,mode,input_url,scroll_count=None,seller_info=None):
+        print(f'page scrolling count is ===> [{scroll_count}]')
         crawler_option = {
-                            'CategoryCrawlMode': self.scraper.execute_crawl(mode=mode, input_url=input_url, scroll_count=True,seller_info=None),
-                            'SingleSellerCrawlMode': '',
+                            'CategoryCrawlMode': lambda: self.scraper.execute_crawl(mode=mode, input_url=input_url, scroll_count=scroll_count, seller_info=None),
+                            'SingleSellerCrawlMode': lambda: self.scraper.execute_crawl(mode=mode, input_url=input_url, scroll_count=scroll_count, seller_info=None),
                             'SingleSellerProductCrawlMode': '',
                             'SingleProductCrawlMode': '',
                             'AllProductsCrawlMode': '',
@@ -64,9 +57,33 @@ class DigikalaScraperConsolePanel:
                             'QuitMode': '',
 
                         }
+        if mode in crawler_option:
+            crawler_option[mode]()
+        else:
+            raise ValueError("Invalid mode specified.")
+        
+    def get_crawl_input(self,mode):
+        while True:
+            # فرض بر این است که input_url توسط کاربر وارد می‌شود
+            input_url = input(f"Please enter the {mode.replace('CrawlMode','')} URL you want to crawl, or type 'exit' to quit: ")
 
+            # ارائه گزینه برای خروج
+            if input_url.lower() == 'exit':
+                print("Exiting the crawl input process.")
+                return None  # یا هر عملی که مایلید در صورت خروج انجام دهید
 
-
+            crawl_data = self.scraper.check_crawl_url(mode=mode, input_url=input_url)
+            
+            if crawl_data['start_to_crawl']:
+                
+                return input_url.lower()
+                # اگر start_to_crawl True باشد، حلقه شکسته و فرآیند ادامه پیدا می‌کند
+                break
+            else:
+                # اگر start_to_crawl False باشد، پیامی نمایش داده و برای ورودی جدید از کاربر درخواست می‌شود
+                print("The URL is not valid for crawling. Please try again.")
+            # حلقه به طور خودکار ادامه می‌یابد
+                
     def run(self):
         menus = self.menus()
         for (k,v) in  menus['scraper_menu'].items():
@@ -83,14 +100,17 @@ class DigikalaScraperConsolePanel:
         if menus['scraper_menu'][str(user_choose)][1] == 'CategoryCrawlMode' \
             or menus['scraper_menu'][str(user_choose)][1] == 'SingleSellerCrawlMode'\
                 or menus['scraper_menu'][str(user_choose)][1] == 'SingleProductCrawlMode':
-            input_url = input(f'input {menus["scraper_menu"][str(user_choose)][1].replace("CrawlMode","")} url : ')
-            while True :
-                crawl_data = self.scraper.check_crawl_url(mode=menus["scraper_menu"][str(user_choose)][1],input_url=input_url)
-                if crawl_data['start_to_crawl'] == True:
-                    break
-                else:
-                    input_url = input(f'input {menus["scraper_menu"][str(user_choose)][1].replace("CrawlMode","")} url : ')
-            self.crawl_options(mode=menus["scraper_menu"][str(user_choose)][1],input_url=input_url)
+            input_url = self.get_crawl_input(menus['scraper_menu'][str(user_choose)][1])
+            if input_url is None:
+                self.run()
+
+        if menus['scraper_menu'][str(user_choose)][1] == 'CategoryCrawlMode' :
+            scroll_count = int(input('enter scroll count on page : '))
+        else :
+            scroll_count = True
+        
+        
+        self.crawl_options(mode=menus["scraper_menu"][str(user_choose)][1],input_url=input_url,scroll_count=scroll_count)
         
         
     
@@ -100,3 +120,11 @@ if __name__ == '__main__' :
     config_file_path = 'console-config4.ini'
     panel = DigikalaScraperConsolePanel(logger=logger,config_file_path=config_file_path)
     panel.run()
+
+
+# BUG -> get_next_id need to be same when data need to replace with historyical table . 
+# TODO -> all mode name need to get update in all script files .
+# TODO -> check for 404 pages and product not available page on open_page()
+# TODO -> regex patterns need to get updated to check if link is valid => eq : link start with https(fixed),url split tokens length etc ...
+# TODO -> befor get page_source in driver_manager need to check if products in loading... with to it get load 
+      

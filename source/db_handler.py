@@ -94,6 +94,7 @@ class DataBaseHandler():
         # Create a table to store historical sellers details
         self.cursor.execute('''
         CREATE TABLE IF NOT EXISTS sellers_history (
+                            id INTEGER,
             history_id INTEGER PRIMARY KEY AUTOINCREMENT,
             seller_id TEXT,
             crawl_date TEXT,
@@ -114,6 +115,7 @@ class DataBaseHandler():
         # Create a table to store historical products details
         self.cursor.execute('''
         CREATE TABLE IF NOT EXISTS products_history (
+            id INTEGER,
             history_id INTEGER PRIMARY KEY AUTOINCREMENT,
             product_id TEXT,
             seller_id TEXT,
@@ -161,16 +163,26 @@ class DataBaseHandler():
         ''')
 
 
-    def get_next_id(self, table_name):
+    def get_next_id(self, table_name,fields_id,id_name):
         """Get the next id for auto increment in SQLite"""
-        query = f'SELECT MAX(id) FROM {table_name}'
+        query = f'SELECT id FROM {table_name} WHERE {id_name} ="{fields_id}"'
         self.cursor.execute(query)
         result = self.cursor.fetchone()
-        
-        if result[0] is None:
-            return 1
+        if result is not None:
+            print(f'field is in database table id is {result[0]}')
+            return result[0]
         else:
-            return result[0] + 1
+            query = f'SELECT MAX(id) FROM {table_name}'
+            self.cursor.execute(query)
+            result = self.cursor.fetchone()
+            
+            if result[0] is None:
+                
+                return 1
+            else:
+                print(f'field is not in database table id is {result[0] + 1}')
+
+                return result[0] + 1
 
 
     def get_row_info(self,fields,table_name,condition=None,return_as_list=False):

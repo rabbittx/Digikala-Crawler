@@ -83,8 +83,8 @@ class DigiKalaScraper:
 
     def check_crawl_url(self, mode, input_url):
         patterns = {
-            'SingleProductCrawlMode': (r'https://www\.digikala\.com/product/dkp-\d+/$', 'The URL does not belong to any product. Please check it and try again.'),
-            'SingleSellerCrawlMode': (r'https://www\.digikala\.com/seller/[A-Za-z0-9]+/$', 'The URL does not belong to any seller. Please check it and try again.'),
+            'SingleProductCrawlMode': (r'^https://www\.digikala\.com/product/dkp-\d+?/$', 'The URL does not belong to any product. Please check it and try again.'),
+            'SingleSellerCrawlMode': (r'^https://www\.digikala\.com/seller/[A-Za-z0-9]+/?$', 'The URL does not belong to any seller. Please check it and try again.'),
             'CategoryCrawlMode': (r'search/\?q=|/category-|/search/', 'The category URL is incorrect. Please try again.')
         }
 
@@ -154,7 +154,7 @@ class DigiKalaScraper:
             available_products = [product[0] for product in seller_products if product[1] != 'product unavailable']
             self.initialize_crawl_for_products(available_products)
 
-        elif crawl_settings['mode'] == 'single_seller':
+        elif crawl_settings['mode'] == 'SingleSellerCrawlMode':
             self.webscraper.check_seller(crawl_settings['url'])
             self.logger.info("Data extraction for the specified seller has been completed successfully.")
             
