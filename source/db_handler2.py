@@ -32,7 +32,6 @@ class DataBaseHandler():
         # Create a table to store product details
         self.cursor.execute('''
         CREATE TABLE IF NOT EXISTS products (
-            id INTEGER AUTOINCREMENT
             product_id TEXT PRIMARY KEY,
             seller_id TEXT,
             crawl_date TEXT,             
@@ -52,41 +51,25 @@ class DataBaseHandler():
         # Create a table to store extracted product details
         self.cursor.execute('''
         CREATE TABLE IF NOT EXISTS products_extraction (
-            id INTEGER AUTOINCREMENT,                     
-            crawl_date TEXT,
-            product_id TEXT PRIMARY KEY,
-            seller_id TEXT,
-            seller_name TEXT,
-            categories TEXT,
-            product_link TEXT,
-            product_title TEXT,
-            product_main_title TEXT,
-            user_review TEXT,
-            insurer TEXT,
-            Insurance_discount_percent TEXT,
-            Insurance_price_before_discount TEXT,
-            Insurance_final_price TEXT,
-            Other_sellers_for_this_product TEXT,
-            satisfaction_with_the_product TEXT,
-            warranty TEXT,
-            digiclub_points TEXT,
-            discount_percent TEXT,
-            price_before_discount TEXT,
-            final_price TEXT,
-            product_stock TEXT,
-            product_image TEXT,
-            other_seller TEXT,
-            similar_products TEXT,
-            related_videos TEXT,
-            introduction_box TEXT,
-            expert_check TEXT,
-            specifications_box TEXT,
-            reviews TEXT,
-            question_box TEXT,
-            also_bought_items TEXT,
-            seller_offer TEXT,
-            UNIQUE(product_id) ON CONFLICT REPLACE
-
+            product_id TEXT PRIMARY KEY,  
+            seller_id TEXT,              
+            crawl_date TEXT,    
+            seller_name TEXT, 
+            categories TEXT,          
+            product_link TEXT ,
+            main_product_details TEXT ,
+            buy_box TEXT ,
+            product_image TEXT ,
+            other_seller TEXT ,
+            similar_products TEXT ,
+            related_videos TEXT ,
+            introduction_box TEXT ,
+            expert_check TEXT ,
+            specifications_box TEXT ,
+            reviews TEXT ,
+            question_box TEXT ,
+            also_bought_items TEXT ,
+            seller_offer TEXT
         )
         ''')
 
@@ -157,13 +140,6 @@ class DataBaseHandler():
             seller_offer TEXT
             change_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (product_id) REFERENCES products_extraction (product_id)
-                            
-            
-
-
-
-
-
         )
         ''')
 

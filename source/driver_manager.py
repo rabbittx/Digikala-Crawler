@@ -253,6 +253,7 @@ class DriverManager:
                         product_link.append(href)
                 except:
                     self.log.error('product link not found') 
+                    
             self.log.info('[+] products link extrection successfully ')   
             return product_link
         else :

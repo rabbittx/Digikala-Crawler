@@ -15,6 +15,7 @@ class DataBaseHandler():
         # Create a table to store seller information
         self.cursor.execute('''
         CREATE TABLE IF NOT EXISTS sellers (
+            id INTEGER ,
             seller_id TEXT PRIMARY KEY,
             crawl_date TEXT,                 
             seller_name TEXT,
@@ -32,6 +33,7 @@ class DataBaseHandler():
         # Create a table to store product details
         self.cursor.execute('''
         CREATE TABLE IF NOT EXISTS products (
+            id INTEGER ,
             product_id TEXT PRIMARY KEY,
             seller_id TEXT,
             crawl_date TEXT,             
@@ -51,25 +53,41 @@ class DataBaseHandler():
         # Create a table to store extracted product details
         self.cursor.execute('''
         CREATE TABLE IF NOT EXISTS products_extraction (
-            product_id TEXT PRIMARY KEY,  
-            seller_id TEXT,              
-            crawl_date TEXT,    
-            seller_name TEXT, 
-            categories TEXT,          
-            product_link TEXT ,
-            main_product_details TEXT ,
-            buy_box TEXT ,
-            product_image TEXT ,
-            other_seller TEXT ,
-            similar_products TEXT ,
-            related_videos TEXT ,
-            introduction_box TEXT ,
-            expert_check TEXT ,
-            specifications_box TEXT ,
-            reviews TEXT ,
-            question_box TEXT ,
-            also_bought_items TEXT ,
-            seller_offer TEXT
+            id INTEGER ,                     
+            crawl_date TEXT,
+            product_id TEXT PRIMARY KEY,
+            seller_id TEXT,
+            seller_name TEXT,
+            categories TEXT,
+            product_link TEXT,
+            product_title TEXT,
+            product_main_title TEXT,
+            user_review TEXT,
+            insurer TEXT,
+            Insurance_discount_percent TEXT,
+            Insurance_price_before_discount TEXT,
+            Insurance_final_price TEXT,
+            Other_sellers_for_this_product TEXT,
+            satisfaction_with_the_product TEXT,
+            warranty TEXT,
+            digiclub_points TEXT,
+            discount_percent TEXT,
+            price_before_discount TEXT,
+            final_price TEXT,
+            product_stock TEXT,
+            product_image TEXT,
+            other_seller TEXT,
+            similar_products TEXT,
+            related_videos TEXT,
+            introduction_box TEXT,
+            expert_check TEXT,
+            specifications_box TEXT,
+            reviews TEXT,
+            question_box TEXT,
+            also_bought_items TEXT,
+            seller_offer TEXT,
+            UNIQUE(product_id) ON CONFLICT REPLACE
+
         )
         ''')
 
@@ -109,7 +127,7 @@ class DataBaseHandler():
             product_price_discount_percent TEXT,
             product_price_discount TEXT,
             product_special_sale TEXT,
-            stock TEXT
+            stock TEXT,
             change_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (product_id) REFERENCES products (product_id)
         )
@@ -139,9 +157,21 @@ class DataBaseHandler():
             also_bought_items TEXT ,
             seller_offer TEXT
             change_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (product_id) REFERENCES products_extraction (product_id)
-        )
+            FOREIGN KEY (product_id) REFERENCES products_extraction (product_id))
         ''')
+
+
+    def get_next_id(self, table_name):
+        """Get the next id for auto increment in SQLite"""
+        query = f'SELECT MAX(id) FROM {table_name}'
+        self.cursor.execute(query)
+        result = self.cursor.fetchone()
+        
+        if result[0] is None:
+            return 1
+        else:
+            return result[0] + 1
+
 
     def get_row_info(self,fields,table_name,condition=None,return_as_list=False):
         """ 

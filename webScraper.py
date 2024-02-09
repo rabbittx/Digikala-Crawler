@@ -32,51 +32,83 @@ class DigiKalaScraper:
             self.logger.info("[+] browser will open normally")
 
         if not hasattr(self, '_driver'):
-            self._driver = DriverManager(
+            self._driver = DriverManager( 
                                         driver_type = driver_type,
-                                        geko_path = geko_path,
-                                        logger = logger, 
+                                        driver_path = geko_path,
+                                        log = logger, 
                                         headless_mode = headless_mode
                                         )
             self.webscraper = SellerProductDataExtractor(
                                                         driver = self._driver ,
                                                         db_handler = db_handler ,
-                                                        logger = logger
+                                                        log = logger
                                                         )
             self.product_extraction_scraper = ProductDetailsExtractor(
                                                                      db_handler = db_handler,
                                                                      driver = self._driver,
-                                                                     logger = logger
+                                                                     log = logger
                                                                      )
         return self._driver
     
+    def show_sllers(self):
+        """
+         This function will show all sellers that are available on database.
+            also get seller id and name from  user by taking inputs.
+
+        Return :
+             - seller_id,seller_name 
+        
+        """
+        row_info = self.db_handler.get_row_info(fields=['seller_id', 'seller_name'], table_name='sellers',condition=None,return_as_list=False)
+        if len(row_info) == 0 :
+            self.logger.warning("[!] Warning: There are no sellers in the database.")
+            return None
+        for index, row in enumerate(row_info):
+            self.logger.info(f"[-] ID {index} : {row[0]}, Name: {row[1]}")
+        while True:
+            try:
+                self.logger.info('[-] to exit the option enter  "exit"')
+
+                user_pick = input('choose the seller ID you want to crawl products from: ')
+                if  user_pick == 'exit': self.start()
+                elif 0 <= int(user_pick) < len(row_info):
+                    break
+                else:
+                    self.logger.error('[!] Error: Invalid option, please try again.')
+            except ValueError:
+                self.logger.error('[!] Error: Invalid input , please try again with number.')
+        return row_info[int(user_pick)]
+
+
 
     def check_crawl_url(self, mode, input_url):
+        patterns = {
+            'SingleProductCrawlMode': (r'https://www\.digikala\.com/product/dkp-\d+/$', 'The URL does not belong to any product. Please check it and try again.'),
+            'SingleSellerCrawlMode': (r'https://www\.digikala\.com/seller/[A-Za-z0-9]+/$', 'The URL does not belong to any seller. Please check it and try again.'),
+            'CategoryCrawlMode': (r'search/\?q=|/category-|/search/', 'The category URL is incorrect. Please try again.')
+        }
+
+
+
         check_data = {
             "crawl_mode": mode,
             "url": input_url,
             "message": '',
-            "start_to_crawl" : False,
+            "start_to_crawl": False,
         }
 
-        if check_data['crawl_mode'] == 'single_product':
-            if not re.search(r'https://www\.digikala\.com/product/dkp-\d+/$', check_data['url']):
-                check_data['message'] = 'The URL does not belong to any product. Please check it and try again.'
+        if mode in patterns:
+            pattern, error_message = patterns[mode]
+            if not re.search(pattern, input_url):
+                check_data['message'] = error_message
                 self.logger.warning('[!] ' + check_data['message'])
-
-        elif check_data['crawl_mode'] == 'single_seller':
-            if not re.match(r'https://www\.digikala\.com/seller/[A-Za-z0-9]+/$', check_data['url']):
-                check_data['message'] = 'The URL does not belong to any seller. Please check it and try again.'
-                self.logger.warning("[!] " + check_data['message'])
-
-        elif check_data['crawl_mode'] == 'category':
-            if not re.search(r'search/\?q=|/category-|/search/', check_data['url']):
-                check_data['message'] = 'The category URL is incorrect. Please try again'
-                self.logger.warning('[!] ' + check_data['message'])
+            else:
+                check_data['message'] = 'Input URL is valid and ready to start crawling.'
+                check_data['start_to_crawl'] = True
+                self.logger.info('[+] ' + check_data['message'])
         else:
-            check_data['message'] = 'Current input URL is ready to start to crawl.'
-            check_data['start_to_crawl'] = True
-            self.logger.info('[+] ' + check_data['message'])
+            check_data['message'] = f'Unrecognized crawl mode: {mode}. Please check the mode and try again.'
+            self.logger.warning('[!] ' + check_data['message'])
 
         return check_data
     
@@ -101,8 +133,12 @@ class DigiKalaScraper:
         }
         
         if not hasattr(self, '_driver'):
-            self.initialize_driver(self.driver_type)
-            
+            self.initialize_driver(geko_path=self.gecko_path,
+                                   driver_type=self.driver_type,
+                                   headless_mode=self.headless_mode,
+                                   db_handler=self.db_handler,
+                                   logger=self.logger
+                                   )
         if crawl_settings['mode'] == 'all_products':
             seller_products = self.db_handler.get_row_info(['product_link', 'product_price'], 'products')
             available_products = [product[0] for product in seller_products if product[1] != 'product unavailable']
@@ -122,7 +158,7 @@ class DigiKalaScraper:
             self.webscraper.check_seller(crawl_settings['url'])
             self.logger.info("Data extraction for the specified seller has been completed successfully.")
             
-        elif crawl_settings['mode'] == 'category':
+        elif crawl_settings['mode'] == 'CategoryCrawlMode':
             self.webscraper.check_category(crawl_settings['url'], crawl_settings['scrolling_count'])
             self.logger.info("Data extraction for the specified category has been completed successfully.")
             
