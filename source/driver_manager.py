@@ -174,52 +174,46 @@ class DriverManager:
 
     def scroll_down(self):
         """
-         Scroll down the page using JavaScript to make sure that all elements are loaded and visible
-
+        Scroll down the page using JavaScript to make sure that all elements are loaded and visible
         """
         total_height = self.driver.execute_script("return document.body.scrollHeight")
-
-        # اسکرول به نصف ارتفاع کلی صفحه (وسط صفحه)
-        self.driver.execute_script(f"window.scrollTo(0, {total_height / 3});")   
-        time.sleep(5) # find element to use WebDriverWait() instead of of time.sleep()
-                         # metod 1 for category and seller page 
-                            # get product elements len() if new_product_count > product_count keep scrolling 
+        self.driver.execute_script(f"window.scrollTo(0, {total_height});")   
+        time.sleep(5)  # از WebDriverWait() استفاده کنید به جای time.sleep() برای انتظار برای لود شدن المان‌ها
 
     def scroll_to_top(self):
         """
-         Method to scroll to top of the page
-
+        Method to scroll to top of the page
         """
         self.driver.execute_script("window.scrollTo(0, 0);")    
 
     def scroll_page(self, scroll_count: Union[int, bool]):
         """
-         Method to perform scrolling in loop while condition is True or number of loops finished
-
+        Method to perform scrolling in loop while condition is True or number of loops finished
         Args:
-             scroll_count (bool/int): Number of times to scroll. If False - infinite loop will be performed.
-
+            scroll_count (bool/int): Number of times to scroll. If False - infinite loop will be performed.
         Returns:
-             None
-        
+            None
         """
-        last_height = self.driver.execute_script("return document.body.scrollHeight")
         if scroll_count is True:
             while True:
                 self.scroll_down()
-                new_height = self.driver.execute_script("return document.body.scrollHeight")
-                if new_height == last_height:
+                self.scroll_to_top()  # اسکرول به بالای صفحه برای ادامه اسکرول به پایین
+                self.log.info('[+] page scrolling... ')
+                time.sleep(1)  # بهتر است از WebDriverWait() استفاده کنید
+                if self.driver.execute_script("return window.innerHeight + window.scrollY") >= self.driver.execute_script("return document.body.scrollHeight"):
                     break
-                last_height = new_height
             self.log.info('[+] page scrolling successfully ')
 
         elif isinstance(scroll_count, int):
             for _ in range(scroll_count):
                 self.scroll_down()
+                self.scroll_to_top()  # اسکرول به بالای صفحه برای ادامه اسکرول به پایین
+                self.log.info('[+] page scrolling... ')
+                time.sleep(1)  # بهتر است از WebDriverWait() استفاده کنید
             self.log.info('[+] page scrolling successfully ')
         else:
             raise ValueError("Invalid input. scroll_count must be an [integer] or [True] value.")
-        self.scroll_to_top()
+
 
     def get_page_source(self):
         """
