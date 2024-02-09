@@ -1,6 +1,6 @@
 from source.logger import setup_logger
 from webScraper import DigiKalaScraper
-
+import sys
 class DigikalaScraperConsolePanel:
     def __init__(self,logger,config_file_path):
         self.logger = logger
@@ -54,7 +54,7 @@ class DigikalaScraperConsolePanel:
                             'AllProductsCrawlMode': '',
                             'CSVExportMode': '',
                             'ComprehensiveDatabaseReportMode': '',
-                            'QuitMode': '',
+                            'QuitMode':lambda: sys.exit("Exiting the program..."),
 
                         }
         if mode in crawler_option:
@@ -64,25 +64,18 @@ class DigikalaScraperConsolePanel:
         
     def get_crawl_input(self,mode):
         while True:
-            # فرض بر این است که input_url توسط کاربر وارد می‌شود
             input_url = input(f"Please enter the {mode.replace('CrawlMode','')} URL you want to crawl, or type 'exit' to quit: ")
 
-            # ارائه گزینه برای خروج
             if input_url.lower() == 'exit':
                 print("Exiting the crawl input process.")
-                return None  # یا هر عملی که مایلید در صورت خروج انجام دهید
-
+                return None  
             crawl_data = self.scraper.check_crawl_url(mode=mode, input_url=input_url)
             
             if crawl_data['start_to_crawl']:
-                
                 return input_url.lower()
-                # اگر start_to_crawl True باشد، حلقه شکسته و فرآیند ادامه پیدا می‌کند
-                break
+
             else:
-                # اگر start_to_crawl False باشد، پیامی نمایش داده و برای ورودی جدید از کاربر درخواست می‌شود
                 print("The URL is not valid for crawling. Please try again.")
-            # حلقه به طور خودکار ادامه می‌یابد
                 
     def run(self):
         menus = self.menus()
@@ -97,9 +90,7 @@ class DigikalaScraperConsolePanel:
         # if menus['scraper_menu'][str(user_choose)][1] == 'SingleSellerProductCrawlMode' :
         #     seller_info = self.scraper.show_sllers()
         #     print(seller_info)
-        if menus['scraper_menu'][str(user_choose)][1] == 'CategoryCrawlMode' \
-            or menus['scraper_menu'][str(user_choose)][1] == 'SingleSellerCrawlMode'\
-                or menus['scraper_menu'][str(user_choose)][1] == 'SingleProductCrawlMode':
+        if menus['scraper_menu'][str(user_choose)][1] in ['CategoryCrawlMode','SingleSellerCrawlMode','SingleProductCrawlMode'] :
             input_url = self.get_crawl_input(menus['scraper_menu'][str(user_choose)][1])
             if input_url is None:
                 self.run()

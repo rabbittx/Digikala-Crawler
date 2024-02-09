@@ -177,7 +177,10 @@ class DriverManager:
          Scroll down the page using JavaScript to make sure that all elements are loaded and visible
 
         """
-        self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        total_height = self.driver.execute_script("return document.body.scrollHeight")
+
+        # اسکرول به نصف ارتفاع کلی صفحه (وسط صفحه)
+        self.driver.execute_script(f"window.scrollTo(0, {total_height / 3});")   
         time.sleep(5) # find element to use WebDriverWait() instead of of time.sleep()
                          # metod 1 for category and seller page 
                             # get product elements len() if new_product_count > product_count keep scrolling 
