@@ -114,7 +114,8 @@ class SellerProductDataExtractor:
         prodcut_links = self.driver.get_prdoucts_on_page(page_source,return_value='products_link')
         sellers_id = []
         self.log.info(f"{len(prodcut_links)} - product links found on this category page with scroll count of {scroll_count}")
-        for link in prodcut_links:
+        for index,link in enumerate(prodcut_links):
+            self.log.info(f'[+] start to get {index}/{len(prodcut_links)} seller id ')
             self.driver.open_page(link)
             seller_id = self.driver.get_seller_id()
             # digikala id = 5a52n - pass this one to extrect 

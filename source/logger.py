@@ -33,7 +33,7 @@ import logging
 def web_setup_logger():
     logger = logging.getLogger("DigikalaCrawler")
     logger.setLevel(logging.DEBUG)
-
+    logger.propagate = False
     # اضافه کردن FileHandler برای ذخیره لاگ‌ها در فایل مجزا
     file_handler = logging.FileHandler(r'archive\logs\web_crawler_logs.txt')
     file_handler.setLevel(logging.DEBUG)

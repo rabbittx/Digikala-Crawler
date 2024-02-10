@@ -144,7 +144,7 @@ class WebConfigManager:
         }
         self.config['Paths'] = {
             'GeckoPath': r'',  # Empty by default
-            'DBPath': r''  # Empty by default
+            'DBPath': r'archive\dataBase\digikala_database.db'  # Empty by default
         }
         self.save_config()
         self.log.info('[+] config saved successfully')
@@ -171,9 +171,10 @@ class WebConfigManager:
         self.set_setting('Setting', 'Drivertype', driver_type)
     
     def get_db_path(self):
-        return self.get_setting('Setting', 'Drivertype')
+        return self.get_setting('Paths', 'dbpath')
+    
     def get_db_path(self, driver_type):
-        self.set_setting('Setting', 'Drivertype', driver_type)
+        self.set_setting('Paths', 'dbpath', driver_type)
 
 
     def get_headless_mode(self):

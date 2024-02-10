@@ -50,6 +50,7 @@ class DriverManager:
 
             driver.maximize_window()
             self.log.info('Web driver initialized successfully')
+            self.log.info('Web driver opening page loading...')
             return driver
         except Exception as e:
             self.log.error(f'Error initializing web driver: {e}')

@@ -6,25 +6,20 @@ from source.db_handler import DataBaseHandler
 from source.webScraper import DigiKalaScraper
 import sys
 class WebGUIApp:
-    def __init__(self,log,  config_manager):
+    def __init__(self  ):
         self.app = Flask(__name__)
-        self.config_manager = config_manager
-        self.log = log
-        self.db_handler = None
-        
-        
-        self.check_config()
+        self.log = web_setup_logger()
+        self.config_manager = WebConfigManager(log=self.log,config_file="web_config.ini")
+        self.log.info('hello from init')
         self.add_routes()
         self.scraper=DigiKalaScraper(config_file_path=self.config_manager.config_file,log=self.log)
-    def check_config(self):
-        db_path = self.config_manager.get_setting("Paths", "dbpath")
-        if db_path:
-            self.db_handler = DataBaseHandler(db_path, self.log)
+        self.db_handler =self.scraper.db_handler
 
     def add_routes(self):
+
         @self.app.route("/", methods=["GET", "POST"])
         def index():
-            if not self.db_handler:  
+            if not self.config_manager.get_setting("Paths", "geckopath"):  
                 return redirect(url_for('settings'))
             try:
                 # sellers = self.db_handler.get_row_info(fields=['seller_id,seller_name'],table_name='seller_name',condition=None,return_as_list=False)
@@ -45,7 +40,6 @@ class WebGUIApp:
                 self.config_manager.set_setting('Paths', 'DBPath', db_path)
                 self.config_manager.set_setting('Setting', 'DriverType', driver_type)
                 self.config_manager.set_setting('Setting', 'HeadlessMode', str(headless_mode).lower())
-                self.check_config()
                 return redirect(url_for('index'))     
             geko_path = self.config_manager.get_setting('Paths', 'GeckoPath')
             db_path = self.config_manager.get_setting('Paths', 'DBPath')
@@ -58,7 +52,8 @@ class WebGUIApp:
             num_lines = 10  
             with open(r'archive\logs\web_crawler_logs.txt', 'r') as file:
                 logs = file.readlines()[-num_lines:]  
-            return ''.join(logs)  
+            return ''.join(logs)
+          
         @self.app.route('/start-category-crawl', methods=['POST'])
         def start_category_crawl():
             if request.method == "POST" :
@@ -116,8 +111,5 @@ class WebGUIApp:
 
 
 if __name__ == "__main__":
-    log = web_setup_logger()
-    config_manager = WebConfigManager(log=log,config_file="web_config.ini")
-
-    web_app = WebGUIApp(log=log,config_manager=config_manager)
-    web_app.run()
+    
+    web_app = WebGUIApp().run()

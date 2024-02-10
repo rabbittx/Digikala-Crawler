@@ -8,12 +8,13 @@ import os
 from source.config import ConsoleConfigManager
 
 class DigiKalaScraper:
-    def __init__(self, config_file_path, log,):
+    def __init__(self, config_file_path, log):
         self.logger = log
         self.config_file_path = config_file_path
         self.config_manager = ConsoleConfigManager(log=self.logger,config_file=self.config_file_path)
         self._initialize_settings()
         self.db_handler = DataBaseHandler(log=self.logger,db_path=self.config_manager.get_db_path())
+        # self.db_handler = db_handler
         self.db_handler.create_tables()        
 
     def _initialize_settings(self):
