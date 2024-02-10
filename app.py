@@ -74,15 +74,23 @@ class WebGUIApp:
                 db_path = request.form.get('dbPath')
                 driver_type = request.form.get('driverType')   
 
-
-
-    def csv_export(self,):
-
-        self.scraper.export_data_to_csv(mode)
-
-    def database_report_show(self,report):
-        for k,v in  report.items():
-            self.logger.info(f'[+] DATABASE REPROT : for {k.replace("_count"," ").replace("_"," ")} have [{v}] record found .')
+        @self.app.route('/single_seller',methods=['POST'])
+        def single_product_page():
+            pass
+        @self.app.route('/single_product',methods=['POST'])
+        def single_seller_page():
+            pass
+        @self.app.route('/single_seller_prdoucts',methods=['POST'])
+        def single_seller_prdoucts():
+            pass
+        @self.app.route('/all_products',methods=['POST'])
+        def crawl_all_products():
+            pass
+        
+        # exports options 
+        
+        
+        # report database option
 
 
     def crawl_options(self,mode,input_url=None,scroll_count=None,seller_info=None):
