@@ -1,5 +1,5 @@
 from source.logger import setup_logger
-from webScraper import DigiKalaScraper
+from source.webScraper import DigiKalaScraper
 import sys
 class DigikalaScraperConsolePanel:
     def __init__(self,logger,config_file_path):
@@ -21,11 +21,11 @@ class DigikalaScraperConsolePanel:
                         }
         
         example_menu = {
-                        'example_single_product' : 'https://www.digikala.com/product/dkp-11194944',
-                        'example_single_seller' : 'https://www.digikala.com/seller/6xwus/',
-                        'example_category_01' : 'https://www.digikala.com/search/?q=iphone',
-                        'example_category_02' : 'https://www.digikala.com/search/category-mobile-phone/xiaomi/',
-                        'example_category_03' : 'https://www.digikala.com/search/',
+                        'SingleProductCrawlMode' : 'https://www.digikala.com/product/dkp-11194944',
+                        'SingleSellerCrawlMode' : 'https://www.digikala.com/seller/6xwus/',
+                        'CategoryCrawlMode_01' : 'https://www.digikala.com/search/?q=iphone',
+                        'CategoryCrawlMode_02' : 'https://www.digikala.com/search/category-mobile-phone/xiaomi/',
+                        'CategoryCrawlMode_03' : 'https://www.digikala.com/search/',
                        }
         
         export_menu = {
@@ -61,6 +61,12 @@ class DigikalaScraperConsolePanel:
             crawler_option[mode]()
         else:
             raise ValueError("Invalid mode specified.")
+        
+    def show_examples(self,mode,menu):
+        print('show example')
+        for k,v in  menu.items():
+            if mode in k :
+                self.logger.info(v)
 
     def csv_export(self,menu):
         mode = self.show_menu(menu=menu)
@@ -77,6 +83,7 @@ class DigikalaScraperConsolePanel:
             if input_url.lower() == 'exit':
                 self.logger.info("Exiting the crawl input process.")
                 return None  
+            
             crawl_data = self.scraper.check_crawl_url(mode=mode, input_url=input_url)
             
             if crawl_data['start_to_crawl']:
@@ -94,11 +101,11 @@ class DigikalaScraperConsolePanel:
         mode = menu[str(user_choose)][1]
         return mode
 
-
     def run(self):
         while True: 
             mode = self.show_menu(self.menus()['scraper_menu'] )
             if mode in ['CategoryCrawlMode','SingleSellerCrawlMode','SingleProductCrawlMode'] :
+                self.show_examples(mode=mode,menu=self.menus()['example_menu'])
                 input_url = self.get_crawl_input(mode)
                 if input_url is None:
                     self.run()
@@ -120,8 +127,8 @@ class DigikalaScraperConsolePanel:
     
 
 if __name__ == '__main__' :
-    logger = setup_logger()
-    config_file_path = 'console-config4.ini'
+    logger = setup_logger() # logger to handle logs
+    config_file_path = 'console-config.ini' # setting file path 
     panel = DigikalaScraperConsolePanel(logger=logger,config_file_path=config_file_path)
     panel.run()
 

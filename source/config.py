@@ -139,12 +139,12 @@ class WebConfigManager:
     def _create_default_config(self):
         """Create a default configuration file with initial settings."""
         self.config['Setting'] = {
-            'Drivertype': 'firefox',  # Default to firefox
-            'HeadlessMode': 'false'  # Default to non-headless mode
+            'Drivertype': '',  
+            'HeadlessMode': 'False'  
         }
         self.config['Paths'] = {
-            'GeckoPath': r'archive\gekcodrive\firefox\geckodriver.exe',  # Empty by default
-            'DBPath': r'archive\dataBase\digikala_database.db'  # Empty by default
+            'GeckoPath': r'',  # Empty by default
+            'DBPath': r''  # Empty by default
         }
         self.save_config()
         self.log.info('[+] config saved successfully')

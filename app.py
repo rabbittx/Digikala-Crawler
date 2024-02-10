@@ -3,18 +3,19 @@ from flask import Flask, render_template, request, redirect, url_for ,jsonify
 from source.config import WebConfigManager
 from source.logger import web_setup_logger
 from source.db_handler import DataBaseHandler
-import re
+from source.webScraper import DigiKalaScraper
+import sys
 class WebGUIApp:
     def __init__(self,log,  config_manager):
         self.app = Flask(__name__)
         self.config_manager = config_manager
         self.log = log
         self.db_handler = None
-
+        
         
         self.check_config()
         self.add_routes()
-
+        self.scraper=DigiKalaScraper(config_file_path=self.config_manager.config_file,log=self.log)
     def check_config(self):
         db_path = self.config_manager.get_setting("Paths", "dbpath")
         if db_path:
@@ -54,35 +55,62 @@ class WebGUIApp:
                 
         @self.app.route('/get-logs')
         def get_logs():
-            num_lines = 10  # تعداد خطوطی که می‌خواهید نمایش دهید
+            num_lines = 10  
             with open(r'archive\logs\web_crawler_logs.txt', 'r') as file:
-                logs = file.readlines()[-num_lines:]  # خواندن آخرین num_lines خط
-            return ''.join(logs)  # برگرداندن آخرین خطوط به عنوان یک رشته
-
+                logs = file.readlines()[-num_lines:]  
+            return ''.join(logs)  
         @self.app.route('/start-category-crawl', methods=['POST'])
         def start_category_crawl():
-            # دریافت URL از فرم
-            category_url = request.form['categorycrawl']
-            pattern = re.compile(r'search/\?q=|/category-|/search/')
-            crawler_msg = ''
-            start_crawl = False
-            if not ('search/?q=' in category_url or '/category-' in category_url or '/search/' in category_url):
-                crawler_msg = 'Wrong category URL, try one more time'
-                start_crawl = True
-                self.log.warning('[!] Wrong category URL, try one more time')
-            else : 
-                crawler_msg = 'Category crawl is started... , check helps for currect category url format '
+            if request.method == "POST" :
+                category_url = request.form.get('categorycrawl')
+                category_scroll_count = request.form.get('scrollCount')
+                crawl_setting = self.scraper.check_crawl_url(mode='CategoryCrawlMode',input_url=category_url)
+                if crawl_setting['start_to_crawl'] :
+                    self.log.info(crawl_setting['message'])
+                    self.log.info(type(category_scroll_count))
+                    self.crawl_options(mode='CategoryCrawlMode',input_url=crawl_setting['url'],scroll_count=int(category_scroll_count),seller_info=None)
+                    return jsonify({"status": "succsue", "message": crawl_setting['message'], "url": crawl_setting['url']})
+                else:
+                    return jsonify({"status": "error", "message": crawl_setting['message'], "url": crawl_setting['url']})
+   
+        @self.app.route('/export',methods=['POST'])
+        def export_data():
+            if request.method == "POST":
+                db_path = request.form.get('dbPath')
+                driver_type = request.form.get('driverType')   
 
-            if start_crawl : 
-                
-            print(category_url)
-            self.log.info(category_url)
-            # اینجا تابع خزنده خود را با URL دریافتی فراخوانی کنید
-            # فرض بر این است که تابع خزنده شما به صورت زیر است:
-            # result = crawl_category(category_url)
-            # برگرداندن پاسخ به کاربر
-            return jsonify({"status": "success", "message": crawler_msg, "url": category_url})
 
+
+    def csv_export(self,):
+
+        self.scraper.export_data_to_csv(mode)
+
+    def database_report_show(self,report):
+        for k,v in  report.items():
+            self.logger.info(f'[+] DATABASE REPROT : for {k.replace("_count"," ").replace("_"," ")} have [{v}] record found .')
+
+
+    def crawl_options(self,mode,input_url=None,scroll_count=None,seller_info=None):
+        crawler_option = {
+                            'CategoryCrawlMode': lambda: self.scraper.execute_crawl(mode=mode, input_url=input_url, scroll_count=scroll_count, seller_info=seller_info),
+                            'SingleSellerCrawlMode': lambda: self.scraper.execute_crawl(mode=mode, input_url=input_url, scroll_count=scroll_count, seller_info=seller_info),
+                            'SingleSellerProductCrawlMode': lambda: self.scraper.execute_crawl(mode=mode, input_url=input_url, scroll_count=scroll_count, seller_info=seller_info),
+                            'SingleProductCrawlMode': lambda: self.scraper.execute_crawl(mode=mode, input_url=input_url, scroll_count=scroll_count, seller_info=seller_info),
+                            'AllProductsCrawlMode': lambda: self.scraper.execute_crawl(mode=mode, input_url=input_url, scroll_count=scroll_count, seller_info=seller_info),
+                            'CSVExportMode': lambda : self.csv_export(),
+                            'ComprehensiveDatabaseReportMode': lambda : self.database_report_show(self.scraper.database_report()),
+                            'QuitMode':lambda: sys.exit("Exiting the program..."),
+
+                        }
+
+        if mode in crawler_option:
+            crawler_option[mode]()
+        else:
+            raise ValueError("Invalid mode specified.")
+    
+    
+    
+    
     def run(self):
         self.app.run(debug=True)
 

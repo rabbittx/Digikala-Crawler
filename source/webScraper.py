@@ -3,7 +3,7 @@ import csv  , os ,re
 from source.logger import setup_logger
 from source.driver_manager import DriverManager
 from source.db_handler import DataBaseHandler
-from source.product_details_extractor2 import ProductDetailsExtractor
+from source.product_details_extractor import ProductDetailsExtractor
 import os
 from source.config import ConsoleConfigManager
 
@@ -122,7 +122,7 @@ class DigiKalaScraper:
     def execute_crawl(self, mode, input_url, scroll_count, seller_info=None):
         # Pre-processing for seller_info
         seller_id, seller_name = ('-', '-') if seller_info is None else seller_info
-        
+
         # Initializing crawl settings
         crawl_settings = {
             "mode": mode,
@@ -139,7 +139,7 @@ class DigiKalaScraper:
                                    db_handler=self.db_handler,
                                    logger=self.logger
                                    )
-            
+
         if crawl_settings['mode'] == 'AllProductsCrawlMode':
             seller_products = self.db_handler.get_row_info(['product_link', 'product_price'], 'products')
             available_products = [product[0] for product in seller_products if product[1] != 'product unavailable']
@@ -156,6 +156,7 @@ class DigiKalaScraper:
             self.initialize_crawl_for_products(available_products)
 
         elif crawl_settings['mode'] == 'SingleSellerCrawlMode':
+            self.logger.info(f'Crawling Category !!!....')    
             self.webscraper.check_seller(crawl_settings['url'])
             self.logger.info("Data extraction for the specified seller has been completed successfully.")
             

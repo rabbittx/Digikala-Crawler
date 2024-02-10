@@ -34,27 +34,47 @@
             <hr>
             <div class="row justify-content-center align-items-center g-2 my-3">
                <div class="col-12 text-center">
-                <form action="" method="post">
+                <form action="" method="post" id="category_form">
                     <label for="category-crawl">crawl Category URL:</label>
                     <input type="text" id="categorycrawl" name="categorycrawl"  placeholder="https://www.digikala.com/search/?q=iphone" required>
-                    <button type="button" onclick="startWebScraping('category')">Start Scraping</button>
+                    <input type="text" id="scrollCount" name="scrollCount"  placeholder="scrollCount : 1 - 10 " required>
+                    <button type="button" id="category_submit" onclick="startWebScraping('category')">Start Scraping</button>
                   </form>
                   <script>
                     function startWebScraping(mode) {
                         if(mode === 'category') {
                             const categoryUrl = document.getElementById('categorycrawl').value;
+                            const scrollCount = document.getElementById('scrollCount').value;
                             fetch('/start-category-crawl', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/x-www-form-urlencoded',
                                 },
-                                body: `categorycrawl=${encodeURIComponent(categoryUrl)}`
+                                body: `categorycrawl=${encodeURIComponent(categoryUrl)}&scrollCount=${encodeURIComponent(scrollCount)}`
                             })
                             .then(response => response.json())
                             .then(data => alert(data.message))
                             .catch(error => console.error('Error:', error));
                         }
                     }
+                    $(document).ready(function(){
+                    $("#category_form").submit(function(e){
+                        e.preventDefault(); // جلوگیری از ارسال معمولی فرم
+                        $.ajax({
+                            type: "POST",
+                            url: "/start-category-crawl",
+                            data: $(this).serialize(), // ارسال داده‌های فرم
+                            success: function(response){
+                                if(response.status === "succsue"){
+                                    $("#category_submit").prop('disabled', true); // غیرفعال کردن دکمه
+                                    alert(response.message); // نمایش پیام موفقیت
+                                } else {
+                                    alert(response.message); // نمایش پیام خطا
+                                }
+                            }
+                        });
+                    });
+                });
                     </script>
                     
                 </div>
@@ -91,8 +111,9 @@
             <hr>
             <div class="row justify-content-center align-items-center g-2 my-3">
                 <div class="col-12 text-center">
-                    <label for="sellers_table">export all sellers data:</label>
-                    <button type="button" onclick="startWebScraping('sellers_table')">export to CSV</button>
+                    <label for="sellers_table" >export all sellers data:</label>
+                    <input type="text" id="sellers_table" hidden>
+                    <button type="button"  >export to CSV</button>
                 </div>
                 <div class="col-12 text-center">
                     <label for="driver-type">export sellers products data with ID(name):<br>
