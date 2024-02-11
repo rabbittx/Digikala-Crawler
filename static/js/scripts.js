@@ -119,7 +119,7 @@ $("#single_product_form").submit(function(e){
                 $("#single_product_submit").prop('disabled', true); // غیرفعال کردن دکمه
                 alert(response.message); // نمایش پیام موفقیت
             } else {
-                alert(response.message); // نمایش پیام خطا
+                alert(response.message); 
             }
         }
     });
