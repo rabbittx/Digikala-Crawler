@@ -151,8 +151,8 @@ class DigiKalaScraper:
             self.product_extraction_scraper.run(crawl_settings['url'])
 
         elif crawl_settings['mode'] == 'SingleSellerProductCrawlMode':
-            self.logger.info(f'Crawling products for seller "{crawl_settings["seller_name"]}" with ID {crawl_settings["seller_id"]}.')    
-            seller_products = self.db_handler.get_row_info(['product_link', 'product_price'], 'products', ['seller_name', crawl_settings['seller_name']])
+            self.logger.info(f'Crawling products for seller {crawl_settings["seller_name"]} with ID {crawl_settings["seller_id"]}.')    
+            seller_products = self.db_handler.get_row_info(['product_link', 'product_price'], 'products', ['seller_id', crawl_settings['seller_id']])
             available_products = [product[0] for product in seller_products if product[1] != 'product unavailable']
             self.initialize_crawl_for_products(available_products)
 

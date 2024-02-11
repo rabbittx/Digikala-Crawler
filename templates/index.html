@@ -61,7 +61,7 @@
                 <label for="single_seller_products_id">crawl single seller products with all specifications:<br></label>
                     <select id="single_seller_products_id" name="single_seller_products_id" onchange="changeDriver_type()">
                         {% for seller_id, seller_name in sellers %}
-                        <option dir="ltr" style="font-size: larger; font-weight: 700;" value="{{ seller_id }}">[ {{ seller_name }} ] - [ {{ seller_id }} ]</option>
+                        <option dir="ltr" style="font-size: larger; font-weight: 700;" value="{{seller_name}}/{{ seller_id }}">[ {{ seller_name }} ] - [ {{ seller_id }} ]</option>
                         {% endfor %}
                     </select>
                 <button type="button" onclick="startWebScraping('single_seller_products')" id="single_seller_product_submit">Start Scraping</button>
@@ -70,14 +70,21 @@
 
 
                <div class="col-12 text-center">
-                    <label for="single_product_url">crawl single product with all specifications:</label>
-                    <input type="text" id="single_product_url" name="single_product_url"  placeholder="https://www.digikala.com/product/dkp-11194944" required>
-                    <button type="button" onclick="startWebScraping('single_product')">Start Scraping</button>
-               </div>
+                  <form action="" method="POST" id="single_product_form">
+                      <label for="single_product_url">crawl single product with all specifications:</label>
+                      <input type="text" id="single_product_url" name="single_product_url"  placeholder="https://www.digikala.com/product/dkp-11194944" required>
+                      <button type="button" onclick="startWebScraping('single_product')" id="single_product_submit">Start Scraping</button>
+                  </form>
+                </div>
+
+
+
                <div class="col-12 text-center">
-                    <label for="all_products">crawl all products with all specifications in dataBase:</label>
-                    <button type="button" onclick="startWebScraping('all_products')">Start Scraping</button>
-               </div>
+                  <form action="" method="POST" id="all_products_form">
+                      <label for="all_products">crawl all products with all specifications in dataBase:</label>
+                      <button type="button" onclick="startWebScraping('all_products')" id="all_products_submit">Start Scraping</button>
+                  </form>
+                </div>
             </div>                
         <!-- Crawler menu End  -->
         </div>

@@ -1,10 +1,14 @@
-from flask import Flask, render_template, request, redirect, url_for ,jsonify
+from flask import Flask, render_template, request, redirect, url_for ,jsonify ,g
 # فرض می‌شود که WebConfigManager، setup_logger، و DataBaseHandler به درستی پیاده‌سازی شده‌اند
 from source.config import WebConfigManager
 from source.logger import web_setup_logger
 from source.db_handler import DataBaseHandler
 from source.webScraper import DigiKalaScraper
 import sys
+import sqlite3
+
+
+
 class WebGUIApp:
     def __init__(self  ):
         self.app = Flask(__name__)
@@ -12,10 +16,14 @@ class WebGUIApp:
         self.config_manager = WebConfigManager(log=self.log,config_file="web_config.ini")
         self.log.info('hello from init')
         self.add_routes()
-        self.scraper=DigiKalaScraper(config_file_path=self.config_manager.config_file,log=self.log)
-        
-        
+        self.scraper=DigiKalaScraper(config_file_path=self.config_manager.config_file,log=self.log)        
         self.db_handler =self.scraper.db_handler
+
+    def get_db_connection(db_path):
+        if 'db_connection' not in g:
+            g.db_connection = sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES)
+        return g.db_connection
+
 
     def add_routes(self):
 
@@ -88,24 +96,34 @@ class WebGUIApp:
         @self.app.route('/start_single_product',methods=['POST'])
         def single_seller_page():
             if request.method == "POST" :
-                single_url = request.form.get('single_seller_products_id')
-                self.log.info(single_url,'======================================')
-                crawl_setting = self.scraper.check_crawl_url(mode='SingleSellerProductCrawlMode',input_url=single_url)
+                seller_id,seller_name  = request.form.get('single_seller_products_id').split('/')
+                message = f'{seller_name,seller_id} is being processed...'
+                self.log.info(message)
+                self.crawl_options(mode='SingleSellerProductCrawlMode', input_url=None, scroll_count=None, seller_info=(seller_name,seller_id))
+                return jsonify({"status": "succsue", "message": message, "url": None, 'seller_info' : (seller_name,seller_id)})
+
+
+        @self.app.route('/single_prdoucts',methods=['POST'])
+        def single_seller_prdoucts():
+            if request.method == "POST" :
+                single_url = request.form.get('single_product_url')
+                self.log.info(single_url)
+
+                crawl_setting = self.scraper.check_crawl_url(mode='SingleProductCrawlMode',input_url=single_url)
                 if crawl_setting['start_to_crawl'] :
                     self.log.info(crawl_setting['message'])
-                    self.crawl_options(mode='SingleSellerProductCrawlMode',input_url=crawl_setting['url'],)
+                    self.crawl_options(mode='SingleProductCrawlMode',input_url=crawl_setting['url'],)
                     return jsonify({"status": "succsue", "message": crawl_setting['message'], "url": crawl_setting['url']})
                 else:
                     return jsonify({"status": "error", "message": crawl_setting['message'], "url": crawl_setting['url']})
 
-        @self.app.route('/single_seller_prdoucts',methods=['GET','POST'])
-        def single_seller_prdoucts():
-            pass
-
         @self.app.route('/all_products',methods=['GET','POST'])
         def crawl_all_products():
-            pass
-        
+            if request.method == "POST" :
+
+                self.crawl_options(mode='AllProductsCrawlMode',)
+                return jsonify({"status": "succsue", "message": 'Strat to crawl all products in database', "url": None})
+       
         # exports options 
         @self.app.route('/export_all_data',methods=['GET','POST'])
         def export_all_data():
@@ -145,15 +163,13 @@ class WebGUIApp:
                             'AllProductsCrawlMode': lambda: self.scraper.execute_crawl(mode=mode, input_url=input_url, scroll_count=scroll_count, seller_info=seller_info),
                             'CSVExportMode': lambda : self.csv_export(),
                             'ComprehensiveDatabaseReportMode': lambda : self.database_report_show(self.scraper.database_report()),
-                            'QuitMode':lambda: sys.exit("Exiting the program..."),
-
                         }
-
         if mode in crawler_option:
             crawler_option[mode]()
         else:
             raise ValueError("Invalid mode specified.")
     
+
     
     
     

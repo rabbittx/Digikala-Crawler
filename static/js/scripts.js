@@ -65,7 +65,30 @@ function startWebScraping(mode) {
         .then(data => alert(data.message))
         .catch(error => console.error('Error:', error));
     }
-
+    else if(mode === 'single_product') {
+        const categoryUrl = document.getElementById('single_product_url').value;
+        fetch('/single_prdoucts', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `single_product_url=${encodeURIComponent(categoryUrl)}`
+        })
+        .then(response => response.json())
+        .then(data => alert(data.message))
+        .catch(error => console.error('Error:', error));
+    }
+    else if(mode === 'all_products') {
+        fetch('/all_products', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+        })
+        .then(response => response.json())
+        .then(data => alert(data.message))
+        .catch(error => console.error('Error:', error));
+    }
 }
 $(document).ready(function(){
 $("#category_form").submit(function(e){
