@@ -166,6 +166,7 @@ class DataBaseHandler():
     def get_next_id(self, table_name,fields_id,id_name):
         """Get the next id for auto increment in SQLite"""
         query = f'SELECT id FROM {table_name} WHERE {id_name} ="{fields_id}"'
+        print(f'----------------------{query}-------------------------')
         self.cursor.execute(query)
         result = self.cursor.fetchone()
         if result is not None:

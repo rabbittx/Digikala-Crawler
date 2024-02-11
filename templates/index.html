@@ -35,64 +35,40 @@
             <div class="row justify-content-center align-items-center g-2 my-3">
                <div class="col-12 text-center">
                 <form action="" method="post" id="category_form">
-                    <label for="category-crawl">crawl Category URL:</label>
+                    <label for="categorycrawl">crawl Category URL:</label>
                     <input type="text" id="categorycrawl" name="categorycrawl"  placeholder="https://www.digikala.com/search/?q=iphone" required>
                     <input type="text" id="scrollCount" name="scrollCount"  placeholder="scrollCount : 1 - 10 " required>
                     <button type="button" id="category_submit" onclick="startWebScraping('category')">Start Scraping</button>
                   </form>
-                  <script>
-                    function startWebScraping(mode) {
-                        if(mode === 'category') {
-                            const categoryUrl = document.getElementById('categorycrawl').value;
-                            const scrollCount = document.getElementById('scrollCount').value;
-                            fetch('/start-category-crawl', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/x-www-form-urlencoded',
-                                },
-                                body: `categorycrawl=${encodeURIComponent(categoryUrl)}&scrollCount=${encodeURIComponent(scrollCount)}`
-                            })
-                            .then(response => response.json())
-                            .then(data => alert(data.message))
-                            .catch(error => console.error('Error:', error));
-                        }
-                    }
-                    $(document).ready(function(){
-                    $("#category_form").submit(function(e){
-                        e.preventDefault(); // جلوگیری از ارسال معمولی فرم
-                        $.ajax({
-                            type: "POST",
-                            url: "/start-category-crawl",
-                            data: $(this).serialize(), // ارسال داده‌های فرم
-                            success: function(response){
-                                if(response.status === "succsue"){
-                                    $("#category_submit").prop('disabled', true); // غیرفعال کردن دکمه
-                                    alert(response.message); // نمایش پیام موفقیت
-                                } else {
-                                    alert(response.message); // نمایش پیام خطا
-                                }
-                            }
-                        });
-                    });
-                });
-                    </script>
-                    
+
                 </div>
                <div class="col-12 text-center">
-                    <label for="categoryUrl">crawl single seller:</label>
-                    <input type="text" id="single_seller_url" name="single_seller_url"  placeholder="https://www.digikala.com/seller/6xwus/" required>
-                    <button type="button" onclick="startWebScraping('single_seller')">Start Scraping</button>
-               </div>
+                <form action="" method="post" id="crawl_single_seller">
+                    <label for="single_seller_url_crawl">crawl single seller:</label>
+                    <input type="text" id="single_seller_url_crawl" name="single_seller_url_crawl"  placeholder="https://www.digikala.com/seller/6xwus/" required>
+                    <button id="single_seller_submit" type="button" onclick="startWebScraping('single_seller')">Start Scraping</button>
+                  </form>
+               
+               
+                 </div>
+
+
+
+
+
                <div class="col-12 text-center">
-                <label for="single_seller_products">crawl single seller products with all specifications:<br>
-                    <select id="single_seller_products" name="single_seller_products" onchange="changeDriver_type()">
+                <form action="" method="POST" id="single_seller_product_form">
+                <label for="single_seller_products_id">crawl single seller products with all specifications:<br></label>
+                    <select id="single_seller_products_id" name="single_seller_products_id" onchange="changeDriver_type()">
                         {% for seller_id, seller_name in sellers %}
                         <option dir="ltr" style="font-size: larger; font-weight: 700;" value="{{ seller_id }}">[ {{ seller_name }} ] - [ {{ seller_id }} ]</option>
                         {% endfor %}
                     </select>
-                </label>
-                <button type="button" onclick="startWebScraping('single_seller_products')">Start Scraping</button>
-            </div>
+                <button type="button" onclick="startWebScraping('single_seller_products')" id="single_seller_product_submit">Start Scraping</button>
+              </form>
+              </div>
+
+
                <div class="col-12 text-center">
                     <label for="single_product_url">crawl single product with all specifications:</label>
                     <input type="text" id="single_product_url" name="single_product_url"  placeholder="https://www.digikala.com/product/dkp-11194944" required>
@@ -326,7 +302,10 @@ function fetchLogs() {
 
     </div>
 
-    
+    <script>
+
+      </script>
+      
 </div>
 
 {% endblock %}

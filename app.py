@@ -13,6 +13,8 @@ class WebGUIApp:
         self.log.info('hello from init')
         self.add_routes()
         self.scraper=DigiKalaScraper(config_file_path=self.config_manager.config_file,log=self.log)
+        
+        
         self.db_handler =self.scraper.db_handler
 
     def add_routes(self):
@@ -62,25 +64,44 @@ class WebGUIApp:
                 crawl_setting = self.scraper.check_crawl_url(mode='CategoryCrawlMode',input_url=category_url)
                 if crawl_setting['start_to_crawl'] :
                     self.log.info(crawl_setting['message'])
-                    self.log.info(type(category_scroll_count))
-                    self.crawl_options(mode='CategoryCrawlMode',input_url=crawl_setting['url'],scroll_count=int(category_scroll_count),seller_info=None)
+                    self.crawl_options(mode='CategoryCrawlMode',input_url=crawl_setting['url'],scroll_count=int(category_scroll_count))
                     return jsonify({"status": "succsue", "message": crawl_setting['message'], "url": crawl_setting['url']})
                 else:
                     return jsonify({"status": "error", "message": crawl_setting['message'], "url": crawl_setting['url']})
    
         
-        @self.app.route('/single_seller',methods=['GET','POST'])
+        @self.app.route('/start_single_seller',methods=['GET','POST'])
         def single_product_page():
-            pass
+            if request.method == "POST" :
+                single_url = request.form.get('single_seller_url_crawl')
+                self.log.info(single_url)
 
-        @self.app.route('/single_product',methods=['GET','POST'])
+                crawl_setting = self.scraper.check_crawl_url(mode='SingleSellerCrawlMode',input_url=single_url)
+                if crawl_setting['start_to_crawl'] :
+                    self.log.info(crawl_setting['message'])
+                    self.crawl_options(mode='SingleSellerCrawlMode',input_url=crawl_setting['url'],)
+                    return jsonify({"status": "succsue", "message": crawl_setting['message'], "url": crawl_setting['url']})
+                else:
+                    return jsonify({"status": "error", "message": crawl_setting['message'], "url": crawl_setting['url']})
+
+
+        @self.app.route('/start_single_product',methods=['POST'])
         def single_seller_page():
-            pass
+            if request.method == "POST" :
+                single_url = request.form.get('single_seller_products_id')
+
+                crawl_setting = self.scraper.check_crawl_url(mode='SingleSellerProductCrawlMode',input_url=single_url)
+                if crawl_setting['start_to_crawl'] :
+                    self.log.info(crawl_setting['message'])
+                    self.crawl_options(mode='SingleSellerProductCrawlMode',input_url=crawl_setting['url'],)
+                    return jsonify({"status": "succsue", "message": crawl_setting['message'], "url": crawl_setting['url']})
+                else:
+                    return jsonify({"status": "error", "message": crawl_setting['message'], "url": crawl_setting['url']})
 
         @self.app.route('/single_seller_prdoucts',methods=['GET','POST'])
         def single_seller_prdoucts():
             pass
-        
+
         @self.app.route('/all_products',methods=['GET','POST'])
         def crawl_all_products():
             pass
@@ -94,19 +115,19 @@ class WebGUIApp:
         def export_seller_products_with_id():
             pass
 
-        @self.app.route('export_all_products',methods=['GET','POST'])
+        @self.app.route('/export_all_products',methods=['GET','POST'])
         def export_all_products_csv():
             pass
 
-        @self.app.route('export_single_sellers_product_information_with_all_specification',methods=['GET','POST'])
+        @self.app.route('/export_single_sellers_product_information_with_all_specification',methods=['GET','POST'])
         def export_single_sellers_product_information_with_all_specifications():
             pass
 
-        @self.app.route('export_all_sellers_products_with_all_specifications:',methods=['GET','POST'])
+        @self.app.route('/export_all_sellers_products_with_all_specifications:',methods=['GET','POST'])
         def export_all_sellers_products_with_all_specifications():
             pass
 
-        @self.app.route('export_all_table_data::',methods=['GET','POST'])
+        @self.app.route('/export_all_table_data::',methods=['GET','POST'])
         def export_all_tables_data():
             pass
 
