@@ -84,7 +84,7 @@ class DigiKalaScraper:
 
     def check_crawl_url(self, mode, input_url):
         patterns = {
-            'SingleProductCrawlMode': (r'^https://www\.digikala\.com/product/dkp-\d+?/$', 'The URL does not belong to any product. Please check it and try again.'),
+            'SingleProductCrawlMode': (r'^https://www\.digikala\.com/product/dkp-\d+/?$', 'The URL does not belong to any product. Please check it and try again.'),
             'SingleSellerCrawlMode': (r'^https://www\.digikala\.com/seller/[A-Za-z0-9]+/?$', 'The URL does not belong to any seller. Please check it and try again.'),
             'CategoryCrawlMode': (r'search/\?q=|/category-|/search/', 'The category URL is incorrect. Please try again.')
         }

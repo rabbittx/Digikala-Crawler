@@ -106,7 +106,7 @@ class WebGUIApp:
         @self.app.route('/single_prdoucts',methods=['POST'])
         def single_seller_prdoucts():
             if request.method == "POST" :
-                single_url = request.form.get('single_product_url')
+                single_url = request.form.get('single_product_url').strip()
                 self.log.info(single_url)
 
                 crawl_setting = self.scraper.check_crawl_url(mode='SingleProductCrawlMode',input_url=single_url)
