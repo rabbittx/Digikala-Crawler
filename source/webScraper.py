@@ -5,13 +5,17 @@ from source.driver_manager import DriverManager
 from source.db_handler import DataBaseHandler
 from source.product_details_extractor import ProductDetailsExtractor
 import os
-from source.config import ConsoleConfigManager
+from source.config import ConsoleConfigManager ,WebConfigManager
 
 class DigiKalaScraper:
     def __init__(self, config_file_path, log):
         self.logger = log
         self.config_file_path = config_file_path
-        self.config_manager = ConsoleConfigManager(log=self.logger,config_file=self.config_file_path)
+        if 'console' in self.config_file_path :
+            self.config_manager = ConsoleConfigManager(log=self.logger,config_file=self.config_file_path)
+        elif 'web' in self.config_file_path :
+            self.config_manager = WebConfigManager(log=self.logger,config_file=self.config_file_path)
+
         self._initialize_settings()
         self.db_handler = DataBaseHandler(log=self.logger,db_path=self.config_manager.get_db_path())
         # self.db_handler = db_handler
@@ -51,6 +55,14 @@ class DigiKalaScraper:
                                                                      )
         return self._driver
     
+    def get_sellers(self):
+        row_info = self.db_handler.get_row_info(fields=['seller_id', 'seller_name'], table_name='sellers',condition=None,return_as_list=False)
+        if len(row_info) == 0 :
+            self.logger.warning("[!] Warning: There are no sellers in the database.")
+            return None
+        else :
+            return row_info
+
     def show_sllers(self):
         """
          This function will show all sellers that are available on database.

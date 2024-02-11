@@ -107,4 +107,23 @@ $("#category_form").submit(function(e){
         }
     });
 });
+
+$("#single_product_form").submit(function(e){
+    e.preventDefault(); // جلوگیری از ارسال معمولی فرم
+    $.ajax({
+        type: "POST",
+        url: "/single_prdoucts",
+        data: $(this).serialize(), // ارسال داده‌های فرم
+        success: function(response){
+            if(response.status === "succsue"){
+                $("#single_product_submit").prop('disabled', true); // غیرفعال کردن دکمه
+                alert(response.message); // نمایش پیام موفقیت
+            } else {
+                alert(response.message); // نمایش پیام خطا
+            }
+        }
+    });
+});
+
+
 });

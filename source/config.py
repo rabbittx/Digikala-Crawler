@@ -119,7 +119,7 @@ class ConsoleConfigManager:
 
 
 class WebConfigManager:
-    def __init__(self,log, config_file='web_config.ini'):
+    def __init__(self, log, config_file='web_config.ini'):
         self.log = log
         self.config_file = config_file
         self.config = configparser.ConfigParser()
@@ -128,13 +128,12 @@ class WebConfigManager:
     def load_config(self):
         """Load configuration from file, create with defaults if not exist."""
         if not os.path.exists(self.config_file):
-            self.log.info('[+] config not found ready to create ... ')
+            self.log.info('[+] Config not found, ready to create...')
             self._create_default_config()
-            self.log.info('[+] config created successfully')
+            self.log.info('[+] Config created successfully.')
         else:
             self.config.read(self.config_file)
-            self.log.info('[+] config found successfully')
-
+            self.log.info('[+] Config loaded successfully.')
 
     def _create_default_config(self):
         """Create a default configuration file with initial settings."""
@@ -143,15 +142,19 @@ class WebConfigManager:
             'HeadlessMode': 'False'  
         }
         self.config['Paths'] = {
-            'GeckoPath': r'',  # Empty by default
-            'DBPath': r'archive\dataBase\digikala_database.db'  # Empty by default
+            'GeckoPath': '',  # Empty by default
+            'DBPath': 'archive/dataBase/digikala_database.db'  # Example path
         }
         self.save_config()
-        self.log.info('[+] config saved successfully')
+        self.log.info('[+] Config saved successfully.')
 
     def get_setting(self, section, setting):
         """Retrieve a specific setting from config."""
-        return self.config.get(section, setting)
+        try:
+            return self.config.get(section, setting)
+        except (configparser.NoSectionError, configparser.NoOptionError) as e:
+            self.log.error(f"Error retrieving setting: {e}")
+            return None
 
     def set_setting(self, section, setting, value):
         """Set a specific setting in config."""
@@ -164,21 +167,25 @@ class WebConfigManager:
         """Write the current configuration to file."""
         with open(self.config_file, 'w') as configfile:
             self.config.write(configfile)
+        self.log.info('[+] Config saved.')
 
     def get_driver_type(self):
         return self.get_setting('Setting', 'Drivertype')
+    
     def set_driver_type(self, driver_type):
         self.set_setting('Setting', 'Drivertype', driver_type)
     
     def get_db_path(self):
-        return self.get_setting('Paths', 'dbpath')
+        return self.get_setting('Paths', 'DBPath')
     
-    def get_db_path(self, driver_type):
-        self.set_setting('Paths', 'dbpath', driver_type)
-
-
     def get_headless_mode(self):
         return self.config.getboolean('Setting', 'HeadlessMode')
     
     def set_headless_mode(self, headless):
         self.set_setting('Setting', 'HeadlessMode', str(headless).lower())
+
+    def get_gecko_path(self):
+        return self.get_setting('Paths', 'GeckoPath')
+    
+    def set_gecko_path(self, path):
+        self.set_setting('Paths', 'GeckoPath', path)

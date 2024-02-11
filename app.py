@@ -10,30 +10,20 @@ import sqlite3
 
 
 class WebGUIApp:
-    def __init__(self  ):
+    def __init__(self, config_file_path):
         self.app = Flask(__name__)
         self.log = web_setup_logger()
-        self.config_manager = WebConfigManager(log=self.log,config_file="web_config.ini")
         self.log.info('hello from init')
+        self.scraper = DigiKalaScraper(log=self.log, config_file_path=config_file_path)
         self.add_routes()
-        self.scraper=DigiKalaScraper(config_file_path=self.config_manager.config_file,log=self.log)        
-        self.db_handler =self.scraper.db_handler
-
-    def get_db_connection(db_path):
-        if 'db_connection' not in g:
-            g.db_connection = sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES)
-        return g.db_connection
-
 
     def add_routes(self):
-
         @self.app.route("/", methods=["GET", "POST"])
         def index():
-            if not self.config_manager.get_setting("Paths", "geckopath"):  
+            if not self.scraper.config_manager.get_setting('Paths', 'GeckoPath'):  # بررسی می‌کند که آیا GeckoPath تنظیم شده است
                 return redirect(url_for('settings'))
             try:
-                # sellers = self.db_handler.get_row_info(fields=['seller_id,seller_name'],table_name='seller_name',condition=None,return_as_list=False)
-                sellers = self.db_handler.get_sellers() if self.db_handler else []
+                sellers = self.scraper.get_sellers() if self.scraper else []
                 return render_template("index.html", sellers=sellers)
             except Exception as e:
                 self.log.error(f"Database error: {e}")
@@ -42,20 +32,25 @@ class WebGUIApp:
         @self.app.route("/settings", methods=["GET", "POST"])
         def settings():
             if request.method == "POST":
+                # دریافت مقادیر فرم و ذخیره‌سازی تنظیمات
                 geko_path = request.form.get('gekoPath')
                 db_path = request.form.get('dbPath')
                 driver_type = request.form.get('driverType')
-                headless_mode = request.form.get('headlessMode', 'off') == 'on'  # Checkbox 'on' if checked, otherwise 'off'
-                self.config_manager.set_setting('Paths', 'GeckoPath', geko_path)
-                self.config_manager.set_setting('Paths', 'DBPath', db_path)
-                self.config_manager.set_setting('Setting', 'DriverType', driver_type)
-                self.config_manager.set_setting('Setting', 'HeadlessMode', str(headless_mode).lower())
-                return redirect(url_for('index'))     
-            geko_path = self.config_manager.get_setting('Paths', 'GeckoPath')
-            db_path = self.config_manager.get_setting('Paths', 'DBPath')
-            driver_type = self.config_manager.get_setting('Setting', 'DriverType')
-            headless_mode = self.config_manager.get_setting('Setting', 'HeadlessMode') == 'true'
-            return render_template('settings.html')
+                headless_mode = request.form.get('headlessMode', 'off') == 'on'  # Checkbox
+                self.scraper.config_manager.set_setting('Paths', 'GeckoPath', geko_path)
+                self.scraper.config_manager.set_setting('Paths', 'DBPath', db_path)
+                self.scraper.config_manager.set_setting('Setting', 'DriverType', driver_type)
+                self.scraper.config_manager.set_setting('Setting', 'HeadlessMode', str(headless_mode).lower())
+                return redirect(url_for('index'))
+            
+            # مقادیر فعلی تنظیمات را برای نمایش در فرم بارگذاری می‌کند
+            geko_path = self.scraper.config_manager.get_setting('Paths', 'GeckoPath')
+            db_path = self.scraper.config_manager.get_setting('Paths', 'DBPath')
+            driver_type = self.scraper.config_manager.get_setting('Setting', 'DriverType')
+            headless_mode = self.scraper.config_manager.get_setting('Setting', 'HeadlessMode') == 'true'
+            
+            # فرض بر این است که شما مقادیر را به عنوان متغیرهای قالب به `settings.html` ارسال می‌کنید
+            return render_template('settings.html', geko_path=geko_path, db_path=db_path, driver_type=driver_type, headless_mode=headless_mode)
                 
         @self.app.route('/get-logs')
         def get_logs():
@@ -113,6 +108,7 @@ class WebGUIApp:
                 if crawl_setting['start_to_crawl'] :
                     self.log.info(crawl_setting['message'])
                     self.crawl_options(mode='SingleProductCrawlMode',input_url=crawl_setting['url'],)
+                    crawl_setting['message'] = 'crawl  completed for this product.'
                     return jsonify({"status": "succsue", "message": crawl_setting['message'], "url": crawl_setting['url']})
                 else:
                     return jsonify({"status": "error", "message": crawl_setting['message'], "url": crawl_setting['url']})
@@ -179,4 +175,5 @@ class WebGUIApp:
 
 if __name__ == "__main__":
     
-    web_app = WebGUIApp().run()
+    web_app = WebGUIApp(config_file_path='web_config0.ini')
+    web_app.run()

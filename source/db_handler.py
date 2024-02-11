@@ -2,7 +2,7 @@ import sqlite3 ,json
 class DataBaseHandler():
     def __init__(self, db_path,log):
         self.db_path = db_path
-        self.conn = sqlite3.connect(self.db_path,timeout=30)
+        self.conn = sqlite3.connect(self.db_path,timeout=30,check_same_thread=False)
         self.cursor = self.conn.cursor()
         self.log = log
 
