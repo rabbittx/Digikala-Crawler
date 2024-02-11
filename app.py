@@ -89,7 +89,7 @@ class WebGUIApp:
         def single_seller_page():
             if request.method == "POST" :
                 single_url = request.form.get('single_seller_products_id')
-
+                self.log.info(single_url,'======================================')
                 crawl_setting = self.scraper.check_crawl_url(mode='SingleSellerProductCrawlMode',input_url=single_url)
                 if crawl_setting['start_to_crawl'] :
                     self.log.info(crawl_setting['message'])
