@@ -54,7 +54,7 @@ class WebGUIApp:
                 logs = file.readlines()[-num_lines:]  
             return ''.join(logs)
           
-        @self.app.route('/start-category-crawl', methods=['POST'])
+        @self.app.route('/start-category-crawl', methods=['GET','POST'])
         def start_category_crawl():
             if request.method == "POST" :
                 category_url = request.form.get('categorycrawl')
@@ -68,30 +68,52 @@ class WebGUIApp:
                 else:
                     return jsonify({"status": "error", "message": crawl_setting['message'], "url": crawl_setting['url']})
    
-        @self.app.route('/export',methods=['POST'])
-        def export_data():
-            if request.method == "POST":
-                db_path = request.form.get('dbPath')
-                driver_type = request.form.get('driverType')   
-
-        @self.app.route('/single_seller',methods=['POST'])
+        
+        @self.app.route('/single_seller',methods=['GET','POST'])
         def single_product_page():
             pass
-        @self.app.route('/single_product',methods=['POST'])
+
+        @self.app.route('/single_product',methods=['GET','POST'])
         def single_seller_page():
             pass
-        @self.app.route('/single_seller_prdoucts',methods=['POST'])
+
+        @self.app.route('/single_seller_prdoucts',methods=['GET','POST'])
         def single_seller_prdoucts():
             pass
-        @self.app.route('/all_products',methods=['POST'])
+        
+        @self.app.route('/all_products',methods=['GET','POST'])
         def crawl_all_products():
             pass
         
         # exports options 
-        
-        
-        # report database option
+        @self.app.route('/export_all_data',methods=['GET','POST'])
+        def export_all_data():
+            pass
 
+        @self.app.route('/export_seller_products_with_id',methods=['GET','POST'])
+        def export_seller_products_with_id():
+            pass
+
+        @self.app.route('export_all_products',methods=['GET','POST'])
+        def export_all_products_csv():
+            pass
+
+        @self.app.route('export_single_sellers_product_information_with_all_specification',methods=['GET','POST'])
+        def export_single_sellers_product_information_with_all_specifications():
+            pass
+
+        @self.app.route('export_all_sellers_products_with_all_specifications:',methods=['GET','POST'])
+        def export_all_sellers_products_with_all_specifications():
+            pass
+
+        @self.app.route('export_all_table_data::',methods=['GET','POST'])
+        def export_all_tables_data():
+            pass
+
+        # report database option
+        @self.app.route("/report", methods = ['GET','POST'])
+        def show_reports():
+            pass
 
     def crawl_options(self,mode,input_url=None,scroll_count=None,seller_info=None):
         crawler_option = {
