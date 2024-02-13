@@ -15,3 +15,4 @@ find_digikala_category.py
 *.png
 *.txt
 *.ini
+__pycache__
