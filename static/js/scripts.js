@@ -89,6 +89,11 @@ function startWebScraping(mode) {
         .then(data => alert(data.message))
         .catch(error => console.error('Error:', error));
     }
+
+
+
+
+
 }
 $(document).ready(function(){
 $("#category_form").submit(function(e){
@@ -127,3 +132,44 @@ $("#single_product_form").submit(function(e){
 
 
 });
+
+
+
+function export_data(mode) {
+    if(mode === 'all_seller') {
+        fetch('/export_all_data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+        })
+        .then(response => response.json())
+        .then(data => alert(data.message))
+        .catch(error => console.error('Error:', error));
+    }
+    else if(mode === 'seller_products') {
+        const seller_info = document.getElementById('seller_products_export').value
+        fetch('/export_seller_products_id', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `seller_products_export=${encodeURIComponent(seller_info)}`
+        })
+        .then(response => response.json())
+        .then(data => alert(data.message))
+        .catch(error => console.error('Error:', error));
+    }
+    else if(mode === 'all_products') {
+        fetch('/export_all_products', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+        })
+        .then(response => response.json())
+        .then(data => alert(data.message))
+        .catch(error => console.error('Error:', error));
+    }
+
+}

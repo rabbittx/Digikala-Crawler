@@ -132,10 +132,3 @@ if __name__ == '__main__' :
     panel = DigikalaScraperConsolePanel(logger=logger,config_file_path=config_file_path)
     panel.run()
 
-
-# BUG -> get_next_id need to be same when data need to replace with historyical table . ( updated need to check ids print(id) added for check ids value )
-# TODO -> all mode name need to get update in all script files .
-# TODO -> check for 404,503 pages and product not available page on open_page()
-# TODO -> regex patterns need to get updated to check if link is valid => eq : link start with https(fixed),url split tokens length etc ...
-# TODO -> befor get page_source in driver_manager need to check if products in loading... with to it get load 
-# TODO -> with full scrolling on seller page get products of 10 page at once need to add for more pages to get all products from seller

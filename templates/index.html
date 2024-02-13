@@ -59,7 +59,7 @@
                <div class="col-12 text-center">
                 <form action="" method="POST" id="single_seller_product_form">
                 <label for="single_seller_products_id">crawl single seller products with all specifications:<br></label>
-                    <select id="single_seller_products_id" name="single_seller_products_id" onchange="changeDriver_type()">
+                    <select id="single_seller_products_id" name="single_seller_products_id">
                         {% for seller_id, seller_name in sellers %}
                         <option dir="ltr" style="font-size: larger; font-weight: 700;" value="{{seller_name}}/{{ seller_id }}">[ {{ seller_name }} ] - [ {{ seller_id }} ]</option>
                         {% endfor %}
@@ -94,24 +94,32 @@
             <hr>
             <div class="row justify-content-center align-items-center g-2 my-3">
                 <div class="col-12 text-center">
+                  <form action="" method="POST" id="export_all_data">
                     <label for="sellers_table" >export all sellers data:</label>
                     <input type="text" id="sellers_table" hidden>
-                    <button type="button"  >export to CSV</button>
+                    <button type="button" id="export_all_seller_data_submit" onclick="export_data('all_seller')" >export to CSV</button>
+                  </form>
                 </div>
                 <div class="col-12 text-center">
-                    <label for="driver-type">export sellers products data with ID(name):<br>
-                        <select id="seller_products" name="seller_products" onchange="changeDriver_type()">
+                  <form action="" method="POST" id="export_seller_products_with_ID">
+                    <label for="seller_products_export">export sellers products data with ID(name):<br></label>
+                        <select id="seller_products_export" name="seller_products_export" onchange="changeDriver_type()">
                             {% for seller_id, seller_name in sellers %}
-                            <option value="{{ seller_id }}">{{ seller_name }} ({{ seller_id }})</option>
+                            <option  value="{{ seller_id }}/{{ seller_name }}">{{ seller_name }} ({{ seller_id }})</option>
                             {% endfor %}
                         </select>
-                    </label>
-                    <button type="button" onclick="startWebScraping('sellers_products')">export to CSV</button>
-                </div>
+                    <!--  -->
+                    <button type="button" onclick="export_data('sellers_products')" id="export_seller_products_with_ID_submit">export to CSV</button>
+  
+                  </form>
+                  </div>
                 <div class="col-12 text-center">
+                  <form action="" method="POST" id="export_all_products_form">
                     <label for="all_seller_products">export all products table:</label>
-                    <button type="button" onclick="startWebScraping('all_seller_products')">export to CSV</button>
+                    <button type="button" id="export_all_products_submit" onclick="export_data('all_products')">export to CSV</button>
+                  </form>
                 </div>
+
                 <div class="col-12 text-center">
                     <label for="driver-type">export single sellers product information with all specification<br>
                         <select id="driver-type" onchange="changeDriver_type()">

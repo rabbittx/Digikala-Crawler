@@ -116,22 +116,43 @@ class WebGUIApp:
         @self.app.route('/all_products',methods=['GET','POST'])
         def crawl_all_products():
             if request.method == "POST" :
-
                 self.crawl_options(mode='AllProductsCrawlMode',)
                 return jsonify({"status": "succsue", "message": 'Strat to crawl all products in database', "url": None})
        
-        # exports options 
-        @self.app.route('/export_all_data',methods=['GET','POST'])
-        def export_all_data():
-            pass
 
-        @self.app.route('/export_seller_products_with_id',methods=['GET','POST'])
+# all_seller
+# seller_products
+            
+# all_products
+# seller_products_with_all_specifications
+# all_products_with_specifications
+# all_data
+        # exports options 
+        @self.app.route('/export_all_data',methods=['POST'])
+        def export_all_data():
+            if request.method == "POST" :
+                self.scraper.export_data_to_csv( 'all_data')
+                return jsonify({"status" : "succsue","message" : "seller data exprot to csv file complated . "})
+            else : 
+                return jsonify({"status" : "error","message" : "erorr to exprot sellers data check logs"})
+            
+        @self.app.route('/export_seller_products_id',methods=['POST'])
         def export_seller_products_with_id():
-            pass
+            if request.method == "POST" :
+                seller_id,seller_name  = request.form.get('single_seller_products_id').split('/')
+                self.log.info(f'{seller_id}/{seller_name}')
+                self.scraper.export_data_to_csv('seller_products_id' ,seller_id=seller_id,seller_name=seller_name)
+                return jsonify({"status": "succsue", "message": "export seller products with id completed"})
+            else :
+                return jsonify({"status": "error", "message": "error to export seller products with id"})
 
         @self.app.route('/export_all_products',methods=['GET','POST'])
         def export_all_products_csv():
-            pass
+            if request.method == "POST" :
+                self.scraper.export_data_to_csv( 'all_products')
+                return jsonify({"status" : "succsue","message" : "seller data exprot to csv file complated . "})
+            else : 
+                return jsonify({"status" : "error","message" : "erorr to exprot sellers data check logs"})
 
         @self.app.route('/export_single_sellers_product_information_with_all_specification',methods=['GET','POST'])
         def export_single_sellers_product_information_with_all_specifications():

@@ -203,14 +203,14 @@ class DigiKalaScraper:
         headers = self.db_handler.get_column_names(table_name)
         self.save_to_csv(data, headers, csv_filename)
 
-    def export_data_to_csv(self, export_mode):
+    def export_data_to_csv(self, export_mode ,seller_id=None,seller_name=None):
 
 
         if not os.path.exists(self.db_path):
             self.logger.error(f'ERROR: Database at {self.db_path} not found. Check database path.')
             return
         
-        if export_mode in ['seller_products','seller_products_with_all_specifications']:
+        if export_mode in ['seller_products','seller_products_with_all_specifications'] and seller_id is None and seller_name is None:
             seller_id, seller_name = self.show_sllers()
 
         mode_actions = {
