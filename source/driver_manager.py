@@ -8,10 +8,6 @@ from typing import Union
 from bs4 import BeautifulSoup
 from selenium.webdriver.firefox.options import Options
 
-# TODO fix chrome driver (work with firefox and chrome)  
-# TODO fix page error  when there is no more pages to load (check if alert with massage  "خطا در برقراری سرور" exist or not)
-# TODO add more options for user to choose browser, proxy type etc... 
-# TODO optimize code.
 class DriverManager:
     def __init__(self, driver_path,log,headless_mode,driver_type):
         self.log = log
@@ -179,8 +175,7 @@ class DriverManager:
         """
         total_height = self.driver.execute_script("return document.body.scrollHeight")
         self.driver.execute_script(f"window.scrollTo(0, {total_height});")   
-        time.sleep(5)  # از WebDriverWait() استفاده کنید به جای time.sleep() برای انتظار برای لود شدن المان‌ها
-
+        time.sleep(5)  
     def scroll_to_top(self):
         """
         Method to scroll to top of the page
@@ -210,15 +205,14 @@ class DriverManager:
                 self.scroll_down()
                 self.scroll_to_top()
                 self.log.info('[+] Page scrolling... ')
-                time.sleep(1)  # بهتر است از WebDriverWait() استفاده کنید
-                
+                time.sleep(1) 
                 last_product_count = current_product_count
         elif isinstance(scroll_count, int):
             for _ in range(scroll_count):
                 self.scroll_down()
-                self.scroll_to_top()  # اسکرول به بالای صفحه برای ادامه اسکرول به پایین
+                self.scroll_to_top()  
                 self.log.info('[+] page scrolling... ')
-                time.sleep(1)  # بهتر است از WebDriverWait() استفاده کنید
+                time.sleep(1)  
             self.log.info('[+] page scrolling successfully ')
         else:
             raise ValueError("Invalid input. scroll_count must be an [integer] or [True] value.")

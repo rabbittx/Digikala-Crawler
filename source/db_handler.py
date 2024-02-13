@@ -166,7 +166,6 @@ class DataBaseHandler():
     def get_next_id(self, table_name,fields_id,id_name):
         """Get the next id for auto increment in SQLite"""
         query = f'SELECT id FROM {table_name} WHERE {id_name} ="{fields_id}"'
-        print(f'----------------------{query}-------------------------')
         self.cursor.execute(query)
         result = self.cursor.fetchone()
         if result is not None:
@@ -206,11 +205,9 @@ class DataBaseHandler():
      
     
     def get_connection(self):
-        """ایجاد ارتباط جدید به دیتابیس."""
         return sqlite3.connect(self.db_path)
 
     def get_sellers(self):
-        """بازیابی فهرست فروشندگان از دیتابیس."""
         conn = self.get_connection()
         try:
             cursor = conn.cursor()

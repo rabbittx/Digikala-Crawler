@@ -1,11 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for ,jsonify ,g
-# فرض می‌شود که WebConfigManager، setup_logger، و DataBaseHandler به درستی پیاده‌سازی شده‌اند
-from source.config import WebConfigManager
+from flask import Flask, render_template, request, redirect, url_for ,jsonify 
 from source.logger import web_setup_logger
-from source.db_handler import DataBaseHandler
 from source.webScraper import DigiKalaScraper
-import sys
-import sqlite3
+
 
 
 
@@ -20,7 +16,7 @@ class WebGUIApp:
     def add_routes(self):
         @self.app.route("/", methods=["GET", "POST"])
         def index():
-            if not self.scraper.config_manager.get_setting('Paths', 'GeckoPath'):  # بررسی می‌کند که آیا GeckoPath تنظیم شده است
+            if not self.scraper.config_manager.get_setting('Paths', 'GeckoPath'):  
                 return redirect(url_for('settings'))
             try:
                 sellers = self.scraper.get_sellers() if self.scraper else []
@@ -32,7 +28,6 @@ class WebGUIApp:
         @self.app.route("/settings", methods=["GET", "POST"])
         def settings():
             if request.method == "POST":
-                # دریافت مقادیر فرم و ذخیره‌سازی تنظیمات
                 geko_path = request.form.get('gekoPath')
                 db_path = request.form.get('dbPath')
                 driver_type = request.form.get('driverType')
@@ -43,13 +38,11 @@ class WebGUIApp:
                 self.scraper.config_manager.set_setting('Setting', 'HeadlessMode', str(headless_mode).lower())
                 return redirect(url_for('index'))
             
-            # مقادیر فعلی تنظیمات را برای نمایش در فرم بارگذاری می‌کند
             geko_path = self.scraper.config_manager.get_setting('Paths', 'GeckoPath')
             db_path = self.scraper.config_manager.get_setting('Paths', 'DBPath')
             driver_type = self.scraper.config_manager.get_setting('Setting', 'DriverType')
             headless_mode = self.scraper.config_manager.get_setting('Setting', 'HeadlessMode') == 'true'
             
-            # فرض بر این است که شما مقادیر را به عنوان متغیرهای قالب به `settings.html` ارسال می‌کنید
             return render_template('settings.html', geko_path=geko_path, db_path=db_path, driver_type=driver_type, headless_mode=headless_mode)
                 
         @self.app.route('/get-logs')
@@ -119,14 +112,6 @@ class WebGUIApp:
                 self.crawl_options(mode='AllProductsCrawlMode',)
                 return jsonify({"status": "succsue", "message": 'Strat to crawl all products in database', "url": None})
        
-
-# all_seller
-# seller_products
-            
-# all_products
-# seller_products_with_all_specifications
-# all_products_with_specifications
-# all_data
         # exports options 
         @self.app.route('/export_all_data',methods=['POST'])
         def export_all_data():

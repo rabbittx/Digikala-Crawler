@@ -1,4 +1,4 @@
-from time import gmtime, strftime ,sleep
+from time import gmtime, strftime 
 class SellerProductDataExtractor:
     """
      This class is used to extract the required data for a seller product listing.

@@ -1,6 +1,4 @@
 env
-venv
-old_files
 *.exe
 __pycache__
 *.log
@@ -15,4 +13,3 @@ find_digikala_category.py
 *.png
 *.txt
 *.ini
-__pycache__

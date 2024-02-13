@@ -2,9 +2,7 @@ import configparser
 import os
 
 class ConsoleConfigManager:
-    # TODO add more setting 
-    # TODO add config
-    # TODO optimize code 
+
     """
      config  manager class to handle the configuration file.
     

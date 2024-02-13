@@ -97,32 +97,32 @@ function startWebScraping(mode) {
 }
 $(document).ready(function(){
 $("#category_form").submit(function(e){
-    e.preventDefault(); // جلوگیری از ارسال معمولی فرم
+    e.preventDefault(); 
     $.ajax({
         type: "POST",
         url: "/start-category-crawl",
-        data: $(this).serialize(), // ارسال داده‌های فرم
+        data: $(this).serialize(), 
         success: function(response){
             if(response.status === "succsue"){
-                $("#category_submit").prop('disabled', true); // غیرفعال کردن دکمه
-                alert(response.message); // نمایش پیام موفقیت
+                $("#category_submit").prop('disabled', true);
+                alert(response.message);
             } else {
-                alert(response.message); // نمایش پیام خطا
+                alert(response.message); 
             }
         }
     });
 });
 
 $("#single_product_form").submit(function(e){
-    e.preventDefault(); // جلوگیری از ارسال معمولی فرم
+    e.preventDefault(); 
     $.ajax({
         type: "POST",
         url: "/single_prdoucts",
-        data: $(this).serialize(), // ارسال داده‌های فرم
+        data: $(this).serialize(), 
         success: function(response){
             if(response.status === "succsue"){
-                $("#single_product_submit").prop('disabled', true); // غیرفعال کردن دکمه
-                alert(response.message); // نمایش پیام موفقیت
+                $("#single_product_submit").prop('disabled', true); 
+                alert(response.message); 
             } else {
                 alert(response.message); 
             }
@@ -132,9 +132,6 @@ $("#single_product_form").submit(function(e){
 
 
 });
-
-
-
 function export_data(mode) {
     if(mode === 'all_seller') {
         fetch('/export_all_data', {

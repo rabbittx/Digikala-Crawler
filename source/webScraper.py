@@ -1,10 +1,8 @@
 from source.seller_product_data_extractor import SellerProductDataExtractor
 import csv  , os ,re
-from source.logger import setup_logger
 from source.driver_manager import DriverManager
 from source.db_handler import DataBaseHandler
 from source.product_details_extractor import ProductDetailsExtractor
-import os
 from source.config import ConsoleConfigManager ,WebConfigManager
 
 class DigiKalaScraper:
@@ -18,7 +16,6 @@ class DigiKalaScraper:
 
         self._initialize_settings()
         self.db_handler = DataBaseHandler(log=self.logger,db_path=self.config_manager.get_db_path())
-        # self.db_handler = db_handler
         self.db_handler.create_tables()        
 
     def _initialize_settings(self):
@@ -92,16 +89,12 @@ class DigiKalaScraper:
                 self.logger.error('[!] Error: Invalid input , please try again with number.')
         return row_info[int(user_pick)]
 
-
-
     def check_crawl_url(self, mode, input_url):
         patterns = {
             'SingleProductCrawlMode': (r'^https://www\.digikala\.com/product/dkp-\d+/?$', 'The URL does not belong to any product. Please check it and try again.'),
             'SingleSellerCrawlMode': (r'^https://www\.digikala\.com/seller/[A-Za-z0-9]+/?$', 'The URL does not belong to any seller. Please check it and try again.'),
             'CategoryCrawlMode': (r'search/\?q=|/category-|/search/', 'The category URL is incorrect. Please try again.')
         }
-
-
 
         check_data = {
             "crawl_mode": mode,

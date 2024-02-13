@@ -70,7 +70,7 @@ Clone the project from its repository (assuming the project is in a Git reposito
 
 ```bash
 
-git clone https://github.com/rabbittx/Digikala-Explorer
+git clone https://github.com/rabbittx/Digikala-Explorer.git
 cd DIGIKALA
 ```
 Step 3: Create a Virtual Environment
