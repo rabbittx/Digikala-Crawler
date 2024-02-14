@@ -72,7 +72,7 @@ python --version
 پروژه را از مخزن مربوطه کلون کنید (فرض بر این است که پروژه در یک مخزن گیت قرار دارد):
 ```bash 
 git clone https://github.com/rabbittx/Digikala-Explorer.git
-cd DIGIKALA
+cd Digikala-Explorer
 ```
 گام 3: ایجاد محیط مجازی
 

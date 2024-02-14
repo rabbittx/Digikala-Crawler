@@ -106,6 +106,7 @@
                   </form>
                   </div>
                 <div class="col-12 text-center">
+
                   <form action="" method="POST" id="export_all_products_form">
                     <label for="all_seller_products">export all products table:</label>
                     <button type="button" id="export_all_products_submit" onclick="export_data('all_products')">export to CSV</button>
@@ -113,18 +114,22 @@
                 </div>
 
                 <div class="col-12 text-center">
-                    <label for="driver-type">export single sellers product information with all specification<br>
-                        <select id="driver-type" onchange="changeDriver_type()">
-                            <option value="seller ID 1">seller ID 1 (seller name)</option>
-                            <option value="seller ID 2">seller ID 2 (seller name)</option>
+                  <form action="" method="POST" id="seller_products_specification_id_form">
+                    <label for="seller_products_specification_id" >export single sellers product information with all specification<br></label>
+                        <select id="seller_products_specification_id" >
+                          {% for seller_id, seller_name in sellers %}
+                          <option  value="{{ seller_id }}/{{ seller_name }}">{{ seller_name }} ({{ seller_id }})</option>
+                          {% endfor %}
                         </select>
-                    </label>
-                    <button type="button" onclick="startWebScraping('single_sellers_product_specification')">export to CSV</button>
+                    <button type="button" onclick="export_data('single_sellers_product_specification')" id="seller_products_specification_id_submit">export to CSV</button>
+                  </form>
                 </div>
                 <div class="col-12 text-center">
+                  <form action="" method="POST" id="all_products_specification_form">
                     <label for="all_sellers_products_specification">export all sellers products with all specifications:</label>
-                    <button type="button" onclick="startWebScraping('all_sellers_products_specification')">export to CSV</button>
-                </div>
+                    <button type="button" id='all_sellers_products_specification' onclick="startWebScraping('all_products_with_specifications')">export to CSV</button>
+                  </form>
+                  </div>
                 <div class="col-12 text-center">
                     <label for="all_table_data">export all table data:</label>
                     <button type="button" onclick="startWebScraping('all_table_data')">export to CSV</button>
@@ -140,8 +145,10 @@
 
         <!-- dataBase Report  -->
         <div class="col text-center">
+          <form action="" id="data_report">
           <label for="dataBase_report">database report  table:</label>
-          <button type="button" onclick="startWebScraping('dataBase_report')">report</button>
+          <button type="button" id="data_report_submit">report</button>
+          </form>
           <ul class="database_report_info">
               <li class="info_report" id="seller_count">{{seller_count}} sellers in the table.</li>
               <li class="info_report" id="product_count">{{product_count}} products in the table.</li>

@@ -113,10 +113,10 @@ class WebGUIApp:
                 return jsonify({"status": "succsue", "message": 'Strat to crawl all products in database', "url": None})
        
         # exports options 
-        @self.app.route('/export_all_data',methods=['POST'])
+        @self.app.route('/export_all_seller_data',methods=['POST'])
         def export_all_data():
             if request.method == "POST" :
-                self.scraper.export_data_to_csv( 'all_data')
+                self.scraper.export_data_to_csv( 'all_seller')
                 return jsonify({"status" : "succsue","message" : "seller data exprot to csv file complated . "})
             else : 
                 return jsonify({"status" : "error","message" : "erorr to exprot sellers data check logs"})
@@ -141,20 +141,45 @@ class WebGUIApp:
 
         @self.app.route('/export_single_sellers_product_information_with_all_specification',methods=['GET','POST'])
         def export_single_sellers_product_information_with_all_specifications():
-            pass
+            if request.method == "POST" :
+                seller_id,seller_name  = request.form.get('seller_products_specification_id').split('/')
+                self.log.info(f'{seller_id}/{seller_name}')
+                self.scraper.export_data_to_csv('seller_products_with_all_specifications' ,seller_id=seller_id,seller_name=seller_name)
+                return jsonify({"status": "succsue", "message": "export seller products with id completed"})
+            else :
+                return jsonify({"status": "error", "message": "error to export seller products with id"})
 
         @self.app.route('/export_all_sellers_products_with_all_specifications:',methods=['GET','POST'])
         def export_all_sellers_products_with_all_specifications():
-            pass
+            if request.method == "POST" :
+                self.scraper.export_data_to_csv('all_products_with_specifications' )
+                return jsonify({"status": "succsue", "message": "export seller products with id completed"})
+            else :
+                return jsonify({"status": "error", "message": "error to export seller products with id"})
 
-        @self.app.route('/export_all_table_data::',methods=['GET','POST'])
+        @self.app.route('/export_all_table_data',methods=['GET','POST'])
         def export_all_tables_data():
-            pass
+            if request.method == "POST" :
+                self.scraper.export_data_to_csv('all_products_with_specifications' )
+                return jsonify({"status": "succsue", "message": "export seller products with id completed"})
+            else :
+                return jsonify({"status": "error", "message": "error to export seller products with id"})
 
         # report database option
         @self.app.route("/report", methods = ['GET','POST'])
         def show_reports():
-            pass
+            if request.method == 'POST' :
+                reports = self.scraper.database_report()
+                message = f"""
+                            seller  => {reports['seller_count']} records found ,
+                            product  => {reports['product_count']} records found ,
+                            products_extrection  => {reports['products_extrection_count']} records found ,
+                            seller_historical  => {reports['seller_historical_count']} records found ,
+                            products_historical  => {reports['products_historical_count']} records found ,
+                            products_extrection_historical  => {reports['products_extrection_historical_count']} records found ,
+
+                         """
+                return jsonify({"status": "succsue", "message": message})
 
     def crawl_options(self,mode,input_url=None,scroll_count=None,seller_info=None):
         crawler_option = {

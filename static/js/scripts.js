@@ -134,7 +134,7 @@ $("#single_product_form").submit(function(e){
 });
 function export_data(mode) {
     if(mode === 'all_seller') {
-        fetch('/export_all_data', {
+        fetch('/export_all_seller_data', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -168,5 +168,60 @@ function export_data(mode) {
         .then(data => alert(data.message))
         .catch(error => console.error('Error:', error));
     }
+    else if(mode === 'seller_products_with_all_specifications') {
+        const seller_info = document.getElementById('seller_products_specification_id').value;
+        fetch('/export_single_sellers_product_information_with_all_specification', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `seller_products_specification_id=${encodeURIComponent(seller_info)}`
 
+        })
+        .then(response => response.json())
+        .then(data => alert(data.message))
+        .catch(error => console.error('Error:', error));
+    }
+
+    else if(mode === 'all_products_with_specifications') {
+        fetch('/export_all_sellers_products_with_all_specifications', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+
+        })
+        .then(response => response.json())
+        .then(data => alert(data.message))
+        .catch(error => console.error('Error:', error));
+    }
+    else if(mode === 'all_data') {
+        fetch('/export_all_table_data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+
+        })
+        .then(response => response.json())
+        .then(data => alert(data.message))
+        .catch(error => console.error('Error:', error));
+    }
+
+
+}
+
+
+function data_reposts() {
+    
+        fetch('/report', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+        })
+        .then(response => response.json())
+        .then(data => alert(data.message))
+        .catch(error => console.error('Error:', error));
+ 
 }
