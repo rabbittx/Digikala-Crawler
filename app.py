@@ -191,6 +191,7 @@ class WebGUIApp:
                             products_extrection_historical  => {reports['products_extrection_historical_count']} records found ,
 
                          """
+                self.log.info(message)
                 return jsonify({"status": "succsue", "message": message})
 
     def crawl_options(self,mode,input_url=None,scroll_count=None,seller_info=None):
