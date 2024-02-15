@@ -212,17 +212,26 @@ function export_data(mode) {
 
 }
 
-
-function data_reposts() {
-    
-        fetch('/report', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-        })
-        .then(response => response.json())
-        .then(data => alert(data.message))
-        .catch(error => console.error('Error:', error));
- 
+function data_reports() {
+    fetch('/report', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.status === "success") {
+            // نمایش داده‌ها در المان‌های صفحه
+            document.getElementById("seller_count").textContent = `${data.data.seller_count} sellers in the table.`;
+            document.getElementById("product_count").textContent = `${data.data.product_count} products in the table.`;
+            document.getElementById("products_extrection_count").textContent = `${data.data.products_extrection_count} products with all specifications in the table.`;
+            document.getElementById("seller_historical_count").textContent = `${data.data.seller_historical_count} historical sellers in the table.`;
+            document.getElementById("products_historical_count").textContent = `${data.data.products_historical_count} historical products in the table.`;
+            document.getElementById("products_extrection_historical_count").textContent = `${data.data.products_extrection_historical_count} products with all specifications in the historical table.`;
+        } else {
+            console.error('Error:', data.message);
+        }
+    })
+    .catch(error => console.error('Error:', error));
 }

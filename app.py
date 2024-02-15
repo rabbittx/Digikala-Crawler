@@ -66,9 +66,9 @@ class WebGUIApp:
                 if crawl_setting['start_to_crawl'] :
                     self.log.info(crawl_setting['message'])
                     self.crawl_options(mode='CategoryCrawlMode',input_url=crawl_setting['url'],scroll_count=int(category_scroll_count))
-                    return jsonify({"status": "succsue", "message": crawl_setting['message'], "url": crawl_setting['url']})
+                    return jsonify({"status": "succsue", "message": 'crawl category complated', "url": crawl_setting['url']})
                 else:
-                    return jsonify({"status": "error", "message": crawl_setting['message'], "url": crawl_setting['url']})
+                    return jsonify({"status": "error", "message": '[!] ERROR to crawl category ... ! ', "url": crawl_setting['url']})
    
         
         @self.app.route('/start_single_seller',methods=['GET','POST'])
@@ -81,9 +81,9 @@ class WebGUIApp:
                 if crawl_setting['start_to_crawl'] :
                     self.log.info(crawl_setting['message'])
                     self.crawl_options(mode='SingleSellerCrawlMode',input_url=crawl_setting['url'],)
-                    return jsonify({"status": "succsue", "message": crawl_setting['message'], "url": crawl_setting['url']})
+                    return jsonify({"status": "succsue", "message": 'crawl single seller complated', "url": crawl_setting['url']})
                 else:
-                    return jsonify({"status": "error", "message": crawl_setting['message'], "url": crawl_setting['url']})
+                    return jsonify({"status": "error", "message": '[!] ERROR crawl single seller', "url": crawl_setting['url']})
 
 
         @self.app.route('/start_single_product',methods=['POST'])
@@ -93,7 +93,7 @@ class WebGUIApp:
                 message = f'{seller_name,seller_id} is being processed...'
                 self.log.info(message)
                 self.crawl_options(mode='SingleSellerProductCrawlMode', input_url=None, scroll_count=None, seller_info=(seller_name,seller_id))
-                return jsonify({"status": "succsue", "message": message, "url": None, 'seller_info' : (seller_name,seller_id)})
+                return jsonify({"status": "succsue", "message": 'crawl single seller products complated', "url": None, 'seller_info' : (seller_name,seller_id)})
 
 
         @self.app.route('/single_prdoucts',methods=['POST'])
@@ -107,15 +107,15 @@ class WebGUIApp:
                     self.log.info(crawl_setting['message'])
                     self.crawl_options(mode='SingleProductCrawlMode',input_url=crawl_setting['url'],)
                     crawl_setting['message'] = 'crawl  completed for this product.'
-                    return jsonify({"status": "succsue", "message": crawl_setting['message'], "url": crawl_setting['url']})
+                    return jsonify({"status": "succsue", "message": 'crawl single  products complated', "url": crawl_setting['url']})
                 else:
-                    return jsonify({"status": "error", "message": crawl_setting['message'], "url": crawl_setting['url']})
+                    return jsonify({"status": "error", "message": '[!] ERROR - crawl single products complated', "url": crawl_setting['url']})
 
         @self.app.route('/all_products',methods=['GET','POST'])
         def crawl_all_products():
             if request.method == "POST" :
                 self.crawl_options(mode='AllProductsCrawlMode',)
-                return jsonify({"status": "succsue", "message": 'Strat to crawl all products in database', "url": None})
+                return jsonify({"status": "succsue", "message": 'crawl all products in database complated', "url": None})
        
         # exports options 
         @self.app.route('/export_all_seller_data',methods=['POST'])
@@ -125,7 +125,7 @@ class WebGUIApp:
                 self.scraper.export_data_to_csv( 'all_seller')
                 return jsonify({"status" : "succsue","message" : "seller data exprot to csv file complated . "})
             else : 
-                return jsonify({"status" : "error","message" : "erorr to exprot sellers data"})
+                return jsonify({"status" : "error","message" : "[!] ERROR to exprot sellers data"})
             
         @self.app.route('/export_seller_products_id', methods=['POST'])
         def export_seller_products_with_id():
@@ -178,22 +178,14 @@ class WebGUIApp:
                 return jsonify({"status": "error", "message": "error to export all data ."})
 
         # report database option
-        @self.app.route("/report", methods = ['GET','POST'])
+        @self.app.route("/report", methods=['GET','POST'])
         def show_reports():
-            if request.method == 'POST' :
+            if request.method == 'POST':
                 reports = self.scraper.database_report()
-                message = f"""
-                            seller  => {reports['seller_count']} records found ,
-                            product  => {reports['product_count']} records found ,
-                            products_extrection  => {reports['products_extrection_count']} records found ,
-                            seller_historical  => {reports['seller_historical_count']} records found ,
-                            products_historical  => {reports['products_historical_count']} records found ,
-                            products_extrection_historical  => {reports['products_extrection_historical_count']} records found ,
+                # ارسال داده‌ها به صورت JSON
+                return jsonify({"status": "success", "data": reports})
 
-                         """
-                self.log.info(message)
-                return jsonify({"status": "succsue", "message": message})
-
+            
     def crawl_options(self,mode,input_url=None,scroll_count=None,seller_info=None):
         crawler_option = {
                             'CategoryCrawlMode': lambda: self.scraper.execute_crawl(mode=mode, input_url=input_url, scroll_count=scroll_count, seller_info=seller_info),

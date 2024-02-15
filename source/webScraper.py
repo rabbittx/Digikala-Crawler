@@ -162,7 +162,7 @@ class DigiKalaScraper:
             self.initialize_crawl_for_products(available_products)
 
         elif crawl_settings['mode'] == 'SingleSellerCrawlMode':
-            self.logger.info(f'Crawling Category !!!....')    
+            self.logger.info(f'start to crawl for single seller ...')    
             self.webscraper.check_seller(crawl_settings['url'])
             self.logger.info("Data extraction for the specified seller has been completed successfully.")
             
