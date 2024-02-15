@@ -562,11 +562,4 @@ class ProductDetailsExtractor:
         ids = url.split('/')[4]
         self.page_extraction(ids,url)
         
-    # TODO :
-    # Currently, 20 items are received in reviews and questions. To get more items, if available, 
-            # get first page items click on the next page button get source and add it to temp in loop  
-                # source_code = driver.source_code ->
-                  # get_next_review/question_button ->
-                    # click on button -> 
-                      # source_code += driver.source_code ->
-                        # send for extraction
+

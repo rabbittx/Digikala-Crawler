@@ -15,10 +15,10 @@
             <hr>
             <form action="{{ url_for('settings') }}" method="post">
                 <label for="gekoPath">GekoDriver Path:</label>
-                <input type="text" id="gekoPath" name="gekoPath" value="" required>
+                <input type="text" id="gekoPath" name="gekoPath" value="" placeholder="archive\gekcodrive\firefox\geckodriver.exe" required>
                 
                 <label for="dbPath">DataBase Path:</label>
-                <input type="text" id="dbPath" name="dbPath" value="" required>
+                <input type="text" id="dbPath" name="dbPath" value="" placeholder="archive\dataBase\digikala_database.db" required>
                 
                 <label for="driverType">Driver Type:</label>
                 <select id="driverType" name="driverType">

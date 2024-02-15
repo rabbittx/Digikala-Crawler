@@ -119,10 +119,15 @@ pip install -r requirements.txt
 - archive\gekcodrive\chorme\chromedriver.exe
 
 گام 7: اجرای پروژه
+برای استفاده از این پروژه میتوانید از پنل کنسول یا پنل وب استفاده کنید 
 
 اسکریپت پنل را برای شروع پروژه اجرا کنید 
 ```bash
 python console_panel.py
+```
+برا استفاده از رابط کاربری تحت وب از پنل وب را اجرا کنید 
+```bash 
+python app.py
 ```
 گام 8 : استفاده از پروژه 
 
@@ -141,6 +146,25 @@ python console_panel.py
 - ورژن وب درایور باید با ورژن مرورگر شما  مطابق باشد در غیر این صورت با خطا مواجه می شوید 
 - برای جلو گیری از افزایش بار اضافه بر روی سرور های دیجی کلا زمان بندی های در نظر گرفته شده است الطفا انها را حذف نکنید یا کاهش ندهید 
 - لطفا از اجرای هم زمان چند اسکریپت برای سرعت بخشیدن به استخراج خود خوداری کنید 
+
+
+## ذخیره سازی اطلاعات 
+برای ذخیره سازی اطلاعات استخراج شده توسط این پروژه از sqlite3 استفاده می شود 
+دیتابیس ساخته شده در این پروژه شامل ۳ تبل می باشد که اطلاعات را در حالت های مخطلف استخراج ذخیره سازی میکند 
+# tables 
+ - sellers : `id`,`seller_id`,`crawl_date`,`seller_name`,`membership_period`,`satisfaction_with_goods`,`seller_performance`,`people_have_given_points`,`timely_supply`,`obligation_to_send`,`no_return`,`introduction_of_the_seller`
+  
+ - products : `id`,`product_id`,`seller_id`,`crawl_date`,`seller_name`,`product_link`,`product_image`,`product_rate`,`product_name`,`product_price`,`product_price_discount_percent`,`product_price_discount`,`product_special_sale`,`stock`
+  
+ - products_extraction :`id`,`crawl_date`,`product_id`,`seller_id`,`seller_name`,`categories`,`product_link`,`product_title`,`product_main_title`,`user_review`,`insurer`,`Insurance_discount_percent`,`Insurance_price_before_discount`,`Insurance_final_price`,`Other_sellers_for_this_product`,`satisfaction_with_the_product`,`warranty`,`digiclub_points`,`discount_percent`,`price_before_discount`,`final_price`,`product_stock`,`product_image`,`other_seller{other seller info}`,`similar_products{products info}`,`related_videos`,`introduction_box`,`expert_check`,`specifications_box`,`reviews`,`question_box`,`also_bought_items{product info}`,`seller_offer`
+  
+همچنین در این پروژه تغییرات اطلاعات فروشندگان محصولاتشان و یا جزعیات محصول در نظر گرفته شده است و زمانی که فیلدی در دیتابیس موجود باشد و اطلاعات استخراج شده جدید تفاوت داشته باشد اطلاعات موجود در دیتابیس به تیبل های تاریخچه منتقل و اطلاعات استخراج شده جدید جایگزین انها می شود 
+# historcial tables 
+ - sellers_history : فیلد های قبلی + ایدی تاریخچه
+ - products_history : فیلد های قبلی + ایدی تاریخچه
+ - products_extraction_history : فیلد های قبلی + ایدی تاریخچه
+
+
 ## آینده پروژه
 
 ### قابلیت‌های برنامه

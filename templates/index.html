@@ -63,7 +63,6 @@
               </form>
               </div>
 
-
                <div class="col-12 text-center">
                   <form action="" method="POST" id="single_product_form">
                       <label for="single_product_url">crawl single product with all specifications:</label>
@@ -149,35 +148,20 @@
         <!-- dataBase Report  -->
         <div class="col text-center">
           <form action="" id="data_report">
-          <label for="dataBase_report">database report  table:</label>
-<button type="button" id="data_report_submit" onclick="data_reports()">report</button>
-          <ul class="database_report_info">
-              <li class="info_report" id="seller_count">{{seller_count}} sellers in the table.</li>
-              <li class="info_report" id="product_count">{{product_count}} products in the table.</li>
-              <li class="info_report" id="products_extrection_count">{{products_extrection_count}} products with all specifications in the table.</li>
-              <li class="info_report" id="seller_historical_count">{{seller_historical_count}} historical sellers in the table.</li>
-              <li class="info_report" id="products_historical_count">{{products_historical_count}} historical products in the table.</li>
-              <li class="info_report" id="products_extrection_historical_count">{{products_extrection_historical_count}} products with all specifications in the historical table.</li>
-          </ul> 
-      </div>
+            <label for="dataBase_report">database report  table:</label>
+            <button type="button" id="data_report_submit" onclick="data_reports()">report</button>
+            <ul class="database_report_info">
+                <li class="info_report" id="seller_count">{{seller_count}} sellers in the table.</li>
+                <li class="info_report" id="product_count">{{product_count}} products in the table.</li>
+                <li class="info_report" id="products_extrection_count">{{products_extrection_count}} products with all specifications in the table.</li>
+                <li class="info_report" id="seller_historical_count">{{seller_historical_count}} historical sellers in the table.</li>
+                <li class="info_report" id="products_historical_count">{{products_historical_count}} historical products in the table.</li>
+                <li class="info_report" id="products_extrection_historical_count">{{products_extrection_historical_count}} products with all specifications in the historical table.</li>
+            </ul> 
+          </form> 
+        </div>
 
     </div>
-    
-    <script>
-function fetchLogs() {
-    fetch('/get-logs')
-    .then(response => response.text())
-    .then(data => {
-        const lines = data.split('\n');  
-        const lastLines = lines.slice(-10);  
-        const formattedLogs = lastLines.join('<br>');
-        document.getElementById('live-logs').innerHTML = formattedLogs;
-    })
-    .catch(error => console.error('Error fetching logs:', error));
-}    
-    setInterval(fetchLogs, 5000);
-    </script>
-    
 
     <div class="row justify-content-center align-items-center g-2 my-3">
 

@@ -28,8 +28,6 @@ def setup_logger():
 
     return logger
 
-import logging
-
 def web_setup_logger():
     logger = logging.getLogger("DigikalaCrawler")
     logger.setLevel(logging.DEBUG)

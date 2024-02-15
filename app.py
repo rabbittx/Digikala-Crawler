@@ -2,9 +2,6 @@ from flask import Flask, render_template, request, redirect, url_for ,jsonify
 from source.logger import web_setup_logger
 from source.webScraper import DigiKalaScraper
 
-
-
-
 class WebGUIApp:
     def __init__(self, config_file_path,log):
         self.app = Flask(__name__)
@@ -18,9 +15,7 @@ class WebGUIApp:
             if not self.scraper.config_manager.get_setting('Paths', 'GeckoPath'):  
                 return redirect(url_for('settings'))
             try:
-                sellers = self.scraper.get_sellers() if self.scraper else []
-                
-                    
+                sellers = self.scraper.get_sellers() if self.scraper else []                   
                 return render_template("index.html", sellers=sellers)
             except Exception as e:
                 self.log.error(f"Database error: {e}")
@@ -37,16 +32,12 @@ class WebGUIApp:
                 self.scraper.config_manager.set_setting('Paths', 'DBPath', db_path)
                 self.scraper.config_manager.set_setting('Setting', 'DriverType', driver_type)
                 self.scraper.config_manager.set_setting('Setting', 'HeadlessMode', str(headless_mode).lower())
-                self.log.info(headless_mode)
-
                 return redirect(url_for('index'))
-            
             geko_path = self.scraper.config_manager.get_setting('Paths', 'GeckoPath')
             db_path = self.scraper.config_manager.get_setting('Paths', 'DBPath')
             driver_type = self.scraper.config_manager.get_setting('Setting', 'DriverType')
             headless_mode = self.scraper.config_manager.get_setting('Setting', 'HeadlessMode') == 'true'
             self.log.info(headless_mode)
-
             return render_template('settings.html', geko_path=geko_path, db_path=db_path, driver_type=driver_type, headless_mode=headless_mode)
                 
         @self.app.route('/get-logs')
@@ -68,8 +59,7 @@ class WebGUIApp:
                     return jsonify({"status": "succsue", "message": 'crawl category complated', "url": crawl_setting['url']})
                 else:
                     return jsonify({"status": "error", "message": '[!] ERROR to crawl category ... ! ', "url": crawl_setting['url']})
-   
-        
+          
         @self.app.route('/start_single_seller',methods=['GET','POST'])
         def single_product_page():
             if request.method == "POST" :
@@ -84,7 +74,6 @@ class WebGUIApp:
                 else:
                     return jsonify({"status": "error", "message": '[!] ERROR crawl single seller', "url": crawl_setting['url']})
 
-
         @self.app.route('/start_single_product',methods=['POST'])
         def single_seller_page():
             if request.method == "POST" :
@@ -94,13 +83,11 @@ class WebGUIApp:
                 self.crawl_options(mode='SingleSellerProductCrawlMode', input_url=None, scroll_count=None, seller_info=(seller_name,seller_id))
                 return jsonify({"status": "succsue", "message": 'crawl single seller products complated', "url": None, 'seller_info' : (seller_name,seller_id)})
 
-
         @self.app.route('/single_prdoucts',methods=['POST'])
         def single_seller_prdoucts():
             if request.method == "POST" :
                 single_url = request.form.get('single_product_url').strip()
                 self.log.info(single_url)
-
                 crawl_setting = self.scraper.check_crawl_url(mode='SingleProductCrawlMode',input_url=single_url)
                 if crawl_setting['start_to_crawl'] :
                     self.log.info(crawl_setting['message'])
@@ -156,7 +143,6 @@ class WebGUIApp:
             else :
                 return jsonify({"status": "error", "message": "error to export seller products with specification and by choose id "})
 
-
         @self.app.route('/export_all_sellers_products_with_all_specifications',methods=['POST'])
         def export_all_sellers_products_with_all_specifications():
             if request.method == "POST" :
@@ -165,7 +151,6 @@ class WebGUIApp:
                 return jsonify({"status": "succsue", "message": "export seller products with all specifications complated"})
             else :
                 return jsonify({"status": "error", "message": "error to export seller products with all specifications"})
-
         
         @self.app.route('/export_all_table_data',methods=['POST'])
         def export_all_tables_data():
@@ -181,9 +166,7 @@ class WebGUIApp:
         def show_reports():
             if request.method == 'POST':
                 reports = self.scraper.database_report()
-                # ارسال داده‌ها به صورت JSON
                 return jsonify({"status": "success", "data": reports})
-
             
     def crawl_options(self,mode,input_url=None,scroll_count=None,seller_info=None):
         crawler_option = {
@@ -200,13 +183,8 @@ class WebGUIApp:
         else:
             raise ValueError("Invalid mode specified.")
     
-
-    
-    
-    
     def run(self):
         self.app.run(debug=True)
-
 
 if __name__ == "__main__":
     log = web_setup_logger()

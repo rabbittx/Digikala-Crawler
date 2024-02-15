@@ -121,8 +121,6 @@ class ConsoleConfigManager:
         with open(self.config_file, 'w') as configfile:
             self.config.write(configfile)
 
-
-
 class WebConfigManager:
     def __init__(self, log, config_file='web_config.ini'):
         self.log = log

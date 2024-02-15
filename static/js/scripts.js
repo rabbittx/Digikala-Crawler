@@ -89,12 +89,9 @@ function startWebScraping(mode) {
         .then(data => alert(data.message))
         .catch(error => console.error('Error:', error));
     }
-
-
-
-
-
 }
+
+// TODO : need to disable all button when driver is activate  and enable it after the process complete 
 $(document).ready(function(){
 $("#category_form").submit(function(e){
     e.preventDefault(); 
@@ -211,7 +208,6 @@ function export_data(mode) {
 
 
 }
-
 function data_reports() {
     fetch('/report', {
         method: 'POST',
@@ -222,7 +218,6 @@ function data_reports() {
     .then(response => response.json())
     .then(data => {
         if(data.status === "success") {
-            // نمایش داده‌ها در المان‌های صفحه
             document.getElementById("seller_count").textContent = `${data.data.seller_count} sellers in the table.`;
             document.getElementById("product_count").textContent = `${data.data.product_count} products in the table.`;
             document.getElementById("products_extrection_count").textContent = `${data.data.products_extrection_count} products with all specifications in the table.`;
@@ -235,3 +230,17 @@ function data_reports() {
     })
     .catch(error => console.error('Error:', error));
 }
+
+
+function fetchLogs() {
+    fetch('/get-logs')
+    .then(response => response.text())
+    .then(data => {
+        const lines = data.split('\n');  
+        const lastLines = lines.slice(-10);  
+        const formattedLogs = lastLines.join('<br>');
+        document.getElementById('live-logs').innerHTML = formattedLogs;
+    })
+    .catch(error => console.error('Error fetching logs:', error));
+}    
+    setInterval(fetchLogs, 5000);

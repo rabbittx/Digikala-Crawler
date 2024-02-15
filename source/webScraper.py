@@ -13,7 +13,6 @@ class DigiKalaScraper:
             self.config_manager = ConsoleConfigManager(log=self.logger,config_file=self.config_file_path)
         elif 'web' in self.config_file_path :
             self.config_manager = WebConfigManager(log=self.logger,config_file=self.config_file_path)
-
         self._initialize_settings()
         self.db_handler = DataBaseHandler(log=self.logger,db_path=self.config_manager.get_db_path())
         self.db_handler.create_tables()        

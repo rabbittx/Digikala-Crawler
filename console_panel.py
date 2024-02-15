@@ -59,7 +59,6 @@ class DigikalaScraperConsolePanel:
                             'helpMode':lambda: self.show_help(),
 
                         }
-
         if mode in crawler_option:
             crawler_option[mode]()
         else:
@@ -82,7 +81,6 @@ class DigikalaScraperConsolePanel:
             os.remove(config_path)
             self.scraper = DigiKalaScraper(log=logger,config_file_path=config_file_path,)
 
-
     def show_examples(self,mode,menu):
         self.logger.info('------------ URL examples --------------------')
         for k,v in  menu.items():
@@ -101,16 +99,12 @@ class DigikalaScraperConsolePanel:
         while True:
             self.logger.info(f"Please enter the {mode.replace('CrawlMode','')} URL you want to crawl, or type 'exit' to quit: ")
             input_url = input()
-
             if input_url.lower() == 'exit':
                 self.logger.info("Exiting the crawl input process.")
-                return None  
-            
+                return None     
             crawl_data = self.scraper.check_crawl_url(mode=mode, input_url=input_url)
-            
             if crawl_data['start_to_crawl']:
                 return input_url.lower()
-
             else:
                 self.logger.info("The URL is not valid for crawling. Please try again.")
    
@@ -142,15 +136,11 @@ class DigikalaScraperConsolePanel:
             else :
                 seller_info = None
 
-            self.crawl_options(mode=mode,input_url=input_url,scroll_count=scroll_count,seller_info=seller_info)
-        
-    
-        
-    
+            self.crawl_options(mode=mode,input_url=input_url,scroll_count=scroll_count,seller_info=seller_info)  
 
 if __name__ == '__main__' :
     logger = setup_logger() # logger to handle logs
     config_file_path = 'console-config.ini' # setting file path 
-    panel = DigikalaScraperConsolePanel(logger=logger,config_file_path=config_file_path)
-    panel.run()
+    panel = DigikalaScraperConsolePanel(logger=logger,config_file_path=config_file_path) # create console panel object for crawler 
+    panel.run() # run the panel 
 

@@ -1,4 +1,11 @@
 /* General styling for the settings container */
+*‌ {
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    text-align: center !important;
+    font-size: 1rem !important;
+}
 .col-12,.col.text-center {
     max-width: 600px; /* Adjust based on your preference */
     margin: 1rem;

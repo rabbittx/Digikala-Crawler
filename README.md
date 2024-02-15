@@ -117,12 +117,17 @@ Suggested path alongside the project:
 - archive\gekcodrive\chrome\chromedriver.exe
 
 Step 7: Run the Project
+to use this project you can use console panel or web panel .
 
 Run the script panel to start the project:
 
 ```bash
 
 python console_panel.py
+```
+Run the script web panel to start the project:
+```bash
+python app.py
 ```
 Step 8: Use the Project
 
@@ -140,6 +145,24 @@ Note
     * The version of the web driver must match your browser version; otherwise, you will encounter errors.
     * To avoid placing an excessive load on Digikala's servers, timing considerations have been made. Please do not remove or reduce them.
     * Please refrain from running multiple scripts simultaneously to speed up extraction.
+
+## Data Storage
+This project uses sqlite3 for storing the data extracted. The database created in this project includes 3 tables which store information in different extraction states.
+
+### Tables
+- `sellers`: Contains fields such as `id`, `seller_id`, `crawl_date`, `seller_name`, `membership_period`, `satisfaction_with_goods`, `seller_performance`, `people_have_given_points`, `timely_supply`, `obligation_to_send`, `no_return`, and `introduction_of_the_seller`.
+
+- `products`: Includes `id`, `product_id`, `seller_id`, `crawl_date`, `seller_name`, `product_link`, `product_image`, `product_rate`, `product_name`, `product_price`, `product_price_discount_percent`, `product_price_discount`, `product_special_sale`, `stock`.
+
+- `products_extraction`: Fields like `id`, `crawl_date`, `product_id`, `seller_id`, `seller_name`, `categories`, `product_link`, `product_title`, `product_main_title`, `user_review`, `insurer`, `Insurance_discount_percent`, `Insurance_price_before_discount`, `Insurance_final_price`, `Other_sellers_for_this_product`, `satisfaction_with_the_product`, `warranty`, `digiclub_points`, `discount_percent`, `price_before_discount`, `final_price`, `product_stock`, `product_image`, `other_seller{other seller info}`, `similar_products{products info}`, `related_videos`, `introduction_box`, `expert_check`, `specifications_box`, `reviews`, `question_box`, `also_bought_items{product info}`, `seller_offer`.
+
+Additionally, this project accounts for changes in the information of sellers, their products, or product details. When a field in the database exists and the newly extracted information differs, the existing information in the database is moved to historical tables, and the new extracted information replaces them.
+
+### Historical Tables
+- `sellers_history`: Previous fields + `history_id`.
+- `products_history`: Previous fields + `history_id`.
+- `products_extraction_history`: Previous fields + `history_id`.
+
 
 ## Future of the Project
 ### Planned Features

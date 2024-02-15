@@ -281,7 +281,6 @@ class DriverManager:
         except Exception as e :
             self.log.error(f"Can't find seller id , error : {e}")
 
-
     def close_driver(self):
         """
          this method  is use to close the driver .

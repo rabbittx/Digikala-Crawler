@@ -177,7 +177,6 @@ class SellerProductDataExtractor:
             if product.find(lambda tag: tag.name == "title" and tag.text.strip() == "Loading..."):
                 continue
             else :
-
                 product_info = self.extract_product_details(product)
                 product_info['id'] = self.db_handler.get_next_id(table_name='products',fields_id=product_info['product_id'],id_name='product_id')
                 product_info['seller_name'] = seller_info['seller_name']

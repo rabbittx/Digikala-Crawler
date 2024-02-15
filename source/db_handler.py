@@ -94,7 +94,7 @@ class DataBaseHandler():
         # Create a table to store historical sellers details
         self.cursor.execute('''
         CREATE TABLE IF NOT EXISTS sellers_history (
-                            id INTEGER,
+            id INTEGER,
             history_id INTEGER PRIMARY KEY AUTOINCREMENT,
             seller_id TEXT,
             crawl_date TEXT,
@@ -135,30 +135,45 @@ class DataBaseHandler():
         )
         ''')
 
+          
+
         # Create a table to store historical extracted product details
         self.cursor.execute('''
         CREATE TABLE IF NOT EXISTS products_extraction_history (
             id INTEGER,
             history_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            product_id TEXT,
-            seller_id TEXT, 
-            seller_name TEXT,
             crawl_date TEXT,
+            product_id TEXT ,
+            seller_id TEXT,
+            seller_name TEXT,
             categories TEXT,
-            product_link TEXT ,
-            main_product_details TEXT ,
-            buy_box TEXT ,
-            product_image TEXT ,
-            other_seller TEXT ,
-            similar_products TEXT ,
-            related_videos TEXT ,
-            introduction_box TEXT ,
-            expert_check TEXT ,
-            specifications_box TEXT ,
-            reviews TEXT ,
-            question_box TEXT ,
-            also_bought_items TEXT ,
-            seller_offer TEXT
+            product_link TEXT,
+            product_title TEXT,
+            product_main_title TEXT,
+            user_review TEXT,
+            insurer TEXT,
+            Insurance_discount_percent TEXT,
+            Insurance_price_before_discount TEXT,
+            Insurance_final_price TEXT,
+            Other_sellers_for_this_product TEXT,
+            satisfaction_with_the_product TEXT,
+            warranty TEXT,
+            digiclub_points TEXT,
+            discount_percent TEXT,
+            price_before_discount TEXT,
+            final_price TEXT,
+            product_stock TEXT,
+            product_image TEXT,
+            other_seller TEXT,
+            similar_products TEXT,
+            related_videos TEXT,
+            introduction_box TEXT,
+            expert_check TEXT,
+            specifications_box TEXT,
+            reviews TEXT,
+            question_box TEXT,
+            also_bought_items TEXT,
+            seller_offer TEXT, 
             change_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (product_id) REFERENCES products_extraction (product_id))
         ''')
