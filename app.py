@@ -20,29 +20,34 @@ class WebGUIApp:
                 return redirect(url_for('settings'))
             try:
                 sellers = self.scraper.get_sellers() if self.scraper else []
+                
+                    
                 return render_template("index.html", sellers=sellers)
             except Exception as e:
                 self.log.error(f"Database error: {e}")
-                return "Error accessing the database."
-
+                sellers = [('there is no seller in database !.','first crwal some !.')]
+                return render_template("index.html", sellers=sellers)
         @self.app.route("/settings", methods=["GET", "POST"])
         def settings():
             if request.method == "POST":
                 geko_path = request.form.get('gekoPath')
                 db_path = request.form.get('dbPath')
                 driver_type = request.form.get('driverType')
-                headless_mode = request.form.get('headlessMode', 'off') == 'on'  # Checkbox
+                headless_mode = request.form.get('HeadlessMode')
                 self.scraper.config_manager.set_setting('Paths', 'GeckoPath', geko_path)
                 self.scraper.config_manager.set_setting('Paths', 'DBPath', db_path)
                 self.scraper.config_manager.set_setting('Setting', 'DriverType', driver_type)
                 self.scraper.config_manager.set_setting('Setting', 'HeadlessMode', str(headless_mode).lower())
+                self.log.info(headless_mode)
+
                 return redirect(url_for('index'))
             
             geko_path = self.scraper.config_manager.get_setting('Paths', 'GeckoPath')
             db_path = self.scraper.config_manager.get_setting('Paths', 'DBPath')
             driver_type = self.scraper.config_manager.get_setting('Setting', 'DriverType')
             headless_mode = self.scraper.config_manager.get_setting('Setting', 'HeadlessMode') == 'true'
-            
+            self.log.info(headless_mode)
+
             return render_template('settings.html', geko_path=geko_path, db_path=db_path, driver_type=driver_type, headless_mode=headless_mode)
                 
         @self.app.route('/get-logs')
@@ -114,23 +119,20 @@ class WebGUIApp:
        
         # exports options 
         @self.app.route('/export_all_seller_data',methods=['POST'])
-        def export_all_data():
+        def export_all_seller_data():
             if request.method == "POST" :
                 self.scraper.export_data_to_csv( 'all_seller')
                 return jsonify({"status" : "succsue","message" : "seller data exprot to csv file complated . "})
             else : 
                 return jsonify({"status" : "error","message" : "erorr to exprot sellers data check logs"})
             
-        @self.app.route('/export_seller_products_id',methods=['POST'])
+        @self.app.route('/export_seller_products_id', methods=['POST'])
         def export_seller_products_with_id():
-            if request.method == "POST" :
-                seller_id,seller_name  = request.form.get('single_seller_products_id').split('/')
-                self.log.info(f'{seller_id}/{seller_name}')
-                self.scraper.export_data_to_csv('seller_products_id' ,seller_id=seller_id,seller_name=seller_name)
-                return jsonify({"status": "succsue", "message": "export seller products with id completed"})
-            else :
-                return jsonify({"status": "error", "message": "error to export seller products with id"})
-
+            seller_id, seller_name = request.form.get('seller_products_export').split('/')
+            self.log.info(f'{seller_id}/{seller_name}')
+            self.scraper.export_data_to_csv('seller_products', seller_id=seller_id, seller_name=seller_name)
+            return jsonify({"status": "success", "message": "Export seller products with id completed"})
+        
         @self.app.route('/export_all_products',methods=['GET','POST'])
         def export_all_products_csv():
             if request.method == "POST" :
@@ -139,7 +141,7 @@ class WebGUIApp:
             else : 
                 return jsonify({"status" : "error","message" : "erorr to exprot sellers data check logs"})
 
-        @self.app.route('/export_single_sellers_product_information_with_all_specification',methods=['GET','POST'])
+        @self.app.route('/export_single_sellers_product_information_with_all_specification',methods=['POST'])
         def export_single_sellers_product_information_with_all_specifications():
             if request.method == "POST" :
                 seller_id,seller_name  = request.form.get('seller_products_specification_id').split('/')
@@ -149,7 +151,8 @@ class WebGUIApp:
             else :
                 return jsonify({"status": "error", "message": "error to export seller products with id"})
 
-        @self.app.route('/export_all_sellers_products_with_all_specifications:',methods=['GET','POST'])
+
+        @self.app.route('/export_all_sellers_products_with_all_specifications',methods=['POST'])
         def export_all_sellers_products_with_all_specifications():
             if request.method == "POST" :
                 self.scraper.export_data_to_csv('all_products_with_specifications' )
@@ -157,13 +160,14 @@ class WebGUIApp:
             else :
                 return jsonify({"status": "error", "message": "error to export seller products with id"})
 
-        @self.app.route('/export_all_table_data',methods=['GET','POST'])
+        
+        @self.app.route('/export_all_table_data',methods=['POST'])
         def export_all_tables_data():
             if request.method == "POST" :
-                self.scraper.export_data_to_csv('all_products_with_specifications' )
-                return jsonify({"status": "succsue", "message": "export seller products with id completed"})
+                self.scraper.export_data_to_csv('all_data' )
+                return jsonify({"status": "succsue", "message": "export all data completed"})
             else :
-                return jsonify({"status": "error", "message": "error to export seller products with id"})
+                return jsonify({"status": "error", "message": "error to export all data ."})
 
         # report database option
         @self.app.route("/report", methods = ['GET','POST'])
@@ -206,5 +210,5 @@ class WebGUIApp:
 
 if __name__ == "__main__":
     
-    web_app = WebGUIApp(config_file_path='web_config0.ini')
+    web_app = WebGUIApp(config_file_path='web_config.ini')
     web_app.run()

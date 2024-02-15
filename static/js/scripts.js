@@ -145,13 +145,14 @@ function export_data(mode) {
         .catch(error => console.error('Error:', error));
     }
     else if(mode === 'seller_products') {
-        const seller_info = document.getElementById('seller_products_export').value
+        const seller_info = document.getElementById('export_seller_products_id').value
         fetch('/export_seller_products_id', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: `seller_products_export=${encodeURIComponent(seller_info)}`
+
         })
         .then(response => response.json())
         .then(data => alert(data.message))
@@ -195,7 +196,7 @@ function export_data(mode) {
         .then(data => alert(data.message))
         .catch(error => console.error('Error:', error));
     }
-    else if(mode === 'all_data') {
+    else if(mode === 'all_table_data') {
         fetch('/export_all_table_data', {
             method: 'POST',
             headers: {

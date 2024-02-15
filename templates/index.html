@@ -21,8 +21,8 @@
                     <option value="chrome" {% if driver_type == 'chrome' %} selected {% endif %}>Chrome</option>
                 </select>
                 <select id="HeadlessMode" name="HeadlessMode">
-                    <option value="True" {% if driver_type == 'True' %} selected {% endif %}>headless driver</option>
-                    <option value="False" {% if driver_type == 'False' %} selected {% endif %}>normal driver</option>
+                    <option value="True" {% if HeadlessMode == 'True' %} selected {% endif %}>headless driver</option>
+                    <option value="False" {% if HeadlessMode == 'False' %} selected {% endif %}>normal driver</option>
                 </select>
                 <button type="submit">Save Settings</button>
             </form>
@@ -95,8 +95,8 @@
                 </div>
                 <div class="col-12 text-center">
                   <form action="" method="POST" id="export_seller_products_with_ID">
-                    <label for="seller_products_export">export sellers products data with ID(name):<br></label>
-                        <select id="seller_products_export" name="seller_products_export" onchange="changeDriver_type()">
+                    <label for="export_seller_products_id">export sellers products data with ID(name):<br></label>
+                        <select id="export_seller_products_id" name="seller_products_export" onchange="changeDriver_type()">
                             {% for seller_id, seller_name in sellers %}
                             <option  value="{{ seller_id }}/{{ seller_name }}">{{ seller_name }} ({{ seller_id }})</option>
                             {% endfor %}
@@ -127,12 +127,14 @@
                 <div class="col-12 text-center">
                   <form action="" method="POST" id="all_products_specification_form">
                     <label for="all_sellers_products_specification">export all sellers products with all specifications:</label>
-                    <button type="button" id='all_sellers_products_specification' onclick="startWebScraping('all_products_with_specifications')">export to CSV</button>
+                    <button type="button" id='all_sellers_products_specification' onclick="export_data('all_products_with_specifications')">export to CSV</button>
                   </form>
                   </div>
                 <div class="col-12 text-center">
+                  <form action="" id="export-all-data">
                     <label for="all_table_data">export all table data:</label>
-                    <button type="button" onclick="startWebScraping('all_table_data')">export to CSV</button>
+                    <button type="button" onclick="export_data('all_table_data')">export to CSV</button>
+                  </form>
                 </div>
             </div>
         <!-- Export menu End -->

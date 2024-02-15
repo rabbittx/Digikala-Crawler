@@ -138,6 +138,7 @@ class DataBaseHandler():
         # Create a table to store historical extracted product details
         self.cursor.execute('''
         CREATE TABLE IF NOT EXISTS products_extraction_history (
+            id INTEGER,
             history_id INTEGER PRIMARY KEY AUTOINCREMENT,
             product_id TEXT,
             seller_id TEXT, 
