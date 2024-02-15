@@ -6,10 +6,9 @@ from source.webScraper import DigiKalaScraper
 
 
 class WebGUIApp:
-    def __init__(self, config_file_path):
+    def __init__(self, config_file_path,log):
         self.app = Flask(__name__)
-        self.log = web_setup_logger()
-        self.log.info('hello from init')
+        self.log = log
         self.scraper = DigiKalaScraper(log=self.log, config_file_path=config_file_path)
         self.add_routes()
 
@@ -210,6 +209,7 @@ class WebGUIApp:
 
 
 if __name__ == "__main__":
-    
-    web_app = WebGUIApp(config_file_path='web_config.ini')
+    log = web_setup_logger()
+    config_file_path = 'web_config.ini'
+    web_app = WebGUIApp(config_file_path=config_file_path,log=log)
     web_app.run()

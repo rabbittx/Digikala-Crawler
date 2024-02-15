@@ -39,5 +39,4 @@ def web_setup_logger():
     formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
-    logger.info('hello logs world !!!!!')
     return logger

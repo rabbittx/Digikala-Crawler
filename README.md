@@ -1,4 +1,4 @@
-[Read in persian](README.fa.md)
+[به فارسی بخوانید](README.fa.md)
 
 # Introduction to Digikala
 Digikala is a leading online store in Iran, recognized for its wide variety of products and services. Initially focused on selling electronic and digital items, over the past 15 years, it has transformed into a comprehensive e-commerce platform offering a diverse range of product categories. This expansion has made Digikala one of the leading e-commerce platforms in the Middle East.
