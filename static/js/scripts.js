@@ -103,7 +103,7 @@ $("#category_form").submit(function(e){
         url: "/start-category-crawl",
         data: $(this).serialize(), 
         success: function(response){
-            if(response.status === "succsue"){
+            if(response.status === "success"){
                 $("#category_submit").prop('disabled', true);
                 alert(response.message);
             } else {
@@ -120,7 +120,7 @@ $("#single_product_form").submit(function(e){
         url: "/single_prdoucts",
         data: $(this).serialize(), 
         success: function(response){
-            if(response.status === "succsue"){
+            if(response.status === "success"){
                 $("#single_product_submit").prop('disabled', true); 
                 alert(response.message); 
             } else {
@@ -144,14 +144,14 @@ function export_data(mode) {
         .then(data => alert(data.message))
         .catch(error => console.error('Error:', error));
     }
-    else if(mode === 'seller_products') {
+    else if(mode === 'export_seller_products_id') {
         const seller_info = document.getElementById('export_seller_products_id').value
         fetch('/export_seller_products_id', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: `seller_products_export=${encodeURIComponent(seller_info)}`
+            body: `export_seller_products_id=${encodeURIComponent(seller_info)}`
 
         })
         .then(response => response.json())
@@ -169,9 +169,9 @@ function export_data(mode) {
         .then(data => alert(data.message))
         .catch(error => console.error('Error:', error));
     }
-    else if(mode === 'seller_products_with_all_specifications') {
+    else if(mode === 'seller_products_specification_id') {
         const seller_info = document.getElementById('seller_products_specification_id').value;
-        fetch('/export_single_sellers_product_information_with_all_specification', {
+        fetch('/seller_products_specification_id', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',

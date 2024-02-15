@@ -101,7 +101,7 @@
                             <option  value="{{ seller_id }}/{{ seller_name }}">{{ seller_name }} ({{ seller_id }})</option>
                             {% endfor %}
                         </select>
-                    <button type="button" onclick="export_data('sellers_products')" id="export_seller_products_with_ID_submit">export to CSV</button>
+                    <button type="button" onclick="export_data('export_seller_products_id')" id="export_seller_products_with_ID_submit">export to CSV</button>
   
                   </form>
                   </div>
@@ -121,9 +121,10 @@
                           <option  value="{{ seller_id }}/{{ seller_name }}">{{ seller_name }} ({{ seller_id }})</option>
                           {% endfor %}
                         </select>
-                    <button type="button" onclick="export_data('single_sellers_product_specification')" id="seller_products_specification_id_submit">export to CSV</button>
+                    <button type="button" onclick="export_data('seller_products_specification_id')" id="seller_products_specification_id_submit">export to CSV</button>
                   </form>
                 </div>
+
                 <div class="col-12 text-center">
                   <form action="" method="POST" id="all_products_specification_form">
                     <label for="all_sellers_products_specification">export all sellers products with all specifications:</label>
