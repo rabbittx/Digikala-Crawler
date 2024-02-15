@@ -25,6 +25,7 @@ class ConsoleConfigManager:
         self.log.info('Pick driver type .')
         self.log.info('1) firefox .')
         self.log.info('2) chrome .')
+        self.log.info('choose "1" for FireFox and "2" for Chrome.')
         while  True:
             driver_type = input('chose the driver type : ')
             if driver_type == '1':
@@ -36,10 +37,16 @@ class ConsoleConfigManager:
             break
         headless_mode = input('Enable headless mode? (yes/no): ')
         headless_mode = 'True' if headless_mode.lower() in ['yes', 'y'] else 'False'
-
+        
         self.config['Setting'] = {'Drivertype': driver_type, 'HeadlessMode': headless_mode}
         self.config['Paths'] = {'GeckoPath': input('Enter path of Gecko driver (eq:path/to/geckodriver.exe): '), 'DBPath': input('Enter path to database (eq:path/to/database.db) :')}
-        
+        self.log.info('--------------------------------- CONFIG COMPLATED ---------------------------------------')
+        self.log.info(f"you have  chosen {driver_type}, Headless Mode is set as {headless_mode}")
+        self.log.info(f"also set database path in {self.config['Paths']['DBPath']}")
+        self.log.info(f"also set Gecko driver path in {self.config['Paths']['GeckoPath']}")
+        self.log.info(f"you can reconfig crawler at any time you want from meun .")
+        self.log.info('------------------------------------------------------------------------')
+
         with open(self.config_file, 'w') as configfile:
             self.config.write(configfile)
 

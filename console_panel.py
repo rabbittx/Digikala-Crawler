@@ -1,6 +1,6 @@
 from source.logger import setup_logger
 from source.webScraper import DigiKalaScraper
-import sys
+import sys ,os
 class DigikalaScraperConsolePanel:
     def __init__(self,logger,config_file_path):
         self.logger = logger
@@ -16,8 +16,9 @@ class DigikalaScraperConsolePanel:
                         '5': ('Start crawling for all products in the database including all specifications.','AllProductsCrawlMode'),
                         '6': ('Open CSV export menu.','CSVExportMode'),
                         '7': ('Generate comprehensive database report with all tables.','ComprehensiveDatabaseReportMode'),
-                        '8': ('Quit the scraper.','QuitMode'),
-                        'help': ('Enter a number (1-8) to select an option','helpMode')       
+                        '8': ('rest setting and reconfig.','Reconfig'),
+                        '9': ('Quit the scraper.','QuitMode'),
+                        'help': ('Enter a number (1-9) to select an option or enter \'help\' to check help menu','helpMode')       
                         }
         
         example_menu = {
@@ -53,7 +54,9 @@ class DigikalaScraperConsolePanel:
                             'AllProductsCrawlMode': lambda: self.scraper.execute_crawl(mode=mode, input_url=input_url, scroll_count=scroll_count, seller_info=seller_info),
                             'CSVExportMode': lambda : self.csv_export(self.menus()['export_menu']),
                             'ComprehensiveDatabaseReportMode': lambda : self.database_report_show(self.scraper.database_report()),
+                            'Reconfig': lambda : self.reconfig(self.scraper.config_file_path),
                             'QuitMode':lambda: sys.exit("Exiting the program..."),
+                            'helpMode':lambda: self.show_help(),
 
                         }
 
@@ -61,9 +64,27 @@ class DigikalaScraperConsolePanel:
             crawler_option[mode]()
         else:
             raise ValueError("Invalid mode specified.")
-        
+    def show_help(self):
+        self.logger.info("""
+                        ----------------------- HELP ------------------------
+                        To effectively use the Digikala-Crawler, please follow these steps:
+
+                        1. Set the database path and the path to your geckodriver.
+                        2. Choose your preferred web driver: Firefox or Chrome. Specify if you'd like to run it in headless mode for background operations without opening a browser window.
+                        3. Decide on the crawling mode to start gathering data. After collecting some data, you can export the required information using the CSVExportMode option.
+                        4. For detailed instructions, examples, and more, visit our documentation at 'https://github.com/rabbittx/Digikala-Crawler/tree/master/archive/documents'.
+                        5. Need further assistance? Feel free to open an issue on our GitHub page at 'https://github.com/rabbittx/Digikala-Crawler/issues' or contact us directly at amirhabibi1993x@gmail.com.
+
+                        Thank you for using Digikala-Crawler. Happy data gathering!
+                        """)
+    def reconfig(self,config_path):
+        if os.path.exists(config_path):
+            os.remove(config_path)
+            self.scraper = DigiKalaScraper(log=logger,config_file_path=config_file_path,)
+
+
     def show_examples(self,mode,menu):
-        print('show example')
+        self.logger.info('------------ URL examples --------------------')
         for k,v in  menu.items():
             if mode in k :
                 self.logger.info(v)
@@ -78,7 +99,8 @@ class DigikalaScraperConsolePanel:
         
     def get_crawl_input(self,mode):
         while True:
-            input_url = input(f"Please enter the {mode.replace('CrawlMode','')} URL you want to crawl, or type 'exit' to quit: ")
+            self.logger.info(f"Please enter the {mode.replace('CrawlMode','')} URL you want to crawl, or type 'exit' to quit: ")
+            input_url = input()
 
             if input_url.lower() == 'exit':
                 self.logger.info("Exiting the crawl input process.")

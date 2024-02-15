@@ -23,6 +23,7 @@
 ### console panel 
 # need to do 
 # fixed 
+# TODO : add option to reset the setting and reconfig everything from scratch. FIXED 
 
 
 # ------------------------------------------------
