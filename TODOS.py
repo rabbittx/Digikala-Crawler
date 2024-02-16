@@ -7,7 +7,7 @@
 # ------------------------------------------------
 
 # TODO : - [ ] add Docker to project (planing to do)
-
+# TODO : - [ ] add testing uints (planing to do)
 
 # ------------------------------------------------
 ### CONFIG 
