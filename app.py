@@ -43,7 +43,7 @@ class WebGUIApp:
         @self.app.route('/get-logs')
         def get_logs():
             num_lines = 10  
-            with open(r'archive\logs\web_crawler_logs.txt', 'r') as file:
+            with open(r'archive\logs\web_crawler_logs.log', 'r') as file:
                 logs = file.readlines()[-num_lines:]  
             return ''.join(logs)
           

@@ -32,7 +32,7 @@ def web_setup_logger():
     logger = logging.getLogger("DigikalaCrawler")
     logger.setLevel(logging.DEBUG)
     logger.propagate = False
-    file_handler = logging.FileHandler(r'archive\logs\web_crawler_logs.txt',encoding='utf-8-sig')
+    file_handler = logging.FileHandler(r'archive\logs\web_crawler_logs.log',encoding='utf-8-sig')
     file_handler.setLevel(logging.DEBUG)
     formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
     file_handler.setFormatter(formatter)

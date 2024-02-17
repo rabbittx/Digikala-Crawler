@@ -90,7 +90,7 @@ In the console panel, examples needed for obtaining page addresses in each secti
 │   │       ├── geckodriver.exe # Firefox web driver file, you can change this default address in the configuration
 │   │       └── geckodriver.log # Web driver log file
 │   └── logs # Project log storage folder
-│       └── web_crawler_logs.txt # Log storage file used for displaying logs in the web panel (storing web panel logs)
+│       └── web_crawler_logs.log # Log storage file used for displaying logs in the web panel (storing web panel logs)
 ├── console-config.ini # Configuration file for the console panel
 ├── console_panel.py # Console panel execution file
 ├── requirements.txt # Required libraries file for the project
@@ -161,14 +161,3 @@ For more information about GPL v3 and its specific terms, refer to the full text
     The timers set for extracting information in the source code should not be reduced to prevent excessive load on Digikala servers.
     The developers are not responsible for any malicious behavior or misuse of this project.
 
-## Financial Support
-
-If you have enjoyed the project I have created and are willing to offer your financial support, I would greatly appreciate any contribution. Your support motivates me to continue working and further developing this project and to embark on new projects, allowing me to dedicate more time to improving and innovating in my work.
-
-Here are a few ways to financially support the project:
-
-    Patreon: To donate via Patreon, please visit my Patreon page.
-    Cryptocurrency: If you prefer to support using cryptocurrencies, my wallet information is available here.
-    Buy Me a Coffee: To buy me a coffee as a sign of support, please visit my 'Buy Me a Coffee' page.
-
-Any financial support, no matter the amount, is greatly appreciated and helps me continue working on projects I am passionate about. Thank you all for your support and trust.

@@ -17,7 +17,6 @@ class DriverManager:
         self.driver = self.initialize_driver(headless_mode=headless_mode) # to make driver headless set it to True 
    
     def initialize_driver(self, headless_mode):
-        self.log.info(f'====================={headless_mode}===================')
         """
          Initialize the browser driver based on the user's choice of browser type 
          
