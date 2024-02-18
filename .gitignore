@@ -1,7 +1,7 @@
 env
 *.exe
 __pycache__
-*.log
+*.log !(archive\logs\web_crawler_logs.log)
 *.txt !(requirements.txt)
 *.html !(home.html) !(index.html)
 *.db
