@@ -1,8 +1,8 @@
 # useing this file to show all TODO and BUG , (fixed),(planing to do),(done) 
 
 ### DOCUMENTS / README 
-# TODO : - [ ] update the readme for new version (GUI) 
-# TODO : - [ ] update the documents to show this how this project work and what can be done with it.
+# TODO : - [x] update the readme for new version (GUI) 
+# TODO : - [x] update the documents to show how this project work and what can be done with it.
 
 # ------------------------------------------------
 

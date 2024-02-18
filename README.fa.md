@@ -32,23 +32,23 @@
 
 ویژگی‌های اصلی:
 
- * `db_handler.py` : مدیریت پایگاه داده SQLite برای ذخیره‌سازی و دستکاری داده‌های جمع‌آوری شده.
+ * `db_handler.py` : مدیریت پایگاه داده SQLite برای ذخیره‌سازی و دستکاری داده‌های جمع‌آوری شده. [بررسی جزئیات](archive\documents\functions.fa.md#db_handlerpy)
 
- * `driver_manager.py` : ساخت درایور و مدیریت کارای های مربوط به درایور 
+ * `driver_manager.py` : ساخت درایور و مدیریت کارای های مربوط به درایور [بررسی جزئیات](archive\documents\functions.fa.md#driver_managerpy)
 
- * `product_details_extractor.py` : فایل مربوط به استخراج اطلاعات صفحه محصول ات دیجی‌کالا و ارسال اطلاعات به db_handler.
+ * `product_details_extractor.py` : فایل مربوط به استخراج اطلاعات صفحه محصول ات دیجی‌کالا و ارسال اطلاعات به db_handler.[بررسی جزئیات](archive\documents\functions.fa.md#product_details_extractorpy)
 
- * `seller_product_data_extractor.py` : فایل مربوط به استخراج اطلاعات صفحات دسته بندی و اطلاعات صفحات فروشندگان و ارسال اطلاعات به db_handler.
+ * `seller_product_data_extractor.py` : فایل مربوط به استخراج اطلاعات صفحات دسته بندی و اطلاعات صفحات فروشندگان و ارسال اطلاعات به db_handler. [بررسی جزئیات](archive\documents\functions.fa.md#seller_product_data_extractorpy)
  
- * `webScriper.py` : فایلی برای ساخت یک شی از خزنده و استفاده از توابع استخراج 
+ * `webScriper.py` : فایلی برای ساخت یک شی از خزنده و استفاده از توابع استخراج  [بررسی جزئیات](archive\documents\functions.fa.md#webscriperpy)
 
- * `console_panel.py` : یک رابط کاربری متنی (CLI) که به کاربر امکان می‌دهد فرآیند خزنده را کنترل کند و داده‌ها را به فرمت CSV صادر کند.
+ * `console_panel.py` : یک رابط کاربری متنی (CLI) که به کاربر امکان می‌دهد فرآیند خزنده را کنترل کند و داده‌ها را به فرمت CSV صادر کند. [بررسی جزئیات](archive\documents\functions.fa.md#console_panelpy)
  
- * `app.py` : یک رابط کاربری تحت وب با استفاده از flask (درحال توسعه)
+ * `app.py` : یک رابط کاربری تحت وب با استفاده از flask (درحال توسعه) [بررسی جزئیات](archive\documents\functions.fa.md#apppy)
  
- * `logger.py` : سیستم ثبت وقایع برای ردیابی عملیات خزنده و اشکال‌زدایی.
+ * `logger.py` : سیستم ثبت وقایع برای ردیابی عملیات خزنده و اشکال‌زدایی. [بررسی جزئیات](archive\documents\functions.fa.md#loggerpy)
  
- * `TODOS.py` : فایلی برای سازمان دهی لیست های انجام و وباگ ها 
+ * `TODOS.py` : فایلی برای سازمان دهی لیست های انجام و وباگ ها  [بررسی جزئیات](archive\documents\functions.fa.md#todospy)
   
 کاربردها و مزایا:
 
@@ -125,7 +125,7 @@ pip install -r requirements.txt
 ```bash
 python console_panel.py
 ```
-برا استفاده از رابط کاربری تحت وب از پنل وب را اجرا کنید 
+برا استفاده از رابط کاربری تحت وب  پنل وب را اجرا کنید 
 ```bash 
 python app.py
 ```

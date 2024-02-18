@@ -31,23 +31,23 @@ The Digikala Web Crawler project is a comprehensive and flexible system for coll
 
 ### Main Features:
 
-* `db_handler.py`: Manages the SQLite database for storing and manipulating collected data.
+* `db_handler.py`: Manages the SQLite database for storing and manipulating collected data. [Check the details](archive\documents\functions.fa.md#db_handlerpy)
 
-* `driver_manager.py`: Creates and manages driver operations.
+* `driver_manager.py`: Creates and manages driver operations. [Check the details](archive\documents\functions.fa.md#driver_managerpy)
 
-* `product_details_extractor.py`: Extracts product page information from Digikala and sends the data to db_handler.
+* `product_details_extractor.py`: Extracts product page information from Digikala and sends the data to db_handler. [Check the details](archive\documents\functions.fa.md#product_details_extractorpy)
 
-* `seller_product_data_extractor.py`: Extracts category page information and seller information, and sends the data to db_handler.
+* `seller_product_data_extractor.py`: Extracts category page information and seller information, and sends the data to db_handler. [Check the details](archive\documents\functions.fa.md#seller_product_data_extractorpy)
 
-* `webScriper.py`: A file to create a crawler object and use the extraction functions.
+* `webScriper.py`: A file to create a crawler object and use the extraction functions. [Check the details](archive\documents\functions.fa.md#webscriperpy)
 
-* `console_panel.py`: A Command Line Interface (CLI) that allows the user to control the crawler process and export data in CSV format.
+* `console_panel.py`: A Command Line Interface (CLI) that allows the user to control the crawler process and export data in CSV format. [Check the details](archive\documents\functions.fa.md#console_panelpy)
 
-* `app.py`: A web-based user interface using Flask (under development).
+* `app.py`: A web-based user interface using Flask (under development). [Check the details](archive\documents\functions.fa.md#apppy)
 
-* `logger.py`: A logging system to track crawler operations and debug.
+* `logger.py`: A logging system to track crawler operations and debug. [Check the details](archive\documents\functions.fa.md#loggerpy)
 
-* `TODOS.py`: A file for organizing to-do lists and bugs.
+* `TODOS.py`: A file for organizing to-do lists and bugs. [Check the details](archive\documents\functions.fa.md#todospy)
 
 ### Applications and Benefits:
 
