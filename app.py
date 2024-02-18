@@ -1,14 +1,17 @@
 from flask import Flask, render_template, request, redirect, url_for ,jsonify 
 from source.logger import web_setup_logger
 from source.webScraper import DigiKalaScraper
-
+import os.path
 class WebGUIApp:
     def __init__(self, config_file_path,log):
         self.app = Flask(__name__)
         self.log = log
         self.scraper = DigiKalaScraper(log=self.log, config_file_path=config_file_path)
         self.add_routes()
-
+        if not os.path.exists('archive\logs\web_crawler_logs.log'):
+            with open('archive\logs\web_crawler_logs.log','w') as web_log:
+                pass
+            
     def add_routes(self):
         @self.app.route("/", methods=["GET", "POST"])
         def index():
