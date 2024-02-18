@@ -1,10 +1,1 @@
-﻿2024-02-18 22:42:31,433 - INFO - [+] Config loaded successfully.
-2024-02-18 22:42:31,821 - INFO - [+] Config loaded successfully.
-2024-02-18 22:42:39,644 - INFO - ('CZSNX', 'پردازشگران هسته ای') is being processed...
-2024-02-18 22:42:39,644 - INFO - [+] browser will work in background, headless mode is True
-2024-02-18 22:42:39,645 - INFO - Initializing Web Scraper...
-2024-02-18 22:42:43,644 - INFO - Web driver initialized successfully
-2024-02-18 22:42:43,645 - INFO - Web driver opening page loading...
-2024-02-18 22:42:43,645 - INFO - Crawling products for seller پردازشگران هسته ای with ID CZSNX.
-2024-02-18 22:42:43,648 - INFO - Found 199 available products.
-2024-02-18 22:42:43,648 - INFO - [+] Starting crawl 1 of 199: https://www.digikala.com/product/dkp-274934/%D9%87%D8%A7%D8%B1%D8%AF-%D8%A7%DA%A9%D8%B3%D8%AA%D8%B1%D9%86%D8%A7%D9%84-%D8%A7%DB%8C-%D8%AF%DB%8C%D8%AA%D8%A7-%D9%85%D8%AF%D9%84-hd710-pro-%D8%B8%D8%B1%D9%81%DB%8C%D8%AA-1-%D8%AA%D8%B1%D8%A7%D8%A8%D8%A7%DB%8C%D8%AA/
+
