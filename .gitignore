@@ -4,7 +4,7 @@ __pycache__
 *.log !(archive\logs\web_crawler_logs.log)
 *.txt !(requirements.txt)
 *.html !(home.html) !(index.html)
-*.db
+*.db !(archive\dataBase\digikala_database.db)
 *.csv
 *.html
 *.json
