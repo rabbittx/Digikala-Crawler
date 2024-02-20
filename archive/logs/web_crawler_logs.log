@@ -1,9 +1,10 @@
-﻿2024-02-19 05:24:41,983 - INFO - [+] Config loaded successfully.
-2024-02-19 05:24:42,341 - INFO - [+] Config loaded successfully.
-2024-02-20 23:09:02,571 - INFO - [+] Config loaded successfully.
-2024-02-20 23:09:02,966 - INFO - [+] Config loaded successfully.
-2024-02-20 23:09:07,388 - INFO - ('6xwus', ' هاردایران') is being processed...
-2024-02-20 23:09:07,388 - INFO - [+] browser will open normally
-2024-02-20 23:09:07,388 - INFO - Initializing Web Scraper...
-2024-02-20 23:09:07,388 - ERROR - there is no internt connection  , error : [WinError 10013] An attempt was made to access a socket in a way forbidden by its access permissions
-2024-02-20 23:09:07,388 - ERROR - there is no internet connection ! .
+﻿2024-02-20 23:28:47,893 - INFO - [+] Config loaded successfully.
+2024-02-20 23:28:48,253 - INFO - [+] Config loaded successfully.
+2024-02-20 23:28:52,894 - INFO - ('6xwus', ' هاردایران') is being processed...
+2024-02-20 23:28:52,894 - INFO - [+] browser will open normally
+2024-02-20 23:28:52,894 - INFO - Initializing Web Scraper...
+2024-02-20 23:28:58,315 - INFO - Web driver initialized successfully
+2024-02-20 23:28:58,315 - INFO - Web driver opening page loading...
+2024-02-20 23:28:58,315 - INFO - Crawling products for seller  هاردایران with ID 6xwus.
+2024-02-20 23:28:58,324 - INFO - Found 29 available products.
+2024-02-20 23:28:58,324 - INFO - [+] Starting crawl 1 of 29: https://www.digikala.com/product/dkp-12946538/%DA%A9%D8%A7%D9%85%D9%BE%DB%8C%D9%88%D8%AA%D8%B1-%D9%87%D9%85%D9%87-%DA%A9%D8%A7%D8%B1%D9%87-19-%D8%A7%DB%8C%D9%86%DA%86-%D8%B4%D8%A7%D8%B1%DA%A9-%D9%85%D8%AF%D9%84-h19/

@@ -14,7 +14,7 @@ class DriverManager:
         self.driver_path =driver_path
         self.driver_type = driver_type
         self.log.info('Initializing Web Scraper...')
-        if self.check_internet_connection():
+        if requests.get('https://www.google.com').status_code == 200 :
             self.driver = self.initialize_driver(headless_mode=headless_mode)
         else:
             self.log.error("there is no internet connection ! .")
