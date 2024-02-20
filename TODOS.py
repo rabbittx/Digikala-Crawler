@@ -18,6 +18,7 @@
 # ------------------------------------------------
 ### PANELS 
 # TODO : - [ ] check if there is internet conncetion before starting panel.
+# TODO : - [ ] add new panel for Command Line Interface, CLI
 ## web panel
 # BUG : - [ ] When the panel starts working, the report is printed twice, but it is displayed only once in the rest of the program
 ## console panel 
@@ -56,7 +57,7 @@
 
 # ------------------------------------------------
 ### webScraper.py
-# TODO : - [ ] regex patterns need to get updated to check if link is valid => eq : link start with https(fixed),url split tokens length etc ...
+# TODO : - [x] regex patterns need to get updated to check if link is valid => eq : link start with https(fixed),url split tokens length etc ...
 # TODO : - [x] all mode name need to get update in all script files . (fixed)
 
 

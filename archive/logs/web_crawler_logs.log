@@ -1,0 +1,9 @@
+﻿2024-02-19 05:24:41,983 - INFO - [+] Config loaded successfully.
+2024-02-19 05:24:42,341 - INFO - [+] Config loaded successfully.
+2024-02-20 23:09:02,571 - INFO - [+] Config loaded successfully.
+2024-02-20 23:09:02,966 - INFO - [+] Config loaded successfully.
+2024-02-20 23:09:07,388 - INFO - ('6xwus', ' هاردایران') is being processed...
+2024-02-20 23:09:07,388 - INFO - [+] browser will open normally
+2024-02-20 23:09:07,388 - INFO - Initializing Web Scraper...
+2024-02-20 23:09:07,388 - ERROR - there is no internt connection  , error : [WinError 10013] An attempt was made to access a socket in a way forbidden by its access permissions
+2024-02-20 23:09:07,388 - ERROR - there is no internet connection ! .

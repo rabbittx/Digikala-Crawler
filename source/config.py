@@ -192,3 +192,5 @@ class WebConfigManager:
     
     def set_gecko_path(self, path):
         self.set_setting('Paths', 'GeckoPath', path)
+
+

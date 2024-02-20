@@ -2,8 +2,8 @@ env
 *.exe
 __pycache__
 *.log !(archive\logs\web_crawler_logs.log)
-*.txt !(requirements.txt)
-*.html !(home.html) !(index.html)
+*.txt !(requirements.txt) 
+
 *.db !(archive\dataBase\digikala_database.db)
 *.csv
 *.html

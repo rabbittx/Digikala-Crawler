@@ -7,15 +7,19 @@ from selenium.webdriver.support import expected_conditions as EC
 from typing import Union
 from bs4 import BeautifulSoup
 from selenium.webdriver.firefox.options import Options
-
+import requests
 class DriverManager:
     def __init__(self, driver_path,log,headless_mode,driver_type):
         self.log = log
         self.driver_path =driver_path
         self.driver_type = driver_type
         self.log.info('Initializing Web Scraper...')
-        self.driver = self.initialize_driver(headless_mode=headless_mode) # to make driver headless set it to True 
-   
+        if self.check_internet_connection():
+            self.driver = self.initialize_driver(headless_mode=headless_mode)
+        else:
+            self.log.error("there is no internet connection ! .")
+            raise Exception("check your internet connection and try again !.")   
+        
     def initialize_driver(self, headless_mode):
         """
          Initialize the browser driver based on the user's choice of browser type 
@@ -279,6 +283,27 @@ class DriverManager:
             return seller_id
         except Exception as e :
             self.log.error(f"Can't find seller id , error : {e}")
+
+    def check_internet_connection(self, host="https://www.google.com",  timeout=10):
+        """
+        try to connect to google dns to check internet connection 
+        
+        Args:
+            host (str): dns  server ip address default value is "8.8.8.8".
+            port (int): connection port .
+            timeout (int): connection timeout.
+        
+        Returns:
+            bool: return True if ther  is an active internet connection otherwise False.
+        """
+        try:
+            
+            if requests.get(host,timeout=timeout).status_code == 200 :
+                return True
+        except requests.ConnectionError as ex:
+            self.log.error(f"there is no internt connection  , error : {ex}")
+            return False
+
 
     def close_driver(self):
         """
