@@ -141,7 +141,7 @@ This project is released under the GNU General Public License v3.0. This means y
 
 We are committed to creating a supportive and active community for this project. If you have questions, need assistance, or want to discuss project development, you can connect with us and other users through the following means:
 
-    Telegram Channel: We have a Telegram group where project news and updates are shared: [Telegram Link].
+    Telegram Channel: We have a Telegram group where project news and updates are shared: [[Telegram Link]](https://t.me/+WQuE2hAke0FjZjI0).
 
 ## License
 
