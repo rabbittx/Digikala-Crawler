@@ -1,4 +1,4 @@
-[read in english](documents.md)
+[به فارسی بخوانید ](documents.md)
 <div dir='rtl'>
 ## Project Introduction
 The Digikala Crawler project is a tool for extracting information from the Digikala online store website. This project allows you to extract information related to sellers, products of each seller, and complete details of each product and save it in a database. In addition, this project provides the capability to export the information in Excel file format.
