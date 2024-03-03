@@ -110,8 +110,8 @@ pip install -r requirements.txt
 
 نصب Geckodriver :
 ابتدا برای مرورگر خود geckodriver  را در دانلود کنید 
-[fireFox]('https://github.com/mozilla/geckodriver/releases')
-[chrome]('https://chromedriver.chromium.org/downloads')
+[fireFox](https://github.com/mozilla/geckodriver/releases)
+[chrome](https://chromedriver.chromium.org/downloads)
 و در مسیر مورد نظر خود یا در کنار پروژه قرار دهید 
 مسیر پیشنهادی در کنار پروژه 
 
