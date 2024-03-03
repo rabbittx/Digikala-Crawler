@@ -72,7 +72,7 @@ python --version
 پروژه را از مخزن مربوطه کلون کنید :
 ```bash 
 git clone https://github.com/rabbittx/Digikala-Crawler.git
-cd Digikala-Crawler
+cd 'Digikala-Crawler'
 ```
 گام 3: ایجاد محیط مجازی
 
