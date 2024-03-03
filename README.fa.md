@@ -69,10 +69,10 @@ python --version
 ```
 گام 2: کلون کردن مخزن پروژه
 
-پروژه را از مخزن مربوطه کلون کنید (فرض بر این است که پروژه در یک مخزن گیت قرار دارد):
+پروژه را از مخزن مربوطه کلون کنید :
 ```bash 
-git clone https://github.com/rabbittx/Digikala-Explorer.git
-cd Digikala-Explorer
+git clone https://github.com/rabbittx/Digikala-Crawler.git
+cd Digikala-Crawler
 ```
 گام 3: ایجاد محیط مجازی
 
