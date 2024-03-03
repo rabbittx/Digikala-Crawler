@@ -94,7 +94,7 @@ venv\Scripts\activate
 ```
 در macOS و Linux:
 ```bash
-source venv/bin/activate
+source env/bin/activate
 
 ```
 گام 5: نصب وابستگی‌ها
