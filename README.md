@@ -109,11 +109,9 @@ Step 6: Set up the Environment File
 
 Install Geckodriver:
 First, download geckodriver for your browser:
-[fireFox]('https://github.com/mozilla/geckodriver/releases')
-[chrome]('https://chromedriver.chromium.org/downloads')
+[fireFox](https://github.com/mozilla/geckodriver/releases)
+[chrome](https://chromedriver.chromium.org/downloads)
 and place it in your desired location or alongside the project.
-[fireFox]('https://github.com/mozilla/geckodriver/releases')
-[chrome]('https://chromedriver.chromium.org/downloads')
 Suggested path alongside the project:
 - archive\gekcodrive\firefox\geckodriver.exe
 - archive\gekcodrive\chrome\chromedriver.exe
