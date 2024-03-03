@@ -95,7 +95,7 @@ On macOS and Linux:
 
 ```bash
 
-source venv/bin/activate
+source env/bin/activate
 ```
 Step 5: Install Dependencies
 
