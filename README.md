@@ -66,12 +66,12 @@ python --version
 ```
 Step 2: Clone the Project Repository
 
-Clone the project from its repository (assuming the project is in a Git repository):
+Clone the project from its repository :
 
 ```bash
 
-git clone https://github.com/rabbittx/Digikala-Explorer.git
-cd Digikala-Explorer
+git clone https://github.com/rabbittx/Digikala-Crawler.git
+cd 'Digikala-Crawler'
 ```
 Step 3: Create a Virtual Environment
 
@@ -112,6 +112,8 @@ First, download geckodriver for your browser:
 [fireFox]('https://github.com/mozilla/geckodriver/releases')
 [chrome]('https://chromedriver.chromium.org/downloads')
 and place it in your desired location or alongside the project.
+[fireFox]('https://github.com/mozilla/geckodriver/releases')
+[chrome]('https://chromedriver.chromium.org/downloads')
 Suggested path alongside the project:
 - archive\gekcodrive\firefox\geckodriver.exe
 - archive\gekcodrive\chrome\chromedriver.exe
